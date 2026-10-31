@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="nl" data-theme-default="dark">
+<head>
+<!-- partial:head -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<script>(function(){var d=document.documentElement;d.classList.add('js');var t=null;try{t=localStorage.getItem('ak-theme');}catch(e){}var def=d.getAttribute('data-theme-default')||'dark';if(t==='light'||t==='dark')d.dataset.theme=t;else if(def!=='system')d.dataset.theme=def;})();</script>
+<link rel="preload" href="assets/fonts/young-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/site.css">
+<script src="assets/js/data.js" defer></script>
+<script src="assets/js/app.js" defer></script>
+<!-- /partial:head -->
+<title>Nieuws &amp; actualiteit · Aardrijkskundelokaal</title>
+<meta name="description" content="Actuele nieuwsartikelen over aardrijkskunde: klimaat, water, energie, steden, migratie en meer.">
+</head>
+<body data-page="nieuws">
+<!-- partial:header -->
+<a class="skip-link" href="#main">Naar de inhoud</a>
+<header class="site-header" data-header>
+  <div class="site-header__bar">
+    <a class="wordmark" href="index.html">Aardrijkskunde<span>lokaal</span></a>
+    <nav class="site-nav" id="site-nav" aria-label="Hoofdmenu">
+      <a href="index.html" data-nav="home">Home</a>
+      <a href="lesmateriaal.html" data-nav="lesmateriaal">Lesmateriaal</a>
+      <a href="nieuws.html" data-nav="nieuws">Nieuws &amp; actualiteit</a>
+      <a href="kaarten.html" data-nav="kaarten">Kaarten</a>
+      <a href="interactief.html" data-nav="interactief">Interactief</a>
+      <a href="over.html" data-nav="over">Over deze website</a>
+    </nav>
+    <div class="header-tools">
+      <button class="button button--accent button--small admin-add" type="button" data-add-open>+ Toevoegen</button>
+      <button class="icon-button" type="button" data-search-open aria-label="Zoeken">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+      </button>
+      <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="Wissel tussen donker en licht">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>
+      </button>
+      <button class="icon-button menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<!-- /partial:header -->
+
+<main id="main">
+  <header class="page-title">
+    <div class="page-title__inner">
+      <h1 class="lines"><span class="line"><span data-line style="--i:0">Nieuws</span></span></h1>
+      <p class="after-lines">Artikelen uit kranten en tijdschriften die laten zien dat aardrijkskunde nu gebeurt. Elk artikel linkt naar de oorspronkelijke bron.</p>
+    </div>
+  </header>
+  <div data-filter-group=".card-grid .news-card">
+    <div class="filters" role="group" aria-label="Filter op onderwerp">
+    <button class="chip" type="button" data-filter="alles" aria-pressed="true">Alles</button
+    <button class="chip" type="button" data-filter="Klimaat" aria-pressed="false">Klimaat</button>
+    <button class="chip" type="button" data-filter="Water" aria-pressed="false">Water</button>
+    <button class="chip" type="button" data-filter="Energie" aria-pressed="false">Energie</button>
+    <button class="chip" type="button" data-filter="Verstedelijking" aria-pressed="false">Verstedelijking</button>
+    <button class="chip" type="button" data-filter="Migratie" aria-pressed="false">Migratie</button>
+    <button class="chip" type="button" data-filter="Economie" aria-pressed="false">Economie</button>
+    <button class="chip" type="button" data-filter="Fysische geografie" aria-pressed="false">Fysische geografie</button>
+    <button class="chip" type="button" data-filter="Bevolking" aria-pressed="false">Bevolking</button>
+    </div>
+    <div class="card-grid" data-reveal>
+    <article class="news-card" data-tags="Klimaat,Water">
+      <div class="news-card__media"><img src="assets/img/delta.jpg" loading="lazy" alt=""></div>
+      <div class="news-card__body">
+        <p class="news-card__source"><strong>De Dagkrant</strong><span>Redactie binnenland</span><span>28 oktober 2026</span></p>
+        <h2 class="h3"><a href="https://example.org/" rel="noopener">Kustonderhoud: meer zand nodig dan gedacht</a></h2>
+        <p>De zeespiegel stijgt sneller dan in eerdere berekeningen. Daardoor moet er jaarlijks meer zand voor de kust worden gespoten.</p>
+        <div class="news-card__foot"><ul class="tags"><li class="tag">Klimaat</li><li class="tag">Water</li></ul><span class="news-card__go">Lees bij de bron <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
+      </div>
+    </article>
+    <article class="news-card" data-tags="Energie">
+      <div class="news-card__media"><img src="assets/img/energie.jpg" loading="lazy" alt=""></div>
+      <div class="news-card__body">
+        <p class="news-card__source"><strong>Geo Weekblad</strong><span>24 oktober 2026</span></p>
+        <h2 class="h3"><a href="https://example.org/" rel="noopener">Windpark op zee levert eerste stroom</a></h2>
+        <p>Het nieuwe park ligt verder uit de kust dan het vorige. Wat betekent dat voor de aanleg van kabels en voor de visserij?</p>
+        <div class="news-card__foot"><ul class="tags"><li class="tag">Energie</li></ul><span class="news-card__go">Lees bij de bron <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
+      </div>
+    </article>
+    <article class="news-card" data-tags="Verstedelijking">
+      
+      <div class="news-card__body">
+        <p class="news-card__source"><strong>Stadsjournaal</strong><span>M. de Vries</span><span>19 oktober 2026</span></p>
+        <h2 class="h3"><a href="https://example.org/" rel="noopener">Middelgrote steden groeien sneller dan de Randstad</a></h2>
+        <p>Steden als Zwolle en Amersfoort trekken jonge gezinnen die in de grote steden geen huis vinden.</p>
+        <div class="news-card__foot"><ul class="tags"><li class="tag">Verstedelijking</li></ul><span class="news-card__go">Lees bij de bron <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
+      </div>
+    </article>
+    <article class="news-card" data-tags="Water,Economie">
+      <div class="news-card__media"><img src="assets/img/rivier.jpg" loading="lazy" alt=""></div>
+      <div class="news-card__body">
+        <p class="news-card__source"><strong>De Dagkrant</strong><span>14 oktober 2026</span></p>
+        <h2 class="h3"><a href="https://example.org/" rel="noopener">Droogte op de Rijn raakt binnenvaart opnieuw</a></h2>
+        <p>Schepen varen half beladen door de lage waterstand bij Lobith. Hoe hangt dat samen met smeltwater uit de Alpen?</p>
+        <div class="news-card__foot"><ul class="tags"><li class="tag">Water</li><li class="tag">Economie</li></ul><span class="news-card__go">Lees bij de bron <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
+      </div>
+    </article>
+    <article class="news-card" data-tags="Fysische geografie">
+      <div class="news-card__media"><img src="assets/img/reliefkaart.jpg" loading="lazy" alt=""></div>
+      <div class="news-card__body">
+        <p class="news-card__source"><strong>Wetenschapsbericht</strong><span>9 oktober 2026</span></p>
+        <h2 class="h3"><a href="https://example.org/" rel="noopener">Nieuwe kaart toont bodemdaling per straat</a></h2>
+        <p>Met satellietmetingen is per straat te zien hoeveel de grond daalt. In veengebieden gaat het om centimeters per jaar.</p>
+        <div class="news-card__foot"><ul class="tags"><li class="tag">Fysische geografie</li></ul><span class="news-card__go">Lees bij de bron <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
+      </div>
+    </article>
+    <article class="news-card" data-tags="Migratie">
+      
+      <div class="news-card__body">
+        <p class="news-card__source"><strong>Geo Weekblad</strong><span>A. Jansen</span><span>2 oktober 2026</span></p>
+        <h2 class="h3"><a href="https://example.org/" rel="noopener">Arbeidsmigratie verschuift naar Oost-Europa</a></h2>
+        <p>Steeds meer arbeidsmigranten komen uit landen verder naar het oosten. Wat zijn de push- en pullfactoren?</p>
+        <div class="news-card__foot"><ul class="tags"><li class="tag">Migratie</li></ul><span class="news-card__go">Lees bij de bron <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
+      </div>
+    </article>
+    <article class="news-card" data-tags="Verstedelijking,Bevolking">
+      <div class="news-card__media"><img src="assets/img/bevolking.jpg" loading="lazy" alt=""></div>
+      <div class="news-card__body">
+        <p class="news-card__source"><strong>Stadsjournaal</strong><span>27 september 2026</span></p>
+        <h2 class="h3"><a href="https://example.org/" rel="noopener">Nachtkaart laat groei van stedelijke gebieden zien</a></h2>
+        <p>Op satellietbeelden van de nacht is te zien hoe steden in twintig jaar zijn uitgegroeid.</p>
+        <div class="news-card__foot"><ul class="tags"><li class="tag">Verstedelijking</li><li class="tag">Bevolking</li></ul><span class="news-card__go">Lees bij de bron <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
+      </div>
+    </article>
+    <article class="news-card" data-tags="Klimaat">
+      <div class="news-card__media"><img src="assets/img/klimaat.jpg" loading="lazy" alt=""></div>
+      <div class="news-card__body">
+        <p class="news-card__source"><strong>Wetenschapsbericht</strong><span>20 september 2026</span></p>
+        <h2 class="h3"><a href="https://example.org/" rel="noopener">Klimaatzones schuiven op naar het noorden</a></h2>
+        <p>Planten en dieren die bij een warmer klimaat horen, worden steeds vaker in Nederland gezien.</p>
+        <div class="news-card__foot"><ul class="tags"><li class="tag">Klimaat</li></ul><span class="news-card__go">Lees bij de bron <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
+      </div>
+    </article>
+    </div>
+  </div>
+  <section class="section wrap" aria-labelledby="coll-title">
+    <div class="years__head"><h2 id="coll-title"><span>Nieuwsbundels</span>per thema</h2></div>
+    <ol class="bands">
+      <li><a class="band" href="nieuws.html"><span class="band__num">6</span><span class="band__title">Water: te veel en te weinig<span class="band__note">Kustonderhoud, droogte op de Rijn, bodemdaling</span></span><span class="band__meta">bij 2 havo/vwo H2</span></a></li>
+      <li><a class="band" href="nieuws.html"><span class="band__num">4</span><span class="band__title">De energietransitie in het nieuws<span class="band__note">Windparken, zonneweides, het stroomnet</span></span><span class="band__meta">bij 3 vwo H2</span></a></li>
+      <li><a class="band" href="nieuws.html"><span class="band__num">5</span><span class="band__title">Steden die groeien<span class="band__note">Verstedelijking in Nederland en de wereld</span></span><span class="band__meta">bij 5 vwo H3</span></a></li>
+    </ol>
+  </section>
+</main>
+
+<!-- partial:footer -->
+<footer class="site-footer">
+  <div class="footer-cols">
+    <div>
+      <h2>Lesmateriaal</h2>
+      <ul>
+        <li><a href="lesmateriaal.html#leerjaar-1-havo-vwo">1 havo/vwo</a></li>
+        <li><a href="lesmateriaal.html#leerjaar-2-havo-vwo">2 havo/vwo</a></li>
+        <li><a href="lesmateriaal.html#leerjaar-3-havo">3 havo</a></li>
+        <li><a href="lesmateriaal.html#leerjaar-3-vwo">3 vwo</a></li>
+        <li><a href="lesmateriaal.html#leerjaar-4-havo">4 havo</a></li>
+        <li><a href="lesmateriaal.html#leerjaar-5-vwo">5 vwo</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Ontdekken</h2>
+      <ul>
+        <li><a href="nieuws.html">Nieuws &amp; actualiteit</a></li>
+        <li><a href="kaarten.html">Kaarten</a></li>
+        <li><a href="interactief.html">Interactief</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Over</h2>
+      <ul>
+        <li><a href="over.html">Over deze website</a></li>
+        <li><a href="over.html#bronnen">Bronnen en auteursrecht</a></li>
+        <li><a href="over.html#privacy">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Voor de docent</h2>
+      <ul>
+        <li><a href="?beheer=1" data-admin-demo>Beheer inschakelen (demo)</a></li>
+        <li><a href="../docs/README.md">Documentatie</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-word">
+    <svg class="word-wide" viewBox="0 0 1000 118" role="img" aria-label="Aardrijkskundelokaal"><text x="0" y="100" font-size="128" textLength="1000" lengthAdjust="spacingAndGlyphs">Aardrijkskundelokaal</text></svg>
+    <svg class="word-mobile" viewBox="0 0 1000 300" role="img" aria-label="Aardrijkskundelokaal"><text x="0" y="128" font-size="150" textLength="1000" lengthAdjust="spacingAndGlyphs">Aardrijkskunde</text><text x="0" y="286" font-size="150" textLength="560" lengthAdjust="spacingAndGlyphs">lokaal</text></svg>
+    <p class="footer-legal"><span>Lesmateriaal mag vrij gebruikt worden in de les. Nieuwsartikelen blijven van hun oorspronkelijke uitgever.</span><span>Voorbeeldkaarten in dit prototype zijn getekend; ze worden vervangen door eigen kaartmateriaal.</span></p>
+  </div>
+</footer>
+
+<dialog class="search-dialog" data-search-dialog aria-label="Zoeken">
+  <form role="search" action="zoeken.html" data-search-form>
+    <label class="visually-hidden" for="search-dialog-input">Zoek in het lokaal</label>
+    <input id="search-dialog-input" name="q" type="search" placeholder="Zoek een hoofdstuk, kaart of artikel" autocomplete="off" data-search-input>
+    <button class="icon-button" type="button" data-search-close aria-label="Sluiten">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </form>
+  <div class="search-live" data-search-results aria-live="polite"></div>
+</dialog>
+
+<dialog class="lightbox" data-lightbox aria-label="Vergrote afbeelding">
+  <div class="lightbox__inner">
+    <div class="lightbox__bar">
+      <button class="icon-button" type="button" data-lightbox-zoom aria-label="In- of uitzoomen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M10.5 7.5v6M7.5 10.5h6"/></svg>
+      </button>
+      <button class="icon-button" type="button" data-lightbox-close aria-label="Sluiten">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="lightbox__stage" data-lightbox-stage><img alt="" data-lightbox-img></div>
+    <p class="lightbox__caption" data-lightbox-caption></p>
+  </div>
+</dialog>
+
+<dialog class="add-dialog" data-add-dialog aria-labelledby="add-title">
+  <form method="dialog" class="add-dialog__inner" data-add-form>
+    <h2 id="add-title">Materiaal toevoegen</h2>
+    <label class="dropzone" data-dropzone>
+      <span>Sleep bestanden hierheen of <u>kies bestanden</u><br><span class="muted">PowerPoint, PDF, Word, JPG, PNG of WebP</span></span>
+      <input class="visually-hidden" type="file" multiple accept=".pptx,.ppt,.pdf,.docx,.doc,.jpg,.jpeg,.png,.webp" data-add-files>
+    </label>
+    <ul class="file-list" data-add-list></ul>
+    <label>Of plak een link (video, website, nieuwsartikel)
+      <input type="text" inputmode="url" placeholder="https://" data-add-url>
+    </label>
+    <div class="field-row">
+      <label>Leerjaar<select data-add-year></select></label>
+      <label>Hoofdstuk<select data-add-chapter></select></label>
+    </div>
+    <label>Paragraaf<select data-add-paragraph></select></label>
+    <div class="block__actions">
+      <button class="button button--accent" value="publish" data-add-publish>Publiceren</button>
+      <button class="button button--quiet" value="draft">Als concept bewaren</button>
+      <button class="button button--quiet" value="cancel" formnovalidate>Annuleren</button>
+    </div>
+    <p class="block__note" data-add-status>In het prototype wordt nog niets opgeslagen. In WordPress gaat dit naar de mediabibliotheek.</p>
+  </form>
+</dialog>
+<!-- /partial:footer -->
+</body>
+</html>

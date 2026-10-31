@@ -1,0 +1,7 @@
+.taste-skill/inspect*/
+.taste-skill/scenes*/
+node_modules/
+.env
+wordpress/backups/
+*.log
+.DS_Store

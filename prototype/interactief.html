@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="nl" data-theme-default="dark">
+<head>
+<!-- partial:head -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<script>(function(){var d=document.documentElement;d.classList.add('js');var t=null;try{t=localStorage.getItem('ak-theme');}catch(e){}var def=d.getAttribute('data-theme-default')||'dark';if(t==='light'||t==='dark')d.dataset.theme=t;else if(def!=='system')d.dataset.theme=def;})();</script>
+<link rel="preload" href="assets/fonts/young-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/site.css">
+<script src="assets/js/data.js" defer></script>
+<script src="assets/js/app.js" defer></script>
+<!-- /partial:head -->
+<title>Interactief · Aardrijkskundelokaal</title>
+<meta name="description" content="Eigen oefeningen, spellen en simulaties voor aardrijkskunde.">
+</head>
+<body data-page="interactief">
+<!-- partial:header -->
+<a class="skip-link" href="#main">Naar de inhoud</a>
+<header class="site-header" data-header>
+  <div class="site-header__bar">
+    <a class="wordmark" href="index.html">Aardrijkskunde<span>lokaal</span></a>
+    <nav class="site-nav" id="site-nav" aria-label="Hoofdmenu">
+      <a href="index.html" data-nav="home">Home</a>
+      <a href="lesmateriaal.html" data-nav="lesmateriaal">Lesmateriaal</a>
+      <a href="nieuws.html" data-nav="nieuws">Nieuws &amp; actualiteit</a>
+      <a href="kaarten.html" data-nav="kaarten">Kaarten</a>
+      <a href="interactief.html" data-nav="interactief">Interactief</a>
+      <a href="over.html" data-nav="over">Over deze website</a>
+    </nav>
+    <div class="header-tools">
+      <button class="button button--accent button--small admin-add" type="button" data-add-open>+ Toevoegen</button>
+      <button class="icon-button" type="button" data-search-open aria-label="Zoeken">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+      </button>
+      <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="Wissel tussen donker en licht">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>
+      </button>
+      <button class="icon-button menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<!-- /partial:header -->
+
+<main id="main">
+  <header class="page-title">
+    <div class="page-title__inner">
+      <h1 class="lines"><span class="line"><span data-line style="--i:0">Interactief</span></span></h1>
+      <p class="after-lines">Oefeningen, spellen en simulaties die we zelf gemaakt hebben. Ze draaien in een afgeschermd venster en werken op telefoon, laptop en digibord.</p>
+    </div>
+  </header>
+  <section class="tools" aria-label="Toepassingen" style="margin-top: clamp(64px, 8vw, 120px)">
+    <div class="on-axis">
+      <article class="tool-row" id="topografie" data-reveal>
+        <div>
+          <h2 class="h3">Topografie Nederland</h2>
+          <p>Provincies, steden en rivieren aanwijzen op de kaart. Je ziet meteen wat goed is en oefent alleen wat je nog niet kent.</p>
+          <a class="button button--small" href="#topografie">Start topografie nederland</a>
+        </div>
+        <div class="tool-row__media"><img src="assets/img/delta.jpg" loading="lazy" alt=""></div>
+      </article>
+      <article class="tool-row" id="raad-de-stad" data-reveal>
+        <div>
+          <h2 class="h3">Raad de stad</h2>
+          <p>Je ziet een stad van bovenaf, zonder namen. Aan de rivier, de haven en de vorm van de wijken raad je welke stad het is.</p>
+          <a class="button button--small" href="#raad-de-stad">Start raad de stad</a>
+        </div>
+        <div class="tool-row__media"><img src="assets/img/bevolking.jpg" loading="lazy" alt=""></div>
+      </article>
+      <article class="tool-row" id="groeiende-stad" data-reveal>
+        <div>
+          <h2 class="h3">De groeiende stad</h2>
+          <p>Bouw zelf een stad over vijftig jaar. Waar komen wegen, wijken en parken, en wat gebeurt er met het verkeer als je niets plant?</p>
+          <a class="button button--small" href="#groeiende-stad">Start de groeiende stad</a>
+        </div>
+        <div class="tool-row__media"><img src="assets/img/energie.jpg" loading="lazy" alt=""></div>
+      </article>
+      <article class="tool-row" id="klimaatdiagram" data-reveal>
+        <div>
+          <h2 class="h3">Klimaatdiagram maken</h2>
+          <p>Vul twaalf maanden temperatuur en neerslag in en zie het diagram ontstaan. Vergelijk daarna met een plaats aan de andere kant van de wereld.</p>
+          <a class="button button--small" href="#klimaatdiagram">Start klimaatdiagram maken</a>
+        </div>
+        <div class="tool-row__media"><img src="assets/img/klimaat.jpg" loading="lazy" alt=""></div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<!-- partial:footer -->
+<footer class="site-footer">
+  <div class="footer-cols">
+    <div>
+      <h2>Lesmateriaal</h2>
+      <ul>
+        <li><a href="lesmateriaal.html#leerjaar-1-havo-vwo">1 havo/vwo</a></li>
+        <li><a href="lesmateriaal.html#leerjaar-2-havo-vwo">2 havo/vwo</a></li>
+        <li><a href="lesmateriaal.html#leerjaar-3-havo">3 havo</a></li>
+        <li><a href="lesmateriaal.html#leerjaar-3-vwo">3 vwo</a></li>
+        <li><a href="lesmateriaal.html#leerjaar-4-havo">4 havo</a></li>
+        <li><a href="lesmateriaal.html#leerjaar-5-vwo">5 vwo</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Ontdekken</h2>
+      <ul>
+        <li><a href="nieuws.html">Nieuws &amp; actualiteit</a></li>
+        <li><a href="kaarten.html">Kaarten</a></li>
+        <li><a href="interactief.html">Interactief</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Over</h2>
+      <ul>
+        <li><a href="over.html">Over deze website</a></li>
+        <li><a href="over.html#bronnen">Bronnen en auteursrecht</a></li>
+        <li><a href="over.html#privacy">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Voor de docent</h2>
+      <ul>
+        <li><a href="?beheer=1" data-admin-demo>Beheer inschakelen (demo)</a></li>
+        <li><a href="../docs/README.md">Documentatie</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-word">
+    <svg class="word-wide" viewBox="0 0 1000 118" role="img" aria-label="Aardrijkskundelokaal"><text x="0" y="100" font-size="128" textLength="1000" lengthAdjust="spacingAndGlyphs">Aardrijkskundelokaal</text></svg>
+    <svg class="word-mobile" viewBox="0 0 1000 300" role="img" aria-label="Aardrijkskundelokaal"><text x="0" y="128" font-size="150" textLength="1000" lengthAdjust="spacingAndGlyphs">Aardrijkskunde</text><text x="0" y="286" font-size="150" textLength="560" lengthAdjust="spacingAndGlyphs">lokaal</text></svg>
+    <p class="footer-legal"><span>Lesmateriaal mag vrij gebruikt worden in de les. Nieuwsartikelen blijven van hun oorspronkelijke uitgever.</span><span>Voorbeeldkaarten in dit prototype zijn getekend; ze worden vervangen door eigen kaartmateriaal.</span></p>
+  </div>
+</footer>
+
+<dialog class="search-dialog" data-search-dialog aria-label="Zoeken">
+  <form role="search" action="zoeken.html" data-search-form>
+    <label class="visually-hidden" for="search-dialog-input">Zoek in het lokaal</label>
+    <input id="search-dialog-input" name="q" type="search" placeholder="Zoek een hoofdstuk, kaart of artikel" autocomplete="off" data-search-input>
+    <button class="icon-button" type="button" data-search-close aria-label="Sluiten">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </form>
+  <div class="search-live" data-search-results aria-live="polite"></div>
+</dialog>
+
+<dialog class="lightbox" data-lightbox aria-label="Vergrote afbeelding">
+  <div class="lightbox__inner">
+    <div class="lightbox__bar">
+      <button class="icon-button" type="button" data-lightbox-zoom aria-label="In- of uitzoomen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M10.5 7.5v6M7.5 10.5h6"/></svg>
+      </button>
+      <button class="icon-button" type="button" data-lightbox-close aria-label="Sluiten">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="lightbox__stage" data-lightbox-stage><img alt="" data-lightbox-img></div>
+    <p class="lightbox__caption" data-lightbox-caption></p>
+  </div>
+</dialog>
+
+<dialog class="add-dialog" data-add-dialog aria-labelledby="add-title">
+  <form method="dialog" class="add-dialog__inner" data-add-form>
+    <h2 id="add-title">Materiaal toevoegen</h2>
+    <label class="dropzone" data-dropzone>
+      <span>Sleep bestanden hierheen of <u>kies bestanden</u><br><span class="muted">PowerPoint, PDF, Word, JPG, PNG of WebP</span></span>
+      <input class="visually-hidden" type="file" multiple accept=".pptx,.ppt,.pdf,.docx,.doc,.jpg,.jpeg,.png,.webp" data-add-files>
+    </label>
+    <ul class="file-list" data-add-list></ul>
+    <label>Of plak een link (video, website, nieuwsartikel)
+      <input type="text" inputmode="url" placeholder="https://" data-add-url>
+    </label>
+    <div class="field-row">
+      <label>Leerjaar<select data-add-year></select></label>
+      <label>Hoofdstuk<select data-add-chapter></select></label>
+    </div>
+    <label>Paragraaf<select data-add-paragraph></select></label>
+    <div class="block__actions">
+      <button class="button button--accent" value="publish" data-add-publish>Publiceren</button>
+      <button class="button button--quiet" value="draft">Als concept bewaren</button>
+      <button class="button button--quiet" value="cancel" formnovalidate>Annuleren</button>
+    </div>
+    <p class="block__note" data-add-status>In het prototype wordt nog niets opgeslagen. In WordPress gaat dit naar de mediabibliotheek.</p>
+  </form>
+</dialog>
+<!-- /partial:footer -->
+</body>
+</html>
