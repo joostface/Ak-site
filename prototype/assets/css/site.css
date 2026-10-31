@@ -8,7 +8,11 @@
 
 /* ---------- basis ---------- */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: calc(var(--header-h) + 24px); }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: calc(var(--header-h) + var(--admin-offset, 0px) + 24px); }
+/* WordPress-werkbalk voor ingelogde beheerders: kop en menu schuiven eronder vandaan */
+html:has(body.admin-bar) { --admin-offset: 32px; }
+@media (max-width: 782px) { html:has(body.admin-bar) { --admin-offset: 46px; } }
+@media (max-width: 600px) { html:has(body.admin-bar) { --admin-offset: 0px; } }
 body {
   margin: 0;
   background: var(--bg);
@@ -61,7 +65,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* ---------- kop ---------- */
 .site-header {
-  position: sticky; top: 0; z-index: 40;
+  position: sticky; top: var(--admin-offset, 0px); z-index: 40;
   background: var(--bg);
   transition: background-color var(--dur) ease, transform var(--dur) var(--ease-out);
 }
@@ -450,7 +454,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   margin-top: clamp(72px, 8vw, 128px);
 }
 .year-block__head { grid-column: 1 / 5; }
-.year-block__head > div { position: sticky; top: calc(var(--header-h) + 24px); }
+.year-block__head > div { position: sticky; top: calc(var(--header-h) + var(--admin-offset, 0px) + 24px); }
 .year-block__head h2 { font-size: var(--step-head); }
 .year-block__head p { margin-top: 14px; color: var(--muted); font-size: var(--step-body); max-width: 26ch; }
 .year-block .bands { grid-column: 5 / 13; }
@@ -468,7 +472,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   margin-top: clamp(48px, 6vw, 96px);
   align-items: start;
 }
-.toc { grid-column: 1 / 4; position: sticky; top: calc(var(--header-h) + 16px); max-height: calc(100svh - var(--header-h) - 32px); overflow: auto; scrollbar-width: thin; }
+.toc { grid-column: 1 / 4; position: sticky; top: calc(var(--header-h) + var(--admin-offset, 0px) + 16px); max-height: calc(100svh - var(--header-h) - var(--admin-offset, 0px) - 32px); overflow: auto; scrollbar-width: thin; }
 .toc__title { font-family: var(--font-display); font-size: var(--step-card); line-height: 1.1; margin-bottom: 18px; }
 .toc__title span { display: block; font-family: var(--font-text); font-size: var(--step-small); color: var(--muted); margin-top: 6px; letter-spacing: 0; }
 .toc ol { list-style: none; display: grid; gap: 2px; }
@@ -513,7 +517,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .chapter { display: block; }
   .toc { display: none; }
   .toc-mobile {
-    display: block; position: sticky; top: var(--header-h); z-index: 30;
+    display: block; position: sticky; top: calc(var(--header-h) + var(--admin-offset, 0px)); z-index: 30;
     background: var(--bg);
     margin-inline: calc(-1 * var(--margin)); padding: 8px var(--margin);
   }
@@ -654,7 +658,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 40px var(--margin) 0; margin-left: calc(var(--axis) - var(--margin)); }
 .chip {
   border: 0; border-radius: 999px; min-height: 40px; padding: 0 16px; cursor: pointer;
-  background: var(--surface); font-size: var(--step-small);
+  background: var(--surface); font-size: 1rem;
   transition: background-color var(--dur-fast) ease;
 }
 .chip:hover { background: var(--surface-2); }
@@ -799,3 +803,26 @@ a.chip { display: inline-grid; place-items: center; text-decoration: none; }
   .site-header__bar { gap: 8px; }
   .is-admin .button.admin-add { padding: 0 12px; }
 }
+
+/* ---------- kaartviewer (WordPress: single-ak_kaart) ---------- */
+.map-viewer { position: relative; background: var(--surface); border-radius: var(--radius); overflow: hidden; }
+.map-viewer:fullscreen { border-radius: 0; display: grid; grid-template-rows: auto 1fr; }
+.map-viewer__bar { position: absolute; z-index: 2; top: 12px; right: 12px; display: flex; gap: 6px; padding: 6px; border-radius: var(--radius); background: var(--bg); }
+.map-viewer__stage { height: min(78svh, 900px); overflow: hidden; display: grid; place-items: center; cursor: grab; touch-action: none; }
+.map-viewer:fullscreen .map-viewer__stage, .map-viewer:fullscreen .map-viewer__app { height: 100svh; }
+.map-viewer__stage:active { cursor: grabbing; }
+.map-viewer__stage img { max-width: 100%; max-height: 100%; width: auto; height: auto; transform-origin: center; user-select: none; transition: transform 120ms ease-out; }
+.map-viewer__app { width: 100%; height: min(80svh, 900px); border: 0; display: block; }
+.map-info { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter); margin-top: 40px; }
+.map-info__legend { grid-column: 1 / 5; }
+.map-info .prose { grid-column: 5 / 12; }
+.map-info h2 { font-size: var(--step-card); margin-bottom: 12px; }
+.map-legend { list-style: none; display: grid; gap: 6px; }
+@media (max-width: 860px) { .map-info { display: block; } .map-info .prose { margin-top: 24px; } }
+
+/* ankers op mobiel: ook ruimte voor het vaste paragrafenmenu */
+@media (max-width: 860px) {
+  html { scroll-padding-top: calc(var(--header-h) + var(--admin-offset, 0px) + 92px); }
+}
+/* lange presentatietitels niet over het voorbeeldbeeld */
+.slide img ~ .slide__inner b { max-width: 54%; font-size: 6.4cqw; }

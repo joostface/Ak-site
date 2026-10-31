@@ -1,0 +1,124 @@
+# Aardrijkskundelokaal — Docker-stack voor Portainer (Stacks → Add stack → Repository of Web editor)
+#
+# Diensten
+#   db         MariaDB, alleen bereikbaar binnen deze stack
+#   wordpress  WordPress + PHP 8.3 + Apache, met het eigen thema en de eigen plugin
+#   apps       interactieve toepassingen (eigen HTML/JS) op een apart subdomein
+#   backup     dagelijkse back-up van database en bestanden naar ./backups (en optioneel extern)
+#   converter  (optioneel, profiel "conversie") Gotenberg/LibreOffice: PowerPoint → PDF-voorvertoning
+#   tunnel     (optioneel, profiel "tunnel") Cloudflare Tunnel: HTTPS zonder open poorten
+#
+# Starten:              docker compose up -d
+# Met PDF-conversie:    docker compose --profile conversie up -d
+# Met Cloudflare:       docker compose --profile tunnel up -d
+# Alle waarden komen uit .env (kopieer .env.example naar .env en vul in).
+
+name: aklokaal
+
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-aklokaal}
+      MARIADB_USER: ${DB_USER:-aklokaal}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?zet DB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?zet DB_ROOT_PASSWORD in .env}
+    volumes:
+      - db:/var/lib/mysql
+    networks: [intern]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  wordpress:
+    image: wordpress:6-php8.3-apache
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: ${DB_NAME:-aklokaal}
+      WORDPRESS_DB_USER: ${DB_USER:-aklokaal}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: ak_
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', '${SITE_URL:-http://localhost:8080}');
+        define('WP_SITEURL', '${SITE_URL:-http://localhost:8080}');
+        define('DISALLOW_FILE_EDIT', true);
+        define('WP_POST_REVISIONS', 20);
+        define('AUTOMATIC_UPDATER_DISABLED', false);
+        define('WP_AUTO_UPDATE_CORE', 'minor');
+        define('AKLOKAAL_CONVERTER_URL', '${CONVERTER_URL:-}');
+        if (isset($$_SERVER['HTTP_X_FORWARDED_PROTO']) && $$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') { $$_SERVER['HTTPS'] = 'on'; }
+    volumes:
+      - wp:/var/www/html
+      - ./wp-content/themes/aklokaal:/var/www/html/wp-content/themes/aklokaal:ro
+      - ./wp-content/plugins/aklokaal-core:/var/www/html/wp-content/plugins/aklokaal-core:ro
+      - ./config/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini:ro
+    ports:
+      # Alleen op de thuisserver zelf; publiek gaat via de Cloudflare Tunnel.
+      - "${HTTP_BIND:-127.0.0.1}:${HTTP_PORT:-8080}:80"
+    networks: [intern, web]
+
+  backup:
+    image: mariadb:11
+    restart: unless-stopped
+    depends_on: [db]
+    entrypoint: ["/bin/bash", "/backup/backup.sh"]
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:-aklokaal}
+      DB_USER: ${DB_USER:-aklokaal}
+      DB_PASSWORD: ${DB_PASSWORD}
+      KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      BACKUP_HOUR: ${BACKUP_HOUR:-3}
+    volumes:
+      - ./backup:/backup:ro
+      - ./backups:/backups
+      - wp:/site:ro
+      - ./wp-content/themes/aklokaal:/repo/theme:ro
+      - ./wp-content/plugins/aklokaal-core:/repo/plugin:ro
+    networks: [intern]
+
+  apps:
+    # Interactieve toepassingen op een eigen subdomein (zie apps/README.md)
+    image: nginx:alpine
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/var/cache/nginx, /var/run, /etc/nginx/conf.d]
+    environment:
+      FRAME_ANCESTORS: ${SITE_URL:-http://localhost:8080}
+    volumes:
+      - ../apps:/usr/share/nginx/html:ro
+      - ../apps/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    ports:
+      - "${HTTP_BIND:-127.0.0.1}:${APPS_PORT:-8081}:80"
+    networks: [web]
+
+  converter:
+    image: gotenberg/gotenberg:8
+    restart: unless-stopped
+    profiles: [conversie]
+    command: ["gotenberg", "--api-timeout=120s", "--chromium-disable-routes=true"]
+    networks: [intern]
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    profiles: [tunnel]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    networks: [web]
+
+volumes:
+  db:
+  wp:
+
+networks:
+  intern:
+  web:

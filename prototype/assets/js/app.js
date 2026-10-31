@@ -28,6 +28,7 @@
 
   /* ---------- beheer (alleen prototype: ?beheer=1) ---------- */
   function initAdminDemo() {
+    if (!window.AK_DATA) return; // alleen in het statische prototype
     const p = new URLSearchParams(location.search);
     if (p.has('beheer')) store.set('ak-beheer', p.get('beheer') === '0' ? '' : '1');
     if (store.get('ak-beheer')) root.classList.add('is-admin');
@@ -103,16 +104,39 @@
       box.append(a);
     }
   }
+  // In WordPress zet het thema data-search-api op <html>; dan zoekt de server mee.
+  const searchApi = root.dataset.searchApi;
+  let index = null;
+  async function find(q, max) {
+    if (searchApi) {
+      if (q.trim().length < 2) return [];
+      try {
+        const res = await fetch(searchApi + (searchApi.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q));
+        return res.ok ? (await res.json()).slice(0, max) : [];
+      } catch { return []; }
+    }
+    index = index || buildIndex();
+    return search(index, q, max);
+  }
+  function liveRender(box, q, max) {
+    let token = 0;
+    return async () => {
+      const mine = ++token;
+      const list = await find(q(), max);
+      if (mine === token) renderResults(box, list, q());
+    };
+  }
+  function debounce(fn, ms) { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; }
   function initSearch() {
-    const idx = buildIndex();
     // live zoeken in een vak op de pagina (home, zoekpagina)
     $$('[data-live-search]').forEach((form) => {
       const input = $('input', form);
       const box = $(form.dataset.liveSearch);
       if (!input || !box) return;
-      input.addEventListener('input', () => renderResults(box, search(idx, input.value, 5), input.value));
+      const run = liveRender(box, () => input.value, 5);
+      input.addEventListener('input', debounce(run, searchApi ? 180 : 0));
       const q = new URLSearchParams(location.search).get('q');
-      if (q && form.hasAttribute('data-from-query')) { input.value = q; renderResults(box, search(idx, q, 30), q); }
+      if (q && form.hasAttribute('data-from-query')) { input.value = q; liveRender(box, () => q, 30)(); }
     });
     // zoekvenster in de kop
     const dlg = $('[data-search-dialog]');
@@ -123,7 +147,7 @@
     $$('[data-search-open]').forEach((b) => b.addEventListener('click', open));
     $('[data-search-close]', dlg).addEventListener('click', () => dlg.close());
     dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
-    input.addEventListener('input', () => renderResults(box, search(idx, input.value), input.value));
+    input.addEventListener('input', debounce(liveRender(box, () => input.value, 8), searchApi ? 180 : 0));
     document.addEventListener('keydown', (e) => {
       const typing = /input|textarea|select/i.test(document.activeElement?.tagName || '');
       if ((e.key === '/' && !typing) || (e.key === 'k' && (e.metaKey || e.ctrlKey))) { e.preventDefault(); open(); }
@@ -247,6 +271,8 @@
       b.setAttribute('aria-expanded', String(!target.hidden));
       b.addEventListener('click', () => {
         target.hidden = !target.hidden;
+        // pdf-voorvertoningen pas laden als iemand ze opent
+        if (!target.hidden) $$('iframe[data-src]', target).forEach((f) => { if (!f.src) f.src = f.dataset.src; });
         b.setAttribute('aria-expanded', String(!target.hidden));
         const span = b.querySelector('span');
         if (span && b.dataset.labelOpen) span.textContent = target.hidden ? b.dataset.labelClosed : b.dataset.labelOpen;

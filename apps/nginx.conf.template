@@ -1,0 +1,19 @@
+# Server voor interactieve toepassingen, op een eigen subdomein (bijvoorbeeld apps.jouwdomein.nl).
+# Los van WordPress: een fout of onveilig script in een toepassing kan niet bij de beheeromgeving.
+server {
+  listen 80;
+  server_name _;
+  root /usr/share/nginx/html;
+  index index.html;
+  autoindex off;
+  server_tokens off;
+
+  # Alleen insluiten op de eigen website toestaan (pas het domein aan in .env → APPS_FRAME_ANCESTORS).
+  add_header Content-Security-Policy "frame-ancestors 'self' ${FRAME_ANCESTORS}" always;
+  add_header X-Content-Type-Options nosniff always;
+  add_header Referrer-Policy no-referrer always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+  location ~ /\. { deny all; }
+  location / { try_files $uri $uri/ =404; }
+}

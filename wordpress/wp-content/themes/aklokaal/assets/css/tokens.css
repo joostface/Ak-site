@@ -1,0 +1,111 @@
+/* ==========================================================================
+   Aardrijkskundelokaal — design tokens
+   Eén bron voor kleur, type, ruimte en beweging. Alle componenten gebruiken
+   alleen deze variabelen. Het WordPress-thema laadt exact dit bestand.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Young Serif";
+  src: url("../fonts/young-serif-latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("../fonts/source-serif-4-latin.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("../fonts/source-serif-4-italic-latin.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Donker (standaard): het schoolbord */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #171e1b;          /* bord */
+  --surface: #1e2823;     /* één stap lichter: panelen */
+  --surface-2: #26352d;   /* velden, actieve staat */
+  --surface-3: #2f4237;   /* hover op velden */
+  --ink: #f5f7f2;         /* krijtwit */
+  --muted: #b7cdbd;       /* tweede tekst */
+  --accent: #a4c7ab;      /* gedempt groen: de actie */
+  --accent-ink: #13201a;  /* tekst op accent */
+  --field: #a4c7ab;       /* kleurvlak (accentblok) */
+  --field-ink: #13201a;
+  --scrim: rgba(10, 14, 12, 0.62);
+  --focus: #e9f5c9;
+}
+
+/* Licht: papier */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f2f3ef;
+  --surface: #e6e9e3;
+  --surface-2: #dbe3d8;
+  --surface-3: #ccd8c8;
+  --ink: #18231d;
+  --muted: #3f5246;
+  --accent: #2e6a45;
+  --accent-ink: #f2f3ef;
+  --field: #2e6a45;
+  --field-ink: #f2f3ef;
+  --scrim: rgba(10, 14, 12, 0.55);
+  --focus: #18231d;
+}
+
+/* Systeemvoorkeur bij eerste bezoek: alleen als de standaard op 'system' staat
+   (<html data-theme-default="system">). Standaard is donker. */
+@media (prefers-color-scheme: light) {
+  :root[data-theme-default="system"]:not([data-theme]) {
+    color-scheme: light;
+    --bg: #f2f3ef;
+    --surface: #e6e9e3;
+    --surface-2: #dbe3d8;
+    --surface-3: #ccd8c8;
+    --ink: #18231d;
+    --muted: #3f5246;
+    --accent: #2e6a45;
+    --accent-ink: #f2f3ef;
+    --field: #2e6a45;
+    --field-ink: #f2f3ef;
+    --focus: #18231d;
+  }
+}
+
+:root {
+  /* Type: Young Serif voor koppen, Source Serif 4 voor lopende tekst */
+  --font-display: "Young Serif", Georgia, "Times New Roman", serif;
+  --font-text: "Source Serif 4", Georgia, "Times New Roman", serif;
+
+  /* Vijf stappen, niet meer */
+  --step-small: clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem);   /* 14–15 */
+  --step-body: clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);    /* 18–21 */
+  --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);       /* 20–26 */
+  --step-card: clamp(1.375rem, 1.25rem + 0.5vw, 1.75rem);       /* 22–28 */
+  --step-head: clamp(2rem, 1.3rem + 3.2vw, 4rem);              /* 32–64 */
+  --step-display: clamp(2.75rem, 0.6rem + 6.9vw, 7.25rem);     /* 44–116 */
+
+  /* Ruimte */
+  --margin: clamp(20px, 2.6vw, 40px);
+  --gutter: clamp(16px, 1.6vw, 24px);
+  --section-gap: clamp(96px, 12vw, 200px);
+  --radius: 6px;
+
+  /* De as: begin van kolom 5 van 12, overal hetzelfde */
+  --axis: calc((100vw - 2 * var(--margin)) * 4 / 12 + var(--margin));
+
+  /* Beweging */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 160ms;
+  --dur: 320ms;
+
+  --header-h: 72px;
+}

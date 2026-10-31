@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fossiel of hernieuwbaar?</title>
+<style>
+  /* Toepassingen zijn los van WordPress. Ze nemen de kleuren van de site over
+     als je ?theme=light meegeeft; standaard donker. */
+  :root { --bg:#171e1b; --surface:#26352d; --step:#2f4237; --ink:#f5f7f2; --muted:#b7cdbd; --ok:#a4c7ab; --ok-ink:#13201a; --no:#e3a58f; --no-ink:#2a130c; }
+  :root[data-theme="light"] { --bg:#f2f3ef; --surface:#e6e9e3; --step:#dbe3d8; --ink:#18231d; --muted:#3f5246; --ok:#2e6a45; --ok-ink:#fff; --no:#a64b2a; --no-ink:#fff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px; font: 18px/1.45 Georgia, "Times New Roman", serif; background: var(--bg); color: var(--ink); }
+  h1 { font-size: 22px; margin: 0 0 6px; font-weight: 400; }
+  p { margin: 0 0 16px; color: var(--muted); }
+  ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+  li { background: var(--surface); border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  button { font: inherit; font-size: 15px; border: 0; border-radius: 6px; padding: 8px 12px; cursor: pointer; background: var(--step); color: var(--ink); min-height: 40px; }
+  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .ok { background: var(--ok); color: var(--ok-ink); }
+  .no { background: var(--no); color: var(--no-ink); }
+  #score { margin-top: 16px; font-size: 20px; color: var(--ink); }
+  #again { margin-top: 8px; }
+</style>
+</head>
+<body>
+<h1>Fossiel of hernieuwbaar?</h1>
+<p>Kies bij elke energiebron. Je ziet meteen of het klopt.</p>
+<ul id="list"></ul>
+<p id="score" aria-live="polite">0 van 8 goed</p>
+<button id="again" type="button">Opnieuw</button>
+<script>
+  const p = new URLSearchParams(location.search);
+  if (p.get('theme') === 'light') document.documentElement.dataset.theme = 'light';
+  const bronnen = [['Aardgas', 'f'], ['Wind', 'h'], ['Steenkool', 'f'], ['Zonlicht', 'h'], ['Aardolie', 'f'], ['Waterkracht', 'h'], ['Bruinkool', 'f'], ['Biomassa', 'h']];
+  const list = document.getElementById('list'), score = document.getElementById('score');
+  function start() {
+    let goed = 0;
+    list.replaceChildren();
+    score.textContent = '0 van 8 goed';
+    bronnen.sort(() => Math.random() - 0.5).forEach(([naam, juist]) => {
+      const li = document.createElement('li');
+      const span = document.createElement('span'); span.textContent = naam;
+      const knoppen = document.createElement('span');
+      [['f', 'Fossiel'], ['h', 'Hernieuwbaar']].forEach(([v, label]) => {
+        const b = document.createElement('button'); b.type = 'button'; b.textContent = label;
+        b.setAttribute('aria-label', naam + ': ' + label);
+        b.addEventListener('click', () => {
+          if (li.dataset.klaar) return;
+          li.dataset.klaar = '1';
+          b.className = v === juist ? 'ok' : 'no';
+          if (v === juist) goed++;
+          score.textContent = goed + ' van 8 goed';
+        });
+        knoppen.append(b, ' ');
+      });
+      li.append(span, knoppen);
+      list.append(li);
+    });
+  }
+  document.getElementById('again').addEventListener('click', start);
+  start();
+</script>
+</body>
+</html>

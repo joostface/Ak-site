@@ -1,0 +1,82 @@
+/* "+ Toevoegen" — gebruikt de tokens van het thema als die er zijn,
+   anders rustige standaardkleuren (in wp-admin). */
+.akq-dialog, .akq-form {
+  --q-bg: var(--surface, #fff);
+  --q-field: var(--bg, #f6f7f4);
+  --q-step: var(--surface-2, #e7ece5);
+  --q-ink: var(--ink, #18231d);
+  --q-muted: var(--muted, #50615a);
+  --q-accent: var(--accent, #2e6a45);
+  --q-accent-ink: var(--accent-ink, #fff);
+  --q-radius: var(--radius, 6px);
+  color: var(--q-ink);
+  font-family: var(--font-text, inherit);
+}
+.akq-dialog {
+  width: min(760px, calc(100vw - 32px)); max-height: calc(100svh - 32px);
+  padding: 0; border: 0; border-radius: var(--q-radius);
+  background: var(--q-bg);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+}
+.akq-dialog::backdrop { background: rgba(10, 14, 12, 0.6); }
+.akq-head { display: flex; justify-content: space-between; align-items: center; padding: 22px 26px 0; }
+.akq-head h2 { margin: 0; font-family: var(--font-display, inherit); font-weight: 400; font-size: 1.75rem; }
+.akq-form { display: grid; gap: 16px; padding: 20px 26px 26px; font-size: 1rem; }
+.akq-tabs { display: flex; gap: 6px; }
+.akq-tab, .akq-btn {
+  min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--q-radius);
+  background: var(--q-step); color: var(--q-ink); font: inherit; font-weight: 600; cursor: pointer;
+}
+.akq-tab[aria-pressed="true"] { background: var(--q-ink); color: var(--q-bg); }
+.akq-btn--main { background: var(--q-accent); color: var(--q-accent-ink); }
+.akq-btn:disabled { opacity: 0.5; cursor: progress; }
+.akq-tab:focus-visible, .akq-btn:focus-visible, .akq-input:focus-visible, .akq-x:focus-visible, .akq-drop:focus-within { outline: 3px solid var(--focus, #2271b1); outline-offset: 2px; }
+.akq-drop {
+  display: grid; gap: 4px; place-items: center; text-align: center;
+  min-height: 170px; padding: 24px; border-radius: var(--q-radius);
+  background: var(--q-field); cursor: pointer;
+  outline: 2px dashed var(--q-step); outline-offset: -10px;
+}
+.akq-drop.is-over { background: var(--q-step); }
+.akq-drop strong { font-size: 1.125rem; }
+.akq-drop small, .akq-help, .akq-size { color: var(--q-muted); font-size: 0.875rem; }
+.akq-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.akq-files { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.akq-files li { display: grid; grid-template-columns: 92px 1fr auto auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: var(--q-radius); background: var(--q-field); }
+.akq-files progress { grid-column: 1 / -1; width: 100%; height: 4px; }
+.akq-kind { font-size: 0.875rem; font-weight: 600; color: var(--q-accent); }
+.akq-input {
+  width: 100%; min-height: 44px; padding: 8px 12px; box-sizing: border-box;
+  border: 1px solid var(--q-step); border-radius: var(--q-radius);
+  background: var(--q-field); color: var(--q-ink); font: inherit;
+}
+textarea.akq-input { min-height: 0; }
+.akq-field { display: grid; gap: 4px; font-size: 0.875rem; color: var(--q-muted); }
+.akq-field > span { font-weight: 600; }
+.akq-field .akq-input { color: var(--q-ink); font-size: 1rem; }
+.akq-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.akq-row > * { flex: 1 1 150px; }
+.akq-grow { flex: 3 1 240px; }
+.akq-dest { border: 0; margin: 0; padding: 0; }
+.akq-dest legend { font-weight: 600; margin-bottom: 8px; padding: 0; }
+.akq-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.akq-more summary { cursor: pointer; font-weight: 600; margin-bottom: 8px; }
+.akq-more .akq-input + .akq-input { margin-top: 8px; }
+.akq-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.akq-status { margin: 0; min-height: 1.4em; color: var(--q-muted); }
+.akq-status a { color: var(--q-ink); font-weight: 600; }
+.akq-x { width: 40px; height: 40px; border: 0; border-radius: var(--q-radius); background: transparent; color: var(--q-ink); font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.akq-x:hover { background: var(--q-step); }
+.akq-news[hidden] { display: none; }
+.akq-news { display: grid; gap: 12px; padding: 14px; border-radius: var(--q-radius); background: var(--q-field); margin-top: 12px; }
+.akq-news .akq-input { background: var(--q-bg); }
+.akq-news__img { width: 100%; max-height: 200px; object-fit: cover; border-radius: var(--q-radius); }
+.akq-warn { margin: 0; padding: 10px 12px; border-radius: var(--q-radius); background: #f3e2c6; color: #3a2a0c; }
+.akq-warn a { color: inherit; font-weight: 600; }
+.akq-check { display: flex; gap: 8px; align-items: center; }
+@media (max-width: 560px) {
+  .akq-grid { grid-template-columns: 1fr; }
+  .akq-files li { grid-template-columns: 1fr auto; }
+  .akq-kind, .akq-size { grid-column: 1; }
+}
+#wp-admin-bar-aklokaal-add > a { font-weight: 600; }
