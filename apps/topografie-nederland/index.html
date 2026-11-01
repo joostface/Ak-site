@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topografie Nederland</title>
+<link rel="stylesheet" href="../_gedeeld/kaart.css">
+</head>
+<body>
+<header class="app-kop">
+  <div>
+    <h1>Topografie Nederland</h1>
+    <p>Klik op de stad die gevraagd wordt. Wat je fout hebt, komt later terug.</p>
+  </div>
+  <div class="keuzes" role="group" aria-label="Welke steden">
+    <button class="keuze" type="button" data-set="hoofdsteden" aria-pressed="true">Provinciehoofdsteden</button>
+    <button class="keuze" type="button" data-set="groot" aria-pressed="false">Grote steden</button>
+    <button class="keuze" type="button" data-set="alles" aria-pressed="false">Alles</button>
+    <button class="keuze" type="button" data-set="leren" aria-pressed="false">Leren (namen tonen)</button>
+  </div>
+</header>
+<main class="app-romp">
+  <div id="kaart" class="akg"></div>
+  <aside class="app-paneel">
+    <h2>Vraag</h2>
+    <p class="vraag" id="vraag" aria-live="polite">Laden…</p>
+    <p class="melding" id="melding" aria-live="polite"></p>
+    <p class="score" id="score"></p>
+    <button class="knop knop--hoofd" type="button" id="opnieuw">Opnieuw beginnen</button>
+    <p class="bron">Met het toetsenbord: Tab naar een stip en druk op Enter.</p>
+    <p class="bron">Grenzen: Natural Earth (publiek domein). Ligging van steden afgerond op ongeveer een kilometer.</p>
+  </aside>
+</main>
+<script src="../_gedeeld/geo.js"></script>
+<script>
+// Steden met hun ligging (breedte, lengte), afgerond. h = provinciehoofdstad (met provincie), g = grote stad.
+const STEDEN = [
+  ['Groningen', 53.219, 6.567, 'h', 'Groningen'], ['Leeuwarden', 53.201, 5.800, 'h', 'Friesland'], ['Assen', 52.993, 6.564, 'h', 'Drenthe'],
+  ['Zwolle', 52.517, 6.083, 'h', 'Overijssel'], ['Lelystad', 52.518, 5.471, 'h', 'Flevoland'], ['Arnhem', 51.985, 5.899, 'h', 'Gelderland'],
+  ['Utrecht', 52.091, 5.122, 'h', 'Utrecht'], ['Haarlem', 52.387, 4.646, 'h', 'Noord-Holland'], ['Den Haag', 52.078, 4.288, 'h', 'Zuid-Holland'],
+  ['Middelburg', 51.499, 3.614, 'h', 'Zeeland'], ['’s-Hertogenbosch', 51.697, 5.304, 'h', 'Noord-Brabant'], ['Maastricht', 50.851, 5.691, 'h', 'Limburg'],
+  ['Amsterdam', 52.373, 4.893, 'g'], ['Rotterdam', 51.922, 4.479, 'g'], ['Eindhoven', 51.441, 5.478, 'g'], ['Tilburg', 51.556, 5.091, 'g'],
+  ['Almere', 52.350, 5.264, 'g'], ['Breda', 51.589, 4.776, 'g'], ['Nijmegen', 51.842, 5.853, 'g'], ['Enschede', 52.221, 6.894, 'g'],
+  ['Apeldoorn', 52.211, 5.969, 'g'], ['Amersfoort', 52.156, 5.387, 'g'], ['Leiden', 52.160, 4.497, 'g'], ['Dordrecht', 51.813, 4.690, 'g'],
+  ['Den Helder', 52.957, 4.760, 'g'], ['Vlissingen', 51.443, 3.574, 'g'], ['Venlo', 51.370, 6.172, 'g'], ['Emmen', 52.785, 6.897, 'g']
+].map(([naam, lat, lon, soort, provincie]) => ({ naam, lat, lon, soort, provincie }));
+
+(async () => {
+  const $ = (id) => document.getElementById(id);
+  const kaartEl = $('kaart');
+  const k = AKGeo.kaart(kaartEl, { projectie: { lokaal: 52.2 }, kader: [3.2, 50.7, 7.3, 53.6], label: 'Kaart van Nederland met steden' });
+  const geo = await AKGeo.laad('../_gedeeld/data/nederland.json');
+  k.laag('buren', geo.features.filter((f) => f.id !== '528'), { klasse: 'is-buur' });
+  k.laag('nederland', geo.features.filter((f) => f.id === '528'));
+  k.punten('steden', STEDEN, { klik: (s, el) => antwoord(s, el), toegankelijk: (s) => 'Stip ' + (STEDEN.indexOf(s) + 1) });
+  document.querySelector('[data-laag="buren"]').style.opacity = '0.45';
+
+  let set = 'hoofdsteden', rij = [], huidig = null, goed = 0, totaal = 0, poging = 0;
+  const wis = () => STEDEN.forEach((s) => s._el.classList.remove('is-goed', 'is-fout', 'is-antwoord'));
+
+  function start() {
+    wis(); goed = 0;
+    kaartEl.classList.toggle('toon-labels', set === 'leren');
+    const keuze = STEDEN.filter((s) => set === 'alles' || set === 'leren' || (set === 'hoofdsteden' ? s.soort === 'h' : s.soort === 'g'));
+    STEDEN.forEach((s) => (s._el.style.display = keuze.includes(s) ? '' : 'none'));
+    rij = keuze.slice().sort(() => Math.random() - 0.5);
+    totaal = rij.length;
+    if (set === 'leren') { huidig = null; $('vraag').textContent = 'Bekijk de namen. Kies daarna een oefening.'; $('score').textContent = ''; $('melding').textContent = ''; return; }
+    volgende();
+  }
+  function volgende() {
+    STEDEN.forEach((s) => s._el.classList.remove('is-fout', 'is-antwoord'));
+    huidig = rij.shift(); poging = 0;
+    $('score').textContent = `${goed} goed · nog ${rij.length + (huidig ? 1 : 0)} van ${totaal}`;
+    if (!huidig) { $('vraag').textContent = `Klaar! ${goed} van ${totaal} in één keer goed.`; return; }
+    $('vraag').textContent = 'Waar ligt ' + huidig.naam + '?';
+  }
+  function antwoord(s, el) {
+    if (!huidig) return;
+    if (s === huidig) {
+      if (poging === 0) goed++;
+      el.classList.add('is-goed');
+      $('melding').textContent = 'Goed!' + (s.provincie ? ` ${s.naam} is de hoofdstad van ${s.provincie}.` : '');
+      $('melding').className = 'melding is-goed';
+      setTimeout(volgende, 900);
+    } else {
+      poging++;
+      el.classList.add('is-fout');
+      $('melding').textContent = 'Dat is ' + s.naam + '.' + (poging >= 2 ? ' ' + huidig.naam + ' is geel gemaakt.' : ' Probeer het nog eens.');
+      $('melding').className = 'melding is-fout';
+      setTimeout(() => el.classList.remove('is-fout'), 1600);
+      if (poging >= 2) { huidig._el.classList.add('is-antwoord'); rij.splice(Math.min(3, rij.length), 0, huidig); setTimeout(volgende, 1800); }
+    }
+  }
+  document.querySelectorAll('[data-set]').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-set]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    set = b.dataset.set; start();
+  }));
+  $('opnieuw').addEventListener('click', start);
+  start();
+})().catch((e) => { document.getElementById('vraag').textContent = e.message; });
+</script>
+</body>
+</html>

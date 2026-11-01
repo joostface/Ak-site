@@ -171,7 +171,87 @@ if (PASS) {
   const energie = structure[0].years.flatMap((y) => y.chapters).find((c) => c.title === 'Energie');
   ok(energie.paragraphs[4].title === 'Extra: energie in het nieuws' && energie.paragraphs[4].number === '2.5', 'volgorde en nummering bijgewerkt na verplaatsen');
   ok(energie.paragraphs[5].number === '2.6' && energie.paragraphs[5].title === 'Duurzame keuzes', 'volgende paragraaf hernummerd');
+  // Meerdere items tegelijk verplaatsen en archiveren
+  await page.goto(SITE + '/wp-admin/admin.php?page=aklokaal');
+  await page.waitForSelector('.aks-chapter');
+  const en = page.locator('details.aks-chapter', { hasText: 'Energie' }).first();
+  await en.locator('summary .aks-grip').first().click();
+  const p22 = en.locator('details.aks-para', { hasText: 'De koolstofkringloop' }).first();
+  await p22.locator('summary .aks-grip').first().click();
+  await p22.locator('.aks-item').first().waitFor();
+  const before22 = await p22.locator('.aks-item').count();
+  await p22.locator('.aks-select').nth(0).check();
+  await p22.locator('.aks-select').nth(1).check();
+  const target = await p22.locator('.aks-bulk select option', { hasText: '§2.3 De energietransitie' }).first().getAttribute('value');
+  await p22.locator('.aks-bulk select').selectOption(target);
+  await page.waitForTimeout(1800);
+  const s1 = await (await page.request.get(SITE + '/wp-json/aklokaal/v1/structure')).json();
+  const e1 = s1[0].years.flatMap((y) => y.chapters).find((c) => c.title === 'Energie');
+  const c22 = e1.paragraphs.find((x) => x.title === 'De koolstofkringloop').count;
+  ok(c22 === before22 - 2, `twee items tegelijk verplaatst (${before22} → ${c22})`);
+  await page.goto(SITE + '/wp-admin/admin.php?page=aklokaal');
+  await page.waitForSelector('.aks-chapter');
+  const en2 = page.locator('details.aks-chapter', { hasText: 'Energie' }).first();
+  await en2.locator('summary .aks-grip').first().click();
+  const p23 = en2.locator('details.aks-para', { hasText: 'De energietransitie' }).first();
+  await p23.locator('summary .aks-grip').first().click();
+  await p23.locator('.aks-item').first().waitFor();
+  const archTitle = (await p23.locator('.aks-item-title').first().textContent()).trim();
+  await p23.locator('.aks-archive').first().click();
+  await page.waitForTimeout(1200);
+  ok(/archief/.test(await p23.locator('.aks-item-title').first().textContent()), 'item gearchiveerd in beheer');
+  const anon = await browser.newPage();
+  await anon.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
+  ok((await anon.locator('#paragraaf-2-3 h3', { hasText: archTitle }).count()) === 0, `gearchiveerd item niet zichtbaar voor bezoekers (${archTitle})`);
+  await anon.close();
+
+  // Link met eigen voorbeeldafbeelding
+  await page.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/#paragraaf-2-4');
+  await page.waitForTimeout(600);
+  await page.click('[data-add-open]');
+  await page.waitForSelector('.akq-dialog[open]');
+  await page.click('.akq-dialog .akq-tab >> text=Link plakken');
+  await page.fill('.akq-dialog input[type=url]', 'https://www.youtube.com/watch?v=abcdefghijk');
+  await page.fill('.akq-dialog input[placeholder="Titel"]', 'Windmolens van dichtbij');
+  await page.click('.akq-dialog summary');
+  const png = join(tmpdir(), 'thumb.png');
+  writeFileSync(png, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVQI12NkYGD4z8DAwMDAxMDAAAAPGAEDX7k1TwAAAABJRU5ErkJggg==', 'base64'));
+  await page.setInputFiles('.akq-dialog .akq-more input[type=file]', png);
+  await page.click('.akq-dialog .akq-btn--main');
+  await page.waitForFunction(() => /gepubliceerd/.test(document.querySelector('.akq-dialog .akq-status')?.textContent || ''), null, { timeout: 20000 }).catch(() => {});
+  ok(/gepubliceerd in §2\.4/.test(await page.textContent('.akq-dialog .akq-status')), 'video met eigen afbeelding toegevoegd: ' + (await page.textContent('.akq-dialog .akq-status')));
+  await page.waitForTimeout(1500);
+  await page.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
+  const vid = page.locator('#paragraaf-2-4 article', { hasText: 'Windmolens van dichtbij' });
+  ok((await vid.locator('.video-consent img').count()) === 1, 'video toont de eigen voorbeeldafbeelding');
   await ctx.close();
+}
+
+/* ---------- filters en toepassingen ---------- */
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await page.goto(SITE + '/?s=&soort=ak_kaart');
+  ok((await page.locator('[aria-labelledby="res-ak_kaart"] .band').count()) >= 6 && (await page.locator('#res-ak_nieuws').count()) === 0, 'zoeken: filter op soort (kaarten)');
+  await page.goto(SITE + '/?s=&leerjaar=3-vwo&soort=ak_hoofdstuk');
+  const titles = await page.locator('[aria-labelledby="res-ak_hoofdstuk"] .band__title').allTextContents();
+  ok(titles.some((t) => t.includes('Energie')) && !titles.some((t) => t.includes('Water')), 'zoeken: filter op leerjaar');
+  await page.goto(SITE + '/nieuws/');
+  const months = await page.locator('nav.filters a.chip').count();
+  ok(months >= 2, `nieuws: filter per maand (${months} knoppen)`);
+  await page.goto(SITE + '/nieuws/?maand=202609');
+  ok((await page.locator('.card-grid .news-card').count()) === 1, 'nieuws: maandfilter beperkt de artikelen');
+  await page.goto(SITE + '/bundels/water-te-veel-en-te-weinig/');
+  ok((await page.locator('.placed-in a').count()) >= 1, 'bundel toont waar hij in de lessen staat');
+  await page.goto(SITE + '/interactief/topografie-nederland/');
+  const frame = page.frameLocator('iframe.map-viewer__app');
+  await frame.locator('#vraag').waitFor({ timeout: 10000 }).catch(() => {});
+  ok(/Waar ligt/.test((await frame.locator('#vraag').textContent().catch(() => '')) || ''), 'topografie-toepassing draait in het afgeschermde venster');
+  ok((await page.getAttribute('iframe.map-viewer__app', 'sandbox')).includes('allow-scripts'), 'toepassing heeft sandbox');
+  await page.goto(SITE + '/kaarten/wereldkaart-met-lagen/');
+  const wf = page.frameLocator('iframe.map-viewer__app');
+  await wf.locator('[data-laag="landen"] path').first().waitFor({ timeout: 10000 }).catch(() => {});
+  ok((await wf.locator('[data-laag="landen"] path').count()) > 150, 'wereldkaart met lagen laadt in de kaartenbibliotheek');
+  await page.close();
 }
 
 /* ---------- beveiliging ---------- */

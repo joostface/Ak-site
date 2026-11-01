@@ -9,6 +9,18 @@ $bundels = get_posts( array( 'post_type' => 'ak_collectie', 'posts_per_page' => 
 ?>
 <main id="main">
 	<?php get_template_part( 'template-parts/page-title', null, array( 'title' => __( 'Nieuws', 'aklokaal' ), 'lead' => __( 'Artikelen uit kranten en tijdschriften die laten zien dat aardrijkskunde nu gebeurt. Elk artikel linkt naar de oorspronkelijke bron.', 'aklokaal' ) ) ); ?>
+	<?php
+	$aktheme_months = aktheme_news_months();
+	$aktheme_m      = aktheme_news_month_param();
+	if ( count( $aktheme_months ) > 1 ) :
+		?>
+		<nav class="filters" aria-label="<?php esc_attr_e( 'Filter op maand', 'aklokaal' ); ?>">
+			<a class="chip" href="<?php echo esc_url( get_post_type_archive_link( 'ak_nieuws' ) ); ?>" <?php echo $aktheme_m ? '' : 'aria-current="page"'; ?>><?php esc_html_e( 'Alle maanden', 'aklokaal' ); ?></a>
+			<?php foreach ( $aktheme_months as $k => $label ) : ?>
+				<a class="chip" href="<?php echo esc_url( add_query_arg( 'maand', $k, get_post_type_archive_link( 'ak_nieuws' ) ) ); ?>" <?php echo $aktheme_m === $k ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
+			<?php endforeach; ?>
+		</nav>
+	<?php endif; ?>
 	<div data-filter-group=".card-grid .news-card">
 		<?php get_template_part( 'template-parts/theme-filter', null, array( 'posts' => $wp_query->posts ) ); ?>
 		<div class="card-grid" data-reveal>

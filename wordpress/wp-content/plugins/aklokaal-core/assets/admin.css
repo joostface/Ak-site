@@ -33,7 +33,7 @@
 .aks-add .aks-input { flex: 1; max-width: 420px; }
 .aks-num-input { max-width: 60px !important; }
 .aks-items { padding: 8px 10px 12px 36px; }
-.aks-item { display: grid; grid-template-columns: auto 90px 1fr auto 200px 150px auto auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 6px; background: #fff; margin: 3px 0; border: 1px solid #e3e8e2; }
+.aks-item { display: grid; grid-template-columns: auto auto 90px 1fr auto 180px 150px auto auto auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 6px; background: #fff; margin: 3px 0; border: 1px solid #e3e8e2; }
 .aks-item.is-draft { opacity: .7; }
 .aks-item-title { font-weight: 600; text-decoration: none; }
 .aks-badge { font-size: 11px; background: #dfe7dc; border-radius: 99px; padding: 1px 7px; }
@@ -47,4 +47,8 @@
 .aklokaal-fields .aklokaal-field { margin: 0 0 14px; }
 .aklokaal-collection { margin: 10px 0 0; }
 .aklokaal-collection li { padding: 4px 0; }
-@media (max-width: 960px) { .aks-item { grid-template-columns: auto 1fr auto; } .aks-item > :nth-child(2), .aks-item > input, .aks-item > select { grid-column: 1 / -1; } }
+@media (max-width: 960px) { .aks-item { grid-template-columns: auto auto 1fr auto; } .aks-item > :nth-child(3), .aks-item > input, .aks-item > select { grid-column: 1 / -1; } }
+
+.aks-bulk { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; }
+.aks-all { display: inline-flex; gap: 4px; align-items: center; margin-right: 6px; }
+.aks-archive { font-size: 13px; }

@@ -22,7 +22,7 @@ while ( have_posts() ) :
 				<iframe class="map-viewer__app" title="<?php the_title_attribute(); ?>" src="<?php echo esc_url( $url ); ?>" sandbox="<?php echo esc_attr( aktheme_sandbox( $url ) ); ?>" allow="fullscreen" referrerpolicy="no-referrer" style="height:<?php echo (int) ( $height ? $height : 640 ); ?>px"></iframe>
 			</div>
 		<?php endif; ?>
-		<div class="map-info"><div class="prose"><?php the_content(); ?></div></div>
+		<div class="map-info"><div class="prose"><?php the_content(); ?><?php echo aktheme_placed_in( get_the_ID(), __( 'Gebruikt in de lessen', 'aklokaal' ) ); // phpcs:ignore ?></div></div>
 	</div>
 </main>
 	<?php

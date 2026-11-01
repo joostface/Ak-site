@@ -214,14 +214,79 @@ add_action(
 	'pre_get_posts',
 	function ( $q ) {
 		if ( ! is_admin() && $q->is_main_query() && $q->is_search() ) {
-			$q->set( 'post_type', array( 'ak_hoofdstuk', 'ak_materiaal', 'ak_nieuws', 'ak_collectie', 'ak_kaart', 'ak_toepassing', 'page' ) );
-			$q->set( 'posts_per_page', 30 );
+			$types = aktheme_search_types();
+			// phpcs:disable WordPress.Security.NonceVerification -- openbaar zoekfilter, alleen lezen
+			$soort = isset( $_GET['soort'] ) ? sanitize_key( wp_unslash( $_GET['soort'] ) ) : '';
+			$jaar  = isset( $_GET['leerjaar'] ) ? sanitize_title( wp_unslash( $_GET['leerjaar'] ) ) : '';
+			// phpcs:enable
+			$q->set( 'post_type', isset( $types[ $soort ] ) ? array( $soort ) : array_keys( $types ) );
+			$q->set( 'posts_per_page', 40 );
+			if ( $jaar && function_exists( 'aklokaal_get_chapters' ) ) {
+				$q->set( 'post__in', aktheme_ids_in_year( $jaar ) );
+			}
 		}
 		if ( ! is_admin() && $q->is_main_query() && ( $q->is_post_type_archive( array( 'ak_kaart', 'ak_toepassing' ) ) ) ) {
 			$q->set( 'posts_per_page', 60 );
 		}
 		if ( ! is_admin() && $q->is_main_query() && $q->is_post_type_archive( 'ak_nieuws' ) ) {
 			$q->set( 'posts_per_page', 24 );
+			$maand = aktheme_news_month_param();
+			if ( $maand ) {
+				$q->set(
+					'date_query',
+					array(
+						array(
+							'year'  => (int) substr( $maand, 0, 4 ),
+							'month' => (int) substr( $maand, 4, 2 ),
+						),
+					)
+				);
+			}
 		}
 	}
 );
+
+/** Soorten inhoud in de zoekfunctie, met hun naam. */
+function aktheme_search_types() {
+	return array(
+		'ak_hoofdstuk'  => __( 'Hoofdstukken', 'aklokaal' ),
+		'ak_materiaal'  => __( 'Materiaal', 'aklokaal' ),
+		'ak_nieuws'     => __( 'Nieuws', 'aklokaal' ),
+		'ak_collectie'  => __( 'Nieuwsbundels', 'aklokaal' ),
+		'ak_kaart'      => __( 'Kaarten', 'aklokaal' ),
+		'ak_toepassing' => __( 'Interactief', 'aklokaal' ),
+		'page'          => __( 'Pagina’s', 'aklokaal' ),
+	);
+}
+
+/** Alles wat bij een leerjaar hoort: de hoofdstukken en alles wat in hun paragrafen staat. */
+function aktheme_ids_in_year( $slug ) {
+	$ids = array();
+	foreach ( aklokaal_get_chapters( array( 'leerjaar' => $slug ) ) as $c ) {
+		$ids[] = $c->ID;
+		foreach ( array_merge( array( $c ), aklokaal_get_paragraphs( $c->ID ) ) as $container ) {
+			foreach ( aklokaal_get_items( $container->ID ) as $it ) {
+				$ids[] = (int) $it['id'];
+			}
+		}
+	}
+	return $ids ? array_values( array_unique( $ids ) ) : array( 0 );
+}
+
+/** Maanden waarin nieuwsartikelen verschenen, nieuwste eerst: [ '202610' => 'oktober 2026', ... ]. */
+function aktheme_news_months() {
+	global $wpdb;
+	$rows = $wpdb->get_results( "SELECT DISTINCT YEAR(post_date) AS y, MONTH(post_date) AS m FROM {$wpdb->posts} WHERE post_type = 'ak_nieuws' AND post_status = 'publish' ORDER BY y DESC, m DESC LIMIT 36" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	$out  = array();
+	foreach ( $rows as $r ) {
+		$out[ sprintf( '%04d%02d', $r->y, $r->m ) ] = date_i18n( 'F Y', mktime( 12, 0, 0, (int) $r->m, 1, (int) $r->y ) );
+	}
+	return $out;
+}
+
+/** Gekozen maand in het nieuwsarchief (?maand=202610), of ''. */
+function aktheme_news_month_param() {
+	// phpcs:ignore WordPress.Security.NonceVerification -- openbaar filter, alleen lezen
+	$m = isset( $_GET['maand'] ) ? sanitize_text_field( wp_unslash( $_GET['maand'] ) ) : '';
+	return preg_match( '/^\d{6}$/', $m ) ? $m : '';
+}

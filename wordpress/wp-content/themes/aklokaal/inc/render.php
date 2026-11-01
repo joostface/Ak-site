@@ -42,8 +42,12 @@ function aktheme_date( $ymd ) {
  */
 function aktheme_sandbox( $url ) {
 	$sandbox = array( 'allow-scripts', 'allow-forms', 'allow-popups', 'allow-modals', 'allow-pointer-lock' );
-	$host    = wp_parse_url( $url, PHP_URL_HOST );
-	if ( $host && strtolower( $host ) !== strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ) ) {
+	// Herkomst = schema + host + poort. Alleen een andere herkomst mag zijn eigen opslag en data gebruiken.
+	$origin = function ( $u ) {
+		$p = wp_parse_url( $u );
+		return strtolower( ( $p['scheme'] ?? '' ) . '://' . ( $p['host'] ?? '' ) . ':' . ( $p['port'] ?? '' ) );
+	};
+	if ( wp_parse_url( $url, PHP_URL_HOST ) && $origin( $url ) !== $origin( home_url() ) ) {
 		$sandbox[] = 'allow-same-origin';
 	}
 	return implode( ' ', $sandbox );
@@ -460,4 +464,38 @@ function aktheme_years_with_chapters( $vak = '' ) {
 		}
 	}
 	return $out;
+}
+
+/* ---------------------------------------------------------------- hoort bij */
+
+/**
+ * Waar in de lessen komt dit item terug? Lijst met links naar paragrafen (met anker)
+ * en hoofdstukken. Alleen gepubliceerde plekken.
+ */
+function aktheme_placed_in( $post_id, $heading = '' ) {
+	if ( ! function_exists( 'aklokaal_item_placements' ) ) {
+		return '';
+	}
+	$items = array();
+	foreach ( aklokaal_item_placements( $post_id ) as $cid ) {
+		$c = get_post( $cid );
+		if ( ! $c || 'publish' !== $c->post_status ) {
+			continue;
+		}
+		if ( 'ak_paragraaf' === $c->post_type ) {
+			$ch = get_post( $c->post_parent );
+			if ( ! $ch || 'publish' !== $ch->post_status ) {
+				continue;
+			}
+			$n    = aklokaal_paragraph_number( $c );
+			$jaar = aklokaal_first_term( $ch->ID, 'ak_leerjaar' );
+			$items[] = sprintf( '<li><a href="%1$s">§%2$s %3$s</a> <span class="muted">%4$s</span></li>', esc_url( get_permalink( $ch ) . '#' . aklokaal_paragraph_anchor( $n ) ), esc_html( $n ), esc_html( get_the_title( $c ) ), esc_html( ( $jaar ? $jaar->name . ', ' : '' ) . 'H' . aklokaal_chapter_number( $ch ) . ' ' . get_the_title( $ch ) ) );
+		} else {
+			$items[] = sprintf( '<li><a href="%1$s">%2$s</a></li>', esc_url( get_permalink( $c ) ), esc_html( get_the_title( $c ) ) );
+		}
+	}
+	if ( ! $items ) {
+		return '';
+	}
+	return ( $heading ? '<h2>' . esc_html( $heading ) . '</h2>' : '' ) . '<ul class="placed-in">' . implode( '', $items ) . '</ul>';
 }

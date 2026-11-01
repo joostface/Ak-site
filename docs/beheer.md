@@ -11,6 +11,8 @@ de knop **+ Toevoegen** en het scherm **Lesmateriaal → Structuur**.
 4. **Publiceren**. De pagina ververst en het materiaal staat in de paragraaf, in de huisstijl.
 
 Meerdere bestanden tegelijk mag. Elk bestand wordt een eigen materiaalitem.
+Onder *Toelichting, thema’s en afbeelding* kun je een korte toelichting, thema’s en een eigen
+voorbeeldafbeelding meegeven (handig bij video’s, links en presentaties).
 Een video of website toevoegen: tab **Link plakken**, kies *Video* of *Website*.
 Vanuit een andere pagina onthoudt het venster je laatst gebruikte bestemming.
 
@@ -29,6 +31,9 @@ het origineel blijft altijd te downloaden.
   het materiaal zelf blijft bewaard.
 - **Materiaal in een paragraaf**: open de paragraaf. Sleep om te ordenen, voeg een korte toelichting toe
   (alleen voor deze plek), *Verplaats naar…* een andere paragraaf, of × om het hier weg te halen.
+- **Meerdere tegelijk**: vink items aan (of *Alles*) en kies *Geselecteerde verplaatsen naar…*, *Publiceren*,
+  *Naar concept* of *Archiveren*. Gearchiveerd materiaal is niet meer zichtbaar voor bezoekers maar blijft bewaard;
+  met ↺ haal je het terug.
 - **Hergebruik**: zoek bij een paragraaf in *Bestaand materiaal zoeken* en klik erop. Hetzelfde bestand
   staat dan op twee plekken, maar is maar één keer opgeslagen. Het getal (bijv. 2×) toont op hoeveel plekken.
 
@@ -71,3 +76,9 @@ afbeelding (voor de overzichten). Zie [interactief.md](interactief.md) voor eige
 (donker, licht, of de instelling van de bezoeker volgen). Bezoekers kunnen altijd zelf wisselen; hun keuze wordt onthouden.
 Headerafbeelding = de grote kaart op de homepage. Een eigen menu kan onder *Weergave → Menu's* (locatie *Hoofdmenu*);
 zonder eigen menu toont het thema de vaste indeling.
+
+## Zoeken en filteren (voor bezoekers)
+
+- Het zoekvenster (vergrootglas, of de toets `/`) toont direct resultaten terwijl je typt.
+- De zoekpagina filtert op **soort** (hoofdstukken, materiaal, nieuws, kaarten …) en **leerjaar**.
+- Het nieuwsarchief filtert op **thema** en **maand**.

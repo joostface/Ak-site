@@ -18,7 +18,24 @@ beheeromgeving of bij ingelogde sessies. Toepassingen staan in `apps/` en worden
 Regels voor toepassingen: alles in de eigen map, geen persoonsgegevens vragen of opslaan, werkt met muis,
 vinger en toetsenbord, en ondersteunt `?theme=light`.
 
-## De bestaande digitale kaart integreren
+## De bestaande kaarten van kaarten.thejoast.org
+
+In de demo-inhoud staat **Kaarten → Digitale kaarten** als interactieve kaart met het adres
+`https://kaarten.thejoast.org/` (deze blijft staan als je de demo opruimt). Controleer in je browser of de site
+in het venster verschijnt. Lukt dat niet, dan staat de server van die site insluiten niet toe
+(`X-Frame-Options` of `Content-Security-Policy: frame-ancestors`). Twee oplossingen:
+
+1. Sta insluiten toe vanaf je eigen website, bijvoorbeeld met de header
+   `Content-Security-Policy: frame-ancestors 'self' https://aardrijkskunde.jouwdomein.nl`.
+2. Of zet de bestanden in `apps/` (bijvoorbeeld `apps/kaarten/`), dan serveert de `apps`-dienst ze.
+
+Heeft de site meerdere losse kaarten met eigen adressen, maak dan per kaart een item in de kaartenbibliotheek,
+zodat elke kaart een eigen pagina krijgt en in paragrafen geplaatst kan worden.
+
+*Let op: tijdens het bouwen was kaarten.thejoast.org vanuit de bouwomgeving niet bereikbaar, dus de inhoud
+ervan is nog niet bekeken of getest.*
+
+## Andere kaarten integreren
 
 Eerst vaststellen wat het is:
 

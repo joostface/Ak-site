@@ -19,3 +19,21 @@ afgeschermd venster (`<iframe sandbox>`).
    op de pagina Interactief staan.
 
 Een prompt voor Codex staat in `docs/codex.md`.
+
+## Wat er nu staat
+
+| Map | Wat |
+| --- | --- |
+| `fossiel-of-hernieuwbaar/` | Oefening: energiebronnen indelen. |
+| `topografie-nederland/` | Provinciehoofdsteden en grote steden aanwijzen; fouten komen terug; leermodus met namen. |
+| `landen-van-de-wereld/` | Landen aanwijzen per werelddeel of voor de hele wereld. |
+| `wereldkaart/` | Wereldkaart met lagen (landen, EU, graadnet, keerkringen), zoomen, schermvullend. |
+| `_gedeeld/` | Gedeelde kaartbibliotheek `geo.js` (projectie, tekenen, zoomen/verschuiven), `kaart.css`, Nederlandse landnamen (`landen.js`) en kaartdata. |
+
+**Kaartdata**: `_gedeeld/data/` komt uit Natural Earth (publiek domein) via het npm-pakket `world-atlas`
+(ISC-licentie, zie `LICENSE-world-atlas.txt`). Opnieuw maken: `npm pack world-atlas@2 && tar -xzf world-atlas-*.tgz &&
+node apps/_gedeeld/tools/maak-data.mjs ./package`.
+
+**Een eigen kaart met lagen maken**: kopieer `wereldkaart/`. Een laag is een lijst GeoJSON-features
+(`kaart.laag('naam', features, { klasse, klik, titel })`); punten met `kaart.punten(...)`;
+aan/uit met `kaart.toon('naam', true|false)`. GeoJSON uit QGIS kun je direct laden met `AKGeo.laad('data.geojson')`.

@@ -44,6 +44,7 @@ while ( have_posts() ) :
 			<?php endif; ?>
 			<div class="prose">
 				<?php the_content(); ?>
+				<?php echo aktheme_placed_in( get_the_ID(), __( 'Gebruikt in de lessen', 'aklokaal' ) ); // phpcs:ignore ?>
 				<?php if ( $source ) : ?><p class="muted"><?php echo esc_html( sprintf( __( 'Bron: %s', 'aklokaal' ), $source ) ); ?></p><?php endif; ?>
 			</div>
 		</div>

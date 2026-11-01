@@ -124,6 +124,15 @@ function aklokaal_register_rest() {
 	);
 	register_rest_route(
 		$ns,
+		'/items/status',
+		array(
+			'methods'             => 'POST',
+			'callback'            => 'aklokaal_rest_items_status',
+			'permission_callback' => $manage,
+		)
+	);
+	register_rest_route(
+		$ns,
 		'/items/(?P<id>\d+)',
 		array(
 			array(
@@ -146,6 +155,16 @@ function aklokaal_register_rest() {
 		array(
 			'methods'             => 'POST',
 			'callback'            => 'aklokaal_rest_items_add',
+			'permission_callback' => $manage,
+			'args'                => $id_arg,
+		)
+	);
+	register_rest_route(
+		$ns,
+		'/items/(?P<id>\d+)/thumbnail',
+		array(
+			'methods'             => 'POST',
+			'callback'            => 'aklokaal_rest_item_thumbnail',
 			'permission_callback' => $manage,
 			'args'                => $id_arg,
 		)
@@ -490,6 +509,45 @@ function aklokaal_rest_items_move( WP_REST_Request $r ) {
 	}
 	aklokaal_move_items( (array) $r->get_param( 'ids' ), $from, $to );
 	return rest_ensure_response( array( 'ok' => true ) );
+}
+
+/** Eigen voorbeeldafbeelding (uitgelichte afbeelding) bij een item. */
+function aklokaal_rest_item_thumbnail( WP_REST_Request $r ) {
+	$id    = (int) $r['id'];
+	$files = $r->get_file_params();
+	if ( ! in_array( get_post_type( $id ), aklokaal_placeable_types(), true ) || empty( $files['file'] ) ) {
+		return new WP_Error( 'aklokaal_upload', __( 'Kies een afbeelding.', 'aklokaal' ), array( 'status' => 400 ) );
+	}
+	if ( 'afbeelding' !== aklokaal_type_for_filename( $files['file']['name'] ) ) {
+		return new WP_Error( 'aklokaal_upload', __( 'Alleen JPG, PNG, WebP of GIF.', 'aklokaal' ), array( 'status' => 400 ) );
+	}
+	$att = aklokaal_store_upload( $files['file'], get_the_title( $id ) );
+	if ( is_wp_error( $att ) || ! wp_attachment_is_image( $att ) ) {
+		return new WP_Error( 'aklokaal_upload', is_wp_error( $att ) ? $att->get_error_message() : __( 'Dit is geen afbeelding.', 'aklokaal' ), array( 'status' => 400 ) );
+	}
+	set_post_thumbnail( $id, $att );
+	return rest_ensure_response( aklokaal_item_json( get_post( $id ) ) );
+}
+
+/** Status van meerdere items tegelijk: publiceren, concept of archief. */
+function aklokaal_rest_items_status( WP_REST_Request $r ) {
+	$status = (string) $r->get_param( 'status' );
+	if ( ! in_array( $status, array( 'publish', 'draft', 'ak_archief' ), true ) ) {
+		return new WP_Error( 'aklokaal_status', __( 'Onbekende status.', 'aklokaal' ), array( 'status' => 400 ) );
+	}
+	$done = 0;
+	foreach ( array_map( 'absint', (array) $r->get_param( 'ids' ) ) as $id ) {
+		if ( in_array( get_post_type( $id ), aklokaal_placeable_types(), true ) ) {
+			wp_update_post(
+				array(
+					'ID'          => $id,
+					'post_status' => $status,
+				)
+			);
+			++$done;
+		}
+	}
+	return rest_ensure_response( array( 'updated' => $done ) );
 }
 
 /* ---------------------------------------------------------------- materiaal */

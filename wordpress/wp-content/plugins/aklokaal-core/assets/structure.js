@@ -79,14 +79,20 @@
           await api('items/move', { method: 'POST', json: { ids: [it.id], from: container, to: Number(move.value) } });
           say('Verplaatst.'); refreshAll();
         });
-        const note = h('input', { type: 'text', class: 'aks-input aks-small', value: it.note || '', placeholder: 'Toelichting hier (optioneel)', 'aria-label': 'Toelichting bij ' + it.title });
+        const note = h('input', { type: 'text', class: 'aks-input aks-small aks-note', value: it.note || '', placeholder: 'Toelichting hier (optioneel)', 'aria-label': 'Toelichting bij ' + it.title });
         note.addEventListener('change', saveOrder);
+        const statusTekst = { draft: ' (concept)', ak_archief: ' (archief)' }[it.status] || '';
+        const archief = h('button', { type: 'button', class: 'aks-icon aks-archive', title: it.status === 'ak_archief' ? 'Terughalen uit archief' : 'Archiveren', 'aria-label': (it.status === 'ak_archief' ? 'Terughalen: ' : 'Archiveer ') + it.title, text: it.status === 'ak_archief' ? '↺' : '⌫', onclick: async () => {
+          await api('items/status', { method: 'POST', json: { ids: [it.id], status: it.status === 'ak_archief' ? 'publish' : 'ak_archief' } });
+          say(it.status === 'ak_archief' ? 'Teruggehaald en gepubliceerd.' : 'Gearchiveerd: niet meer zichtbaar voor bezoekers, wel bewaard.'); render();
+        } });
         return h('li', { 'data-id': it.id, draggable: 'true', class: 'aks-item' + (it.status !== 'publish' ? ' is-draft' : '') },
+          h('input', { type: 'checkbox', class: 'aks-select', 'aria-label': 'Selecteer ' + it.title }),
           h('span', { class: 'aks-grip', 'aria-hidden': 'true', text: '⋮⋮' }),
           h('span', { class: 'aks-kind', text: it.label }),
-          h('a', { href: it.edit, class: 'aks-item-title', text: it.title + (it.status !== 'publish' ? ' (concept)' : '') }),
+          h('a', { href: it.edit, class: 'aks-item-title', text: it.title + statusTekst }),
           it.used > 1 ? h('span', { class: 'aks-badge', title: 'Staat op meerdere plekken', text: `${it.used}×` }) : null,
-          note, move, moveButtons(it.title),
+          note, move, moveButtons(it.title), archief,
           h('button', { type: 'button', class: 'aks-icon', 'aria-label': 'Haal ' + it.title + ' uit deze paragraaf', text: '×', onclick: async () => {
             const rest = [...list.children].filter((li) => Number(li.dataset.id) !== it.id).map(toItem);
             await api('items/' + container, { method: 'POST', json: { items: rest } });
@@ -95,7 +101,28 @@
       }));
       if (!items.length) list.append(h('li', { class: 'aks-empty', text: 'Nog geen materiaal.' }));
     };
-    const toItem = (li) => ({ id: Number(li.dataset.id), note: (li.querySelector('input') || {}).value || '' });
+    const toItem = (li) => ({ id: Number(li.dataset.id), note: (li.querySelector('.aks-note') || {}).value || '' });
+    const geselecteerd = () => [...list.querySelectorAll('.aks-select:checked')].map((c) => Number(c.closest('li').dataset.id));
+
+    // meerdere items tegelijk
+    const bulkMove = h('select', { class: 'aks-input aks-small', 'aria-label': 'Geselecteerde verplaatsen naar' },
+      h('option', { value: '', text: 'Geselecteerde verplaatsen naar…' }),
+      ...allParagraphs.filter((p) => p.id !== container).map((p) => h('option', { value: p.id, text: p.label })));
+    bulkMove.addEventListener('change', async () => {
+      const ids = geselecteerd();
+      if (!bulkMove.value || !ids.length) { bulkMove.value = ''; say('Vink eerst één of meer items aan.'); return; }
+      await api('items/move', { method: 'POST', json: { ids, from: container, to: Number(bulkMove.value) } });
+      say(`${ids.length} ${ids.length === 1 ? 'item' : 'items'} verplaatst.`); refreshAll();
+    });
+    const bulkStatus = (status, tekst) => h('button', { type: 'button', class: 'button', text: tekst, onclick: async () => {
+      const ids = geselecteerd();
+      if (!ids.length) { say('Vink eerst één of meer items aan.'); return; }
+      await api('items/status', { method: 'POST', json: { ids, status } });
+      say(`${ids.length} ${ids.length === 1 ? 'item' : 'items'}: ${tekst.toLowerCase()}.`); render();
+    } });
+    const bulk = h('div', { class: 'aks-bulk' },
+      h('label', { class: 'aks-all' }, h('input', { type: 'checkbox', 'aria-label': 'Alles selecteren', onchange: (e) => list.querySelectorAll('.aks-select').forEach((c) => (c.checked = e.target.checked)) }), ' Alles'),
+      bulkMove, bulkStatus('publish', 'Publiceren'), bulkStatus('draft', 'Naar concept'), bulkStatus('ak_archief', 'Archiveren'));
     async function saveOrder() {
       const items = [...list.children].filter((li) => li.dataset.id).map(toItem);
       await api('items/' + container, { method: 'POST', json: { items } });
@@ -118,7 +145,7 @@
         } }, `${it.label}: ${it.title}`))));
       }, 300);
     });
-    wrap.append(list, h('div', { class: 'aks-tools' },
+    wrap.append(bulk, list, h('div', { class: 'aks-tools' },
       h('button', { type: 'button', class: 'button button-primary', text: '+ Nieuw materiaal', onclick: () => open({ context: { chapter: wrap.closest('[data-chapter]').dataset.chapter * 1, paragraph: container }, onDone: render }) }),
       search), results);
     await render();

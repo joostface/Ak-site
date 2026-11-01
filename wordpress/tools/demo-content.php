@@ -260,7 +260,7 @@ $news = array(
 	array( 'Middelgrote steden groeien sneller dan de Randstad', 'Stadsjournaal', 'M. de Vries', '2026-10-19', 'Steden als Zwolle en Amersfoort trekken jonge gezinnen die in de grote steden geen huis vinden.', array( 'Verstedelijking' ), '' ),
 	array( 'Droogte op de Rijn raakt binnenvaart opnieuw', 'De Dagkrant', '', '2026-10-14', 'Schepen varen half beladen door de lage waterstand bij Lobith. Hoe hangt dat samen met smeltwater uit de Alpen?', array( 'Water', 'Economie' ), 'rivier' ),
 	array( 'Nieuwe kaart toont bodemdaling per straat', 'Wetenschapsbericht', '', '2026-10-09', 'Met satellietmetingen is per straat te zien hoeveel de grond daalt. In veengebieden gaat het om centimeters per jaar.', array( 'Fysische geografie' ), 'relief' ),
-	array( 'Arbeidsmigratie verschuift naar Oost-Europa', 'Geo Weekblad', 'A. Jansen', '2026-10-02', 'Steeds meer arbeidsmigranten komen uit landen verder naar het oosten. Wat zijn de push- en pullfactoren?', array( 'Migratie' ), '' ),
+	array( 'Arbeidsmigratie verschuift naar Oost-Europa', 'Geo Weekblad', 'A. Jansen', '2026-09-24', 'Steeds meer arbeidsmigranten komen uit landen verder naar het oosten. Wat zijn de push- en pullfactoren?', array( 'Migratie' ), '' ),
 );
 $news_ids = array();
 foreach ( $news as $i => $n ) {
@@ -314,8 +314,28 @@ $apps_base = getenv( 'AKLOKAAL_APPS_URL' ) ? getenv( 'AKLOKAAL_APPS_URL' ) : 'ht
 $app       = demo_post( 'ak_toepassing', 'Fossiel of hernieuwbaar?', array( 'post_excerpt' => 'Kies bij acht energiebronnen of ze fossiel of hernieuwbaar zijn. Je ziet meteen of het klopt.' ), array( 'ak_app_url' => trailingslashit( $apps_base ) . 'fossiel-of-hernieuwbaar/', 'ak_height' => 460 ) );
 set_post_thumbnail( $app, $img['energie'] );
 wp_set_post_terms( $app, array( 'Energie' ), 'ak_thema' );
-$app2 = demo_post( 'ak_toepassing', 'Topografie Nederland', array( 'post_excerpt' => 'Provincies, steden en rivieren aanwijzen op de kaart. Je oefent alleen wat je nog niet kent.' ), array( 'ak_app_url' => trailingslashit( $apps_base ) . 'fossiel-of-hernieuwbaar/' ) );
+$app2 = demo_post( 'ak_toepassing', 'Topografie Nederland', array( 'post_excerpt' => 'Provinciehoofdsteden en grote steden aanwijzen op de kaart. Wat je fout hebt, komt later terug.' ), array( 'ak_app_url' => trailingslashit( $apps_base ) . 'topografie-nederland/', 'ak_height' => 720 ) );
+update_post_meta( $app2, 'ak_app_url', trailingslashit( $apps_base ) . 'topografie-nederland/' );
 set_post_thumbnail( $app2, $img['delta'] );
+wp_set_post_terms( $app2, array( 'Topografie', 'Nederland' ), 'ak_thema' );
+$app3 = demo_post( 'ak_toepassing', 'Landen van de wereld', array( 'post_excerpt' => 'Klik op het land dat gevraagd wordt, per werelddeel of voor de hele wereld.' ), array( 'ak_app_url' => trailingslashit( $apps_base ) . 'landen-van-de-wereld/', 'ak_height' => 720 ) );
+set_post_thumbnail( $app3, $img['bevolking'] );
+wp_set_post_terms( $app3, array( 'Topografie', 'Wereld' ), 'ak_thema' );
+
+/* Interactieve kaarten (toepassingen in apps/, en de bestaande kaartensite) */
+$wereldkaart = demo_post( 'ak_kaart', 'Wereldkaart met lagen', array( 'post_excerpt' => 'Landen, de Europese Unie, het graadnet en de evenaar, keerkringen en poolcirkels. Lagen aan en uit, klik op een land.' ), array( 'ak_kind' => 'interactief', 'ak_app_url' => trailingslashit( $apps_base ) . 'wereldkaart/', 'ak_source' => 'Natural Earth (publiek domein)' ) );
+set_post_thumbnail( $wereldkaart, $img['klimaat'] );
+wp_set_post_terms( $wereldkaart, array( 'Wereld', 'Topografie' ), 'ak_thema' );
+// De bestaande digitale kaarten van de docent. Niet gemarkeerd als demo: blijft staan bij opruimen.
+$eigen = get_posts( array( 'post_type' => 'ak_kaart', 'title' => 'Digitale kaarten', 'post_status' => 'any', 'fields' => 'ids', 'posts_per_page' => 1 ) );
+if ( ! $eigen ) {
+	$eigen_id = wp_insert_post( array( 'post_type' => 'ak_kaart', 'post_title' => 'Digitale kaarten', 'post_status' => 'publish', 'post_excerpt' => 'De verzameling interactieve kaarten van kaarten.thejoast.org.' ) );
+	update_post_meta( $eigen_id, 'ak_kind', 'interactief' );
+	update_post_meta( $eigen_id, 'ak_app_url', 'https://kaarten.thejoast.org/' );
+	update_post_meta( $eigen_id, 'ak_source', 'kaarten.thejoast.org' );
+	set_post_thumbnail( $eigen_id, $img['relief'] );
+	wp_set_post_terms( $eigen_id, array( 'Wereld' ), 'ak_thema' );
+}
 
 /* ---------- plaatsingen ---------- */
 if ( ! aklokaal_get_items( $p( 1 ) ) ) {
@@ -326,6 +346,10 @@ if ( ! aklokaal_get_items( $p( 1 ) ) ) {
 	aklokaal_set_items( $p( 5 ), array( $m['eind'] ) );
 	// Hergebruik: hetzelfde werkblad ook in 3 havo? Hier: dezelfde kaart ook bij 2 havo/vwo Water.
 	aklokaal_set_items( $paragraph_ids['2-havo-vwo/2/3'], array( $map_ids[1], $news_ids[0] ) );
+}
+if ( ! aklokaal_get_items( $paragraph_ids['1-havo-vwo/1/4'] ) ) {
+	aklokaal_set_items( $paragraph_ids['1-havo-vwo/1/4'], array( $app2, $app3, $wereldkaart ) );
+	aklokaal_set_items( $paragraph_ids['5-vwo/1/1'], array( $wereldkaart, $bundel ) );
 }
 
 /* ---------- pagina Over ---------- */

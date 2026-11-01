@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wereldkaart met lagen</title>
+<link rel="stylesheet" href="../_gedeeld/kaart.css">
+</head>
+<body>
+<header class="app-kop">
+  <div>
+    <h1>Wereldkaart met lagen</h1>
+    <p>Zet lagen aan en uit. Klik op een land voor de naam en het werelddeel.</p>
+  </div>
+</header>
+<main class="app-romp">
+  <div id="kaart" class="akg" aria-describedby="uitleg"></div>
+  <aside class="app-paneel">
+    <h2>Lagen</h2>
+    <ul class="legenda">
+      <li><label><input type="checkbox" data-toon="landen" checked><span class="vlak" style="background:var(--land)"></span>Landen</label></li>
+      <li><label><input type="checkbox" data-toon="eu"><span class="vlak" style="background:#4f7a8c"></span>Europese Unie (27)</label></li>
+      <li><label><input type="checkbox" data-toon="graadnet" checked><span class="lijn" style="border-top:1px solid var(--muted)"></span>Graadnet (per 30°)</label></li>
+      <li><label><input type="checkbox" data-toon="bijzonder" checked><span class="lijn"></span>Evenaar, keerkringen, poolcirkels</label></li>
+    </ul>
+    <h2>Gekozen</h2>
+    <p class="info" id="info" aria-live="polite">Klik op een land.</p>
+    <p class="bron" id="uitleg">Zoom met de knoppen, het muiswiel, twee vingers of + en −. Verschuif door te slepen of met de pijltjestoetsen.</p>
+    <p class="bron">Kaartgegevens: Natural Earth (publiek domein), projectie Equal Earth.</p>
+  </aside>
+</main>
+<script src="../_gedeeld/landen.js"></script>
+<script src="../_gedeeld/geo.js"></script>
+<script>
+(async () => {
+  const k = AKGeo.kaart(document.getElementById('kaart'), { projectie: 'wereld', label: 'Wereldkaart' });
+  const topo = await AKGeo.laad('../_gedeeld/data/wereld-50m.json');
+  const landen = AKGeo.topoNaarFeatures(topo, 'countries');
+  const nl = (f) => (AKLanden[f.properties.name] || [f.properties.name])[0];
+  const deel = (f) => (AKLanden[f.properties.name] || [])[1];
+  const info = document.getElementById('info');
+  let gekozen = null;
+  k.laag('graadnet', AKGeo.graadnet(30), { klasse: 'akg-lijnen' });
+  k.laag('landen', landen, {
+    titel: nl,
+    klik: (f, p) => {
+      if (gekozen) gekozen.classList.remove('is-gekozen');
+      gekozen = p; p.classList.add('is-gekozen');
+      info.innerHTML = '';
+      const s = document.createElement('strong'); s.textContent = nl(f);
+      info.append(s, (deel(f) || '') + (AKEU.includes(f.id) ? ' · lid van de Europese Unie' : ''));
+    }
+  });
+  k.laag('eu', landen.filter((f) => AKEU.includes(f.id)), { klasse: 'is-eu' });
+  k.laag('bijzonder', [
+    AKGeo.breedtecirkel(0, 'Evenaar'), AKGeo.breedtecirkel(23.44, 'Kreeftskeerkring'), AKGeo.breedtecirkel(-23.44, 'Steenbokskeerkring'),
+    AKGeo.breedtecirkel(66.56, 'Noordpoolcirkel'), AKGeo.breedtecirkel(-66.56, 'Zuidpoolcirkel')
+  ], { klasse: 'akg-lijnen is-bijzonder', titel: (f) => f.properties.naam });
+  k.toon('eu', false);
+  document.querySelectorAll("[data-toon]").forEach((c) => c.addEventListener("change", () => k.toon(c.dataset.toon, c.checked)));
+})().catch((e) => { document.getElementById('info').textContent = e.message; });
+</script>
+</body>
+</html>

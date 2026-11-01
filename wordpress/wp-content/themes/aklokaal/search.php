@@ -12,7 +12,11 @@ $labels = array(
 	'ak_toepassing' => __( 'Interactief', 'aklokaal' ),
 	'page'          => __( 'Pagina’s', 'aklokaal' ),
 );
-$groups = array();
+$groups        = array();
+// phpcs:disable WordPress.Security.NonceVerification
+$aktheme_soort = isset( $_GET['soort'] ) ? sanitize_key( wp_unslash( $_GET['soort'] ) ) : '';
+$aktheme_jaar  = isset( $_GET['leerjaar'] ) ? sanitize_title( wp_unslash( $_GET['leerjaar'] ) ) : '';
+// phpcs:enable
 foreach ( $wp_query->posts as $p ) {
 	$groups[ $p->post_type ][] = $p;
 }
@@ -20,14 +24,30 @@ foreach ( $wp_query->posts as $p ) {
 <main id="main">
 	<?php get_template_part( 'template-parts/page-title', null, array( 'title' => __( 'Zoeken', 'aklokaal' ), 'lead' => get_search_query() ? sprintf( /* translators: %s: zoekterm */ __( 'Resultaten voor “%s”.', 'aklokaal' ), get_search_query() ) : '' ) ); ?>
 	<div class="wrap" style="margin-top:48px">
-		<form class="on-axis searchbox" role="search" action="<?php echo esc_url( home_url( '/' ) ); ?>" style="max-width:44rem" data-live-search="#page-results">
-			<label class="visually-hidden" for="page-search"><?php esc_html_e( 'Zoekterm', 'aklokaal' ); ?></label>
-			<input id="page-search" name="s" type="search" value="<?php echo esc_attr( get_search_query() ); ?>" style="background:var(--surface)">
-			<button class="button" type="submit"><?php esc_html_e( 'Zoek', 'aklokaal' ); ?></button>
+		<form class="on-axis search-filters" role="search" action="<?php echo esc_url( home_url( '/' ) ); ?>" style="max-width:44rem" data-live-search="#page-results">
+			<div class="searchbox">
+				<label class="visually-hidden" for="page-search"><?php esc_html_e( 'Zoekterm', 'aklokaal' ); ?></label>
+				<input id="page-search" name="s" type="search" value="<?php echo esc_attr( get_search_query() ); ?>" style="background:var(--surface)">
+				<button class="button" type="submit"><?php esc_html_e( 'Zoek', 'aklokaal' ); ?></button>
+			</div>
+			<div class="search-filters__row">
+				<label><?php esc_html_e( 'Soort', 'aklokaal' ); ?>
+					<select name="soort">
+						<option value=""><?php esc_html_e( 'Alles', 'aklokaal' ); ?></option>
+						<?php foreach ( aktheme_search_types() as $k => $l ) : ?><option value="<?php echo esc_attr( $k ); ?>" <?php selected( $aktheme_soort, $k ); ?>><?php echo esc_html( $l ); ?></option><?php endforeach; ?>
+					</select>
+				</label>
+				<label><?php esc_html_e( 'Leerjaar', 'aklokaal' ); ?>
+					<select name="leerjaar">
+						<option value=""><?php esc_html_e( 'Alle leerjaren', 'aklokaal' ); ?></option>
+						<?php foreach ( aktheme_years_with_chapters() as $y ) : ?><option value="<?php echo esc_attr( $y['term']->slug ); ?>" <?php selected( $aktheme_jaar, $y['term']->slug ); ?>><?php echo esc_html( $y['term']->name ); ?></option><?php endforeach; ?>
+					</select>
+				</label>
+			</div>
 		</form>
 		<div class="on-axis search-live" id="page-results" aria-live="polite" style="max-width:44rem;margin-top:12px"></div>
 	</div>
-	<?php if ( get_search_query() && ! $groups ) : ?>
+	<?php if ( ( get_search_query() || $aktheme_soort || $aktheme_jaar ) && ! $groups ) : ?>
 		<p class="wrap on-axis" style="margin-top:32px"><?php esc_html_e( 'Niets gevonden. Probeer een ander woord, zoals energie of klimaat.', 'aklokaal' ); ?></p>
 	<?php endif; ?>
 	<?php foreach ( $labels as $type => $label ) : if ( empty( $groups[ $type ] ) ) { continue; } ?>

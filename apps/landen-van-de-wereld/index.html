@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landen van de wereld</title>
+<link rel="stylesheet" href="../_gedeeld/kaart.css">
+</head>
+<body>
+<header class="app-kop">
+  <div>
+    <h1>Landen van de wereld</h1>
+    <p>Klik op het land dat gevraagd wordt. Fout? Dan zie je waar het ligt.</p>
+  </div>
+  <div class="keuzes" role="group" aria-label="Werelddeel">
+    <button class="keuze" type="button" data-deel="Europa" aria-pressed="true">Europa</button>
+    <button class="keuze" type="button" data-deel="Afrika" aria-pressed="false">Afrika</button>
+    <button class="keuze" type="button" data-deel="Azië" aria-pressed="false">Azië</button>
+    <button class="keuze" type="button" data-deel="Noord-Amerika" aria-pressed="false">Noord-Amerika</button>
+    <button class="keuze" type="button" data-deel="Zuid-Amerika" aria-pressed="false">Zuid-Amerika</button>
+    <button class="keuze" type="button" data-deel="Oceanië" aria-pressed="false">Oceanië</button>
+    <button class="keuze" type="button" data-deel="alles" aria-pressed="false">Hele wereld</button>
+  </div>
+</header>
+<main class="app-romp">
+  <div id="kaart" class="akg"></div>
+  <aside class="app-paneel">
+    <h2>Vraag</h2>
+    <p class="vraag" id="vraag" aria-live="polite">Laden…</p>
+    <p class="melding" id="melding" aria-live="polite"></p>
+    <p class="score" id="score"></p>
+    <button class="knop" type="button" id="sla-over">Overslaan</button>
+    <button class="knop knop--hoofd" type="button" id="opnieuw">Opnieuw beginnen</button>
+    <p class="bron">Kaartgegevens: Natural Earth (publiek domein). Kleine landen en eilanden zitten niet in de quiz.</p>
+  </aside>
+</main>
+<script src="../_gedeeld/landen.js"></script>
+<script src="../_gedeeld/geo.js"></script>
+<script>
+(async () => {
+  const kaders = { 'Europa': [-25, 34, 45, 71], 'Afrika': [-20, -36, 53, 38], 'Azië': [25, -10, 150, 60], 'Noord-Amerika': [-170, 5, -50, 84], 'Zuid-Amerika': [-85, -56, -33, 14], 'Oceanië': [110, -48, 180, 0], 'alles': [-180, -60, 180, 85] };
+  const k = AKGeo.kaart(document.getElementById('kaart'), { projectie: 'wereld', label: 'Wereldkaart om landen aan te wijzen' });
+  const topo = await AKGeo.laad('../_gedeeld/data/wereld-110m.json');
+  const landen = AKGeo.topoNaarFeatures(topo, 'countries').filter((f) => AKLanden[f.properties.name] && f.properties.name !== 'Antarctica');
+  const $ = (id) => document.getElementById(id);
+  let deel = 'Europa', rij = [], huidig = null, goed = 0, totaal = 0, poging = 0;
+  const naam = (f) => AKLanden[f.properties.name][0];
+
+  k.laag('landen', landen, { klik: (f, p) => antwoord(f, p) });
+
+  function start() {
+    landen.forEach((f) => f._pad.classList.remove('is-goed', 'is-fout', 'is-gekozen'));
+    rij = landen.filter((f) => !AKLanden[f.properties.name][2] && (deel === 'alles' || AKLanden[f.properties.name][1] === deel)).sort(() => Math.random() - 0.5);
+    goed = 0; totaal = rij.length;
+    k.naar(kaders[deel]);
+    volgende();
+  }
+  function volgende() {
+    landen.forEach((f) => f._pad.classList.remove('is-fout', 'is-gekozen'));
+    huidig = rij.shift(); poging = 0;
+    $('score').textContent = `${goed} goed · nog ${rij.length + (huidig ? 1 : 0)} van ${totaal}`;
+    if (!huidig) { $('vraag').textContent = `Klaar! ${goed} van ${totaal} in één keer goed.`; return; }
+    $('vraag').textContent = 'Waar ligt ' + naam(huidig) + '?';
+  }
+  function antwoord(f, p) {
+    if (!huidig) return;
+    if (f === huidig) {
+      if (poging === 0) goed++;
+      p.classList.add('is-goed');
+      $('melding').textContent = 'Goed, dat is ' + naam(f) + '.'; $('melding').className = 'melding is-goed';
+      setTimeout(volgende, 700);
+    } else {
+      poging++;
+      p.classList.add('is-fout');
+      $('melding').textContent = 'Dat is ' + naam(f) + '. ' + (poging >= 2 ? naam(huidig) + ' is geel gemaakt.' : 'Probeer het nog eens.'); $('melding').className = 'melding is-fout';
+      if (poging >= 2) { huidig._pad.classList.add('is-gekozen'); rij.push(huidig); setTimeout(volgende, 1600); }
+    }
+  }
+  document.querySelectorAll('[data-deel]').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-deel]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    deel = b.dataset.deel; start();
+  }));
+  $('sla-over').addEventListener('click', () => { if (huidig) { rij.push(huidig); volgende(); } });
+  $('opnieuw').addEventListener('click', start);
+  start();
+})().catch((e) => { document.getElementById('vraag').textContent = e.message; });
+</script>
+</body>
+</html>

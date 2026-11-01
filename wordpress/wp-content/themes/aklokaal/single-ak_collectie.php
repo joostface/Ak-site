@@ -19,6 +19,7 @@ while ( have_posts() ) :
 				<h2><?php esc_html_e( 'Onderzoeksvragen', 'aklokaal' ); ?></h2>
 				<ol><?php foreach ( $questions as $q ) : ?><li><?php echo esc_html( $q ); ?></li><?php endforeach; ?></ol>
 			<?php endif; ?>
+			<?php echo aktheme_placed_in( get_the_ID(), __( 'Hoort bij de lessen', 'aklokaal' ) ); // phpcs:ignore ?>
 		</div>
 	</div>
 	<div data-filter-group=".card-grid .news-card">

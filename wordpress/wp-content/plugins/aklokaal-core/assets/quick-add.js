@@ -103,6 +103,8 @@
     const [sPar, lPar] = sel('Paragraaf');
     const desc = h('textarea', { class: 'akq-input', rows: 2, placeholder: 'Korte toelichting (optioneel)' });
     const themes = h('input', { type: 'text', class: 'akq-input', placeholder: 'Thema’s, bijvoorbeeld: Energie, Klimaat' });
+    const thumb = h('input', { type: 'file', accept: '.jpg,.jpeg,.png,.webp', class: 'akq-input' });
+    const thumbField = h('label', { class: 'akq-field' }, h('span', { text: 'Eigen voorbeeldafbeelding (optioneel)' }), thumb, h('small', { class: 'akq-help', text: 'Wordt getoond bij presentaties, video’s, nieuws en in overzichten. JPG, PNG of WebP.' }));
     const status = h('p', { class: 'akq-status', role: 'status' });
     const btnPub = h('button', { type: 'submit', class: 'akq-btn akq-btn--main', value: 'publish', text: 'Publiceren' });
     const btnDraft = h('button', { type: 'submit', class: 'akq-btn', value: 'draft', text: 'Als concept bewaren' });
@@ -120,7 +122,7 @@
       h('div', { class: 'akq-tabs', role: 'group', 'aria-label': 'Wat wil je toevoegen?' }, tabFiles, tabLink),
       paneFiles, paneLink,
       h('fieldset', { class: 'akq-dest' }, h('legend', { text: 'Waar komt het?' }), h('div', { class: 'akq-grid' }, lVak, lJaar, lCh, lPar)),
-      h('details', { class: 'akq-more' }, h('summary', { text: 'Toelichting en thema’s' }), desc, themes),
+      h('details', { class: 'akq-more' }, h('summary', { text: 'Toelichting, thema’s en afbeelding' }), desc, themes, thumbField),
       h('div', { class: 'akq-actions' }, btnPub, btnDraft),
       status);
 
@@ -241,6 +243,7 @@
       const container = Number(sPar.value || sCh.value || 0);
       const dest = { chapter: Number(sCh.value), paragraph: Number(sPar.value) || 0 };
       btnPub.disabled = btnDraft.disabled = true;
+      const ids = [];
       try {
         let created = 0;
         if (mode === 'files') {
@@ -257,6 +260,7 @@
             const res = await upload('materials', fd, (p) => { f.progress = p; renderFiles(); });
             if (res.errors && res.errors.length) throw new Error(res.errors.map((x) => `${x.file}: ${x.message}`).join(' '));
             created += res.created.length;
+            res.created.forEach((c) => ids.push(c.id));
           }
           files = []; renderFiles();
         } else {
@@ -267,12 +271,23 @@
             const payload = { url: u, canonical: news.canonical, status: publish ? 'publish' : 'draft', container, themes: themes.value };
             for (const k of ['title', 'publisher', 'author', 'published', 'description', 'image_url', 'question']) payload[k] = news[k].value;
             payload.show_image = news.show_image.checked;
-            await api('news', { method: 'POST', json: payload });
+            const n = await api('news', { method: 'POST', json: payload });
+            ids.push(n.id);
           } else {
-            await api('materials', { method: 'POST', json: { url: u, type: urlKind.value, titles: [urlTitle.value], container, status: publish ? 'publish' : 'draft', description: desc.value, themes: themes.value } });
+            const m = await api('materials', { method: 'POST', json: { url: u, type: urlKind.value, titles: [urlTitle.value], container, status: publish ? 'publish' : 'draft', description: desc.value, themes: themes.value } });
+            m.created.forEach((c) => ids.push(c.id));
           }
           created = 1;
           urlInput.value = ''; urlTitle.value = ''; newsBox.hidden = true; newsBox.replaceChildren(); news = null;
+        }
+        if (thumb.files[0]) {
+          status.textContent = 'Voorbeeldafbeelding toevoegen…';
+          for (const id of ids) {
+            const fd = new FormData();
+            fd.append('file', thumb.files[0]);
+            await upload(`items/${id}/thumbnail`, fd);
+          }
+          thumb.value = '';
         }
         store.set('aklokaal-last', dest);
         await loadStructure(true);
