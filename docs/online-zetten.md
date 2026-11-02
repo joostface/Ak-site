@@ -18,7 +18,23 @@ plugins of thema's toe.
 2. Open `prototype/index.html` en `prototype/hoofdstuk.html` in je browser.
 3. Beslis: bevalt de vormgeving en de opbouw? Wil je iets anders, zeg het nu. Dat is het goedkoopste moment.
 
-## Stap 1 — Hosting en domeinnaam kiezen
+## Je hebt al een domein: thejoast.org
+
+Je hoeft geen domein te kopen. Gebruik subdomeinen, zodat `kaarten.thejoast.org` blijft werken zoals nu:
+
+| Adres | Wat |
+| --- | --- |
+| `aardrijkskunde.thejoast.org` (of een korter adres als `ak.thejoast.org`) | De WordPress-site |
+| `apps.thejoast.org` | De interactieve toepassingen |
+| `kaarten.thejoast.org` | Blijft zoals het is |
+
+Wil je de site liever op `thejoast.org` zelf? Dat kan, als daar nu niets anders staat.
+
+Zoek eerst uit **waar de DNS van thejoast.org beheerd wordt**: bij de partij waar je het domein kocht, of bij
+Cloudflare. Daar maak je straks de verwijzingen naar de nieuwe hosting aan. Raak de bestaande regel voor
+`kaarten` niet aan.
+
+## Stap 1 — Hosting kiezen
 
 Kies een **WordPress-hostingpakket** bij een Nederlandse of Europese aanbieder. Let bij het vergelijken op:
 
@@ -28,19 +44,31 @@ Kies een **WordPress-hostingpakket** bij een Nederlandse of Europese aanbieder. 
 | Uploadlimiet van minstens 64 MB, liefst meer | PowerPoints met veel afbeeldingen zijn groot |
 | Gratis SSL (Let's Encrypt) | HTTPS |
 | Dagelijkse back-ups die je zelf kunt terugzetten | Herstel zonder gedoe |
-| Subdomeinen mogelijk | Voor de interactieve toepassingen (`apps.jouwdomein.nl`) |
+| Subdomeinen mogelijk | Voor de interactieve toepassingen (`apps.thejoast.org`) |
 | Opslag van minstens 10 GB | Lesmateriaal groeit |
 | Servers in de EU | Privacy (AVG) |
 
-Kies het kleinste pakket dat hieraan voldoet en registreer daar ook je domeinnaam.
+Kies het kleinste pakket dat hieraan voldoet. Je domein heb je al: kies bij het bestellen **"eigen domein
+gebruiken"** of **"domein van elders"** (dus niet verhuizen en niet opnieuw registreren).
+
+**Het subdomein koppelen:**
+1. Voeg in het hostingpaneel `aardrijkskunde.thejoast.org` toe als domein of website.
+   De host laat dan zien welk DNS-record nodig is: meestal een **A-record** met een IP-adres, of een **CNAME**.
+2. Maak bij je DNS-beheerder precies dat record aan, met als naam `aardrijkskunde`.
+   Doe hetzelfde voor `apps`.
+3. Wacht een kwartier tot een paar uur. Zet daarna in het hostingpaneel **SSL** aan voor beide adressen.
+
+*Staat je DNS bij Cloudflare?* Zet bij de nieuwe records de oranje wolk tijdelijk uit (grijs, "DNS only"),
+zodat de host een SSL-certificaat kan aanvragen. Wil je daarna Cloudflare ertussen, zet de wolk weer oranje
+en kies bij *SSL/TLS* de stand **Full (strict)**.
 
 ## Stap 2 — WordPress installeren
 
-1. In het klantenpaneel van je host: **WordPress installeren** (vaak één klik).
+1. In het klantenpaneel van je host: **WordPress installeren** op `aardrijkskunde.thejoast.org` (vaak één klik).
    - Taal: **Nederlands**.
    - Gebruikersnaam: **niet** "admin". Kies een sterk wachtwoord en bewaar het in een wachtwoordmanager.
 2. Zet in het paneel **SSL/HTTPS aan** en (als dat kan) "HTTP altijd doorsturen naar HTTPS".
-3. Log in op `https://jouwdomein.nl/wp-admin`.
+3. Log in op `https://aardrijkskunde.thejoast.org/wp-admin`.
 
 ## Stap 3 — Plugin en thema uploaden
 
@@ -58,15 +86,17 @@ In het menu links staat nu **Lesmateriaal**.
 
 De toepassingen (topografie, landen, wereldkaart) staan los van WordPress op een eigen subdomein.
 
-1. Maak in het hostingpaneel een **subdomein** `apps.jouwdomein.nl` aan, met een eigen map. Zet SSL ook daarvoor aan.
+1. Zorg dat `apps.thejoast.org` in het hostingpaneel een eigen map heeft (zie stap 1). Zet SSL ook daarvoor aan.
 2. Open de **bestandsbeheerder** (of FTP), ga naar de map van dat subdomein en upload `aklokaal-apps.zip`.
-   Pak het daar uit. Controleer daarna `https://apps.jouwdomein.nl/topografie-nederland/` in je browser.
+   Pak het daar uit. Controleer daarna `https://apps.thejoast.org/topografie-nederland/` in je browser.
 3. In WordPress: **Lesmateriaal → Interactief → Nieuw**. Vul titel, korte samenvatting en het adres in
-   (bijvoorbeeld `https://apps.jouwdomein.nl/topografie-nederland/`), kies een uitgelichte afbeelding en publiceer.
+   (bijvoorbeeld `https://apps.thejoast.org/topografie-nederland/`), kies een uitgelichte afbeelding en publiceer.
    Doe hetzelfde voor `landen-van-de-wereld/`.
 4. **Lesmateriaal → Kaarten → Nieuw**:
-   - "Wereldkaart met lagen": soort *Interactief*, adres `https://apps.jouwdomein.nl/wereldkaart/`.
+   - "Wereldkaart met lagen": soort *Interactief*, adres `https://apps.thejoast.org/wereldkaart/`.
    - "Digitale kaarten": soort *Interactief*, adres `https://kaarten.thejoast.org/`. Controleer of die kaart in het venster verschijnt.
+     Verschijnt hij niet, dan blokkeert de server van kaarten.thejoast.org het insluiten. Sta dan insluiten toe
+     vanaf `https://aardrijkskunde.thejoast.org` (header `Content-Security-Policy: frame-ancestors 'self' https://aardrijkskunde.thejoast.org`).
 
 ## Stap 5 — Beveiligen (20 minuten)
 
