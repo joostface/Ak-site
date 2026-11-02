@@ -258,7 +258,22 @@
               h('span', { class: 'aks-count', text: `${c.paragraphs.length} paragrafen` }),
               statusBtn,
               h('a', { class: 'button-link', href: c.url, target: '_blank', rel: 'noopener', text: 'Bekijk' }),
-              moveButtons('Hoofdstuk ' + c.title)),
+              moveButtons('Hoofdstuk ' + c.title),
+              h('button', { type: 'button', class: 'aks-icon', title: `Weghalen uit ${jaar.name}`, 'aria-label': `Haal hoofdstuk ${c.title} weg uit ${jaar.name}`, text: '×', onclick: async (e) => {
+                e.preventDefault();
+                const gedeeld = (c.years || []).length > 1;
+                const vraag = gedeeld
+                  ? `“${c.title}” weghalen uit ${jaar.name}? Het hoofdstuk blijft bestaan in de andere leerjaren, met al zijn materiaal.`
+                  : `“${c.title}” weghalen uit ${jaar.name}? Dit verwijdert alleen deze versie (met ${c.paragraphs.length} paragrafen) naar de prullenbak. Hoofdstukken met dezelfde naam in andere leerjaren blijven staan.`;
+                if (!confirm(vraag)) return;
+                try { await api(`chapters/${c.id}?leerjaar=${jaar.id}`, { method: 'DELETE' }); }
+                catch (err) {
+                  if (!confirm(err.message + '\n\nToch weghalen?')) return;
+                  await api(`chapters/${c.id}?leerjaar=${jaar.id}&force=1`, { method: 'DELETE' });
+                }
+                say(gedeeld ? `Weggehaald uit ${jaar.name}; het hoofdstuk staat nog in de andere leerjaren.` : 'Hoofdstuk verwijderd. Eventueel materiaal staat bovenaan onder “Materiaal zonder plek”.');
+                refreshAll();
+              } })),
             paras, addPara);
           list.append(h('li', { 'data-id': c.id, draggable: 'true' }, det));
         });

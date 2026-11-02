@@ -292,6 +292,7 @@ function aklokaal_chapter_json( $c, $status = array( 'publish' ) ) {
 		'status'     => $c->post_status,
 		'url'        => get_permalink( $c ),
 		'excerpt'    => $c->post_excerpt,
+		'years'      => array_map( 'intval', wp_get_object_terms( $c->ID, 'ak_leerjaar', array( 'fields' => 'ids' ) ) ),
 		'paragraphs' => array_values(
 			array_map(
 				function ( $p, $i ) {
@@ -450,6 +451,37 @@ function aklokaal_rest_trash( WP_REST_Request $r ) {
 	}
 	if ( 'ak_paragraaf' === get_post_type( $id ) ) {
 		// Het materiaal blijft bewaard en verschijnt onder "Materiaal zonder plek".
+		aklokaal_set_items( $id, array() );
+	}
+	if ( 'ak_hoofdstuk' === get_post_type( $id ) && $r->get_param( 'leerjaar' ) ) {
+		// Hangt het hoofdstuk aan meerdere leerjaren? Dan alleen uit dit leerjaar halen.
+		$jaren = wp_get_object_terms( $id, 'ak_leerjaar', array( 'fields' => 'ids' ) );
+		$jaar  = (int) $r->get_param( 'leerjaar' );
+		if ( count( $jaren ) > 1 && in_array( $jaar, $jaren, true ) ) {
+			wp_remove_object_terms( $id, $jaar, 'ak_leerjaar' );
+			return rest_ensure_response(
+				array(
+					'ok'      => true,
+					'removed' => 'leerjaar',
+				)
+			);
+		}
+	}
+	if ( 'ak_hoofdstuk' === get_post_type( $id ) ) {
+		$paras = aklokaal_get_paragraphs( $id, array( 'publish', 'draft', 'private' ) );
+		$aantal = count( aklokaal_get_items( $id ) );
+		foreach ( $paras as $p ) {
+			$aantal += count( aklokaal_get_items( $p->ID ) );
+		}
+		if ( $aantal && ! $r->get_param( 'force' ) ) {
+			/* translators: %d: aantal materialen */
+			return new WP_Error( 'aklokaal_not_empty', sprintf( __( 'Dit hoofdstuk bevat nog %d materialen. Verplaats ze eerst, of bevestig dat je het hoofdstuk toch wilt verwijderen; het materiaal komt dan onder “Materiaal zonder plek”.', 'aklokaal' ), $aantal ), array( 'status' => 409 ) );
+		}
+		// Paragrafen gaan mee naar de prullenbak; materiaal blijft bewaard (zonder plek).
+		foreach ( $paras as $p ) {
+			aklokaal_set_items( $p->ID, array() );
+			wp_trash_post( $p->ID );
+		}
 		aklokaal_set_items( $id, array() );
 	}
 	wp_trash_post( $id );
