@@ -171,6 +171,8 @@
         image_url: h('input', { type: 'url', class: 'akq-input', value: d.image_url || '' }),
         show_image: h('input', { type: 'checkbox', checked: !!d.image_url }),
         question: h('input', { type: 'text', class: 'akq-input', placeholder: 'Bijvoorbeeld: Waarom treft droogte juist de binnenvaart?' }),
+        summary: h('textarea', { class: 'akq-input', rows: 4, placeholder: 'In je eigen woorden: waar gaat het over en waarom is het aardrijkskunde?' }),
+        quote: h('textarea', { class: 'akq-input', rows: 2, maxlength: 400, placeholder: 'Een of twee zinnen letterlijk uit het artikel (optioneel)' }),
         canonical: d.canonical || '',
         url: d.url
       };
@@ -179,7 +181,7 @@
       if (d.warning) warn.push(h('p', { class: 'akq-warn', text: d.warning }));
       if (d.missing && d.missing.length) warn.push(h('p', { class: 'akq-help', text: 'Niet gevonden in de metadata: ' + d.missing.join(', ') + '. Vul dit zelf aan als je het weet.' }));
       if (d.ai && d.ai.notes) warn.push(h('p', { class: 'akq-help', text: 'AI-voorstel (controleer!): ' + d.ai.notes }));
-      newsBox.replaceChildren(
+      newsBox.replaceChildren(...[
         ...warn,
         d.image_url ? h('img', { class: 'akq-news__img', src: d.image_url, alt: '' }) : null,
         field('Titel', news.title),
@@ -187,7 +189,9 @@
         field('Korte beschrijving', news.description, 'Een eigen omschrijving is beter dan die van de uitgever.'),
         field('Afbeelding (link bij de bron)', news.image_url),
         h('label', { class: 'akq-check' }, news.show_image, ' Afbeelding van de bron tonen'),
-        field('Geografische vraag (optioneel)', news.question));
+        field('Geografische vraag (optioneel)', news.question),
+        field('Eigen samenvatting (op je nieuwspagina)', news.summary, 'Schrijf dit zelf; het volledige artikel nemen we niet over.'),
+        field('Kort citaat (optioneel)', news.quote, 'Hooguit een of twee zinnen; de bron wordt er automatisch bij gezet.')].filter(Boolean));
       newsBox.hidden = false;
       if (d.title) urlTitle.value = d.title;
     };
@@ -218,30 +222,36 @@
     const fillCh = () => {
       const v = structure.find((x) => x.id == sVak.value); const y = v && v.years.find((x) => x.id == sJaar.value);
       const ch = y ? y.chapters : [];
-      sCh.replaceChildren(...(ch.length ? ch.map((c) => opt(c.id, `H${c.number} ${c.title}${c.status === 'draft' ? ' (concept)' : ''}`)) : [opt('', 'Nog geen hoofdstukken')]));
+      sCh.replaceChildren(opt('', '— geen hoofdstuk: alleen in het archief —'), ...ch.map((c) => opt(c.id, `H${c.number} ${c.title}${c.status === 'draft' ? ' (concept)' : ''}`)));
+      if (ch.length && !geenPlek) sCh.value = ch[0].id;
     };
     const fillPar = () => {
       const f = findChapter(Number(sCh.value));
       const ps = f ? f.c.paragraphs : [];
-      sPar.replaceChildren(opt('', '— alleen bij het hoofdstuk —'), ...ps.map((p) => opt(p.id, p.label)));
+      sPar.replaceChildren(opt('', f ? '— alleen bij het hoofdstuk —' : '—'), ...ps.map((p) => opt(p.id, p.label)));
+      sPar.disabled = !f;
     };
     sVak.addEventListener('change', () => { fillJaar(); fillCh(); fillPar(); });
     sJaar.addEventListener('change', () => { fillCh(); fillPar(); });
     sCh.addEventListener('change', fillPar);
+    let geenPlek = false;
     const applyDestination = (dest) => {
       fillVak();
+      geenPlek = !!(dest && dest.none);
       const f = dest && dest.chapter ? findChapter(dest.chapter) : null;
       if (f) { sVak.value = f.v.id; fillJaar(); sJaar.value = f.y.id; fillCh(); sCh.value = f.c.id; fillPar(); sPar.value = dest.paragraph || ''; }
-      else { fillJaar(); fillCh(); fillPar(); }
+      else { fillJaar(); fillCh(); if (geenPlek) sCh.value = ''; fillPar(); }
+      geenPlek = false;
     };
     loadStructure().then(() => applyDestination(context || store.get('aklokaal-last'))).catch((e) => (status.textContent = e.message));
+    urlKind.addEventListener('change', () => { if (urlKind.value === 'nieuws' && !context && structure) applyDestination({ none: true }); });
 
     /* versturen */
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const publish = (e.submitter && e.submitter.value) !== 'draft';
       const container = Number(sPar.value || sCh.value || 0);
-      const dest = { chapter: Number(sCh.value), paragraph: Number(sPar.value) || 0 };
+      const dest = Number(sCh.value) ? { chapter: Number(sCh.value), paragraph: Number(sPar.value) || 0 } : { none: true };
       btnPub.disabled = btnDraft.disabled = true;
       const ids = [];
       try {
@@ -269,7 +279,7 @@
           if (urlKind.value === 'nieuws') {
             if (!news) await lookup();
             const payload = { url: u, canonical: news.canonical, status: publish ? 'publish' : 'draft', container, themes: themes.value };
-            for (const k of ['title', 'publisher', 'author', 'published', 'description', 'image_url', 'question']) payload[k] = news[k].value;
+            for (const k of ['title', 'publisher', 'author', 'published', 'description', 'image_url', 'question', 'summary', 'quote']) payload[k] = news[k].value;
             payload.show_image = news.show_image.checked;
             const n = await api('news', { method: 'POST', json: payload });
             ids.push(n.id);
@@ -289,7 +299,7 @@
           }
           thumb.value = '';
         }
-        store.set('aklokaal-last', dest);
+        if (dest.chapter) store.set('aklokaal-last', dest);
         await loadStructure(true);
         const f = findChapter(dest.chapter);
         const where = f ? (f.c.paragraphs.find((p) => p.id === dest.paragraph) || null) : null;

@@ -278,6 +278,7 @@ function aklokaal_register_meta() {
 			'ak_image_url'  => 'string',
 			'ak_show_image' => 'boolean',
 			'ak_question'   => 'string',
+			'ak_quote'      => 'string',
 			'ak_missing'    => 'array',
 			'ak_ai_draft'   => 'object',
 		),

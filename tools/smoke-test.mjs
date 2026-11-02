@@ -139,7 +139,7 @@ if (PASS) {
   await news.locator('input[type=text]').first().fill('Zeespiegel stijgt sneller langs de Noordzeekust');
   await news.locator('input[type=text]').nth(1).fill('Voorbeeldkrant');
   await news.locator('input[type=date]').fill('2026-10-30');
-  await news.locator('textarea').fill('Nieuwe metingen laten zien dat de zeespiegel sneller stijgt dan verwacht.');
+  await news.locator('textarea').first().fill('Nieuwe metingen laten zien dat de zeespiegel sneller stijgt dan verwacht.');
   await page.screenshot({ path: `${OUT}/nieuws-import.png` });
   await page.click('.akq-form .akq-btn--main');
   await page.waitForFunction(() => /gepubliceerd|al in/.test(document.querySelector('.akq-status')?.textContent || ''), null, { timeout: 15000 }).catch(() => {});

@@ -132,6 +132,7 @@ function aklokaal_meta_fields() {
 			'ak_image_url'  => array( __( 'Afbeelding (URL bij de bron)', 'aklokaal' ), 'url', '' ),
 			'ak_show_image' => array( __( 'Afbeelding van de bron tonen', 'aklokaal' ), 'checkbox', __( 'Uitzetten als je niet zeker weet of het mag. Je kunt ook een eigen uitgelichte afbeelding kiezen.', 'aklokaal' ) ),
 			'ak_question'   => array( __( 'Geografische vraag bij dit artikel', 'aklokaal' ), 'text', '' ),
+			'ak_quote'      => array( __( 'Kort citaat uit het artikel (optioneel)', 'aklokaal' ), 'textarea', __( 'Maximaal een of twee zinnen, letterlijk overgenomen. De bron wordt er automatisch bij vermeld. De samenvatting schrijf je in het grote tekstvak hierboven, in je eigen woorden.', 'aklokaal' ) ),
 		),
 		'ak_collectie'  => array(
 			'ak_questions' => array( __( 'Onderzoeksvragen', 'aklokaal' ), 'textarea', __( 'Eén vraag per regel.', 'aklokaal' ) ),

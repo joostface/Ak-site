@@ -62,7 +62,13 @@ function aklokaal_fetch_article_metadata( $url ) {
 		return aklokaal_finish_metadata( $base );
 	}
 
-	return aklokaal_finish_metadata( array_merge( $base, aklokaal_parse_article_html( $html, $url ) ) );
+	$data = array_merge( $base, aklokaal_parse_article_html( $html, $url ) );
+	if ( aklokaal_is_consent_wall( $html, $data ) ) {
+		// Cookiescherm in plaats van het artikel: niets van die pagina gebruiken.
+		$data            = $base;
+		$data['warning'] = __( 'Deze website toont automatische bezoekers eerst een cookie- of privacyscherm, waardoor de gegevens van het artikel niet te lezen zijn. De titel is afgeleid uit de link; controleer hem en vul de rest zelf aan.', 'aklokaal' );
+	}
+	return aklokaal_finish_metadata( $data );
 }
 
 /**
@@ -217,7 +223,80 @@ function aklokaal_ld_names( $val ) {
 }
 
 /** Uitgever afleiden uit het domein als niets anders bekend is, en ontbrekende velden markeren. */
+/**
+ * Herken een cookie-/privacyscherm (bijvoorbeeld de DPG Media Privacy Gate van nu.nl, AD, de Volkskrant).
+ */
+function aklokaal_is_consent_wall( $html, $data ) {
+	$title = strtolower( (string) $data['title'] );
+	if ( preg_match( '/privacy ?gate|cookie ?wall|cookiemelding|toestemming|consent|before you continue|voordat je verdergaat/i', $title ) ) {
+		return true;
+	}
+	return (bool) preg_match( '/myprivacy\.dpgmedia|consent\.(google|yahoo)|cmp\.dpgmedia|id="didomi|class="cookiewall/i', substr( (string) $html, 0, 200000 ) ) && '' === $data['description'];
+}
+
+/** Titel uit de link: ".../kabinet-na-dag-vol-overleg-eens.html" → "Kabinet na dag vol overleg eens". */
+function aklokaal_title_from_url( $url ) {
+	$path  = trim( (string) wp_parse_url( $url, PHP_URL_PATH ), '/' );
+	$parts = array_reverse( explode( '/', $path ) );
+	foreach ( $parts as $part ) {
+		$part = preg_replace( '/\.(html?|php|aspx?)$/i', '', rawurldecode( $part ) );
+		$part = preg_replace( '/^\d+[-_]|[-_]\d{4,}$/', '', $part );
+		if ( substr_count( $part, '-' ) + substr_count( $part, '_' ) >= 2 && ! preg_match( '/^[\d\-_]+$/', $part ) ) {
+			$t = trim( str_replace( array( '-', '_' ), ' ', $part ) );
+			return mb_strtoupper( mb_substr( $t, 0, 1 ) ) . mb_substr( $t, 1 );
+		}
+	}
+	return '';
+}
+
+/** Bekende Nederlandse en Vlaamse nieuwsbronnen, op domein. */
+function aklokaal_known_publishers() {
+	return apply_filters(
+		'aklokaal_known_publishers',
+		array(
+			'nu.nl'                => 'NU.nl',
+			'nos.nl'               => 'NOS',
+			'volkskrant.nl'        => 'de Volkskrant',
+			'ad.nl'                => 'AD',
+			'trouw.nl'             => 'Trouw',
+			'parool.nl'            => 'Het Parool',
+			'nrc.nl'               => 'NRC',
+			'telegraaf.nl'         => 'De Telegraaf',
+			'rtl.nl'               => 'RTL Nieuws',
+			'rtlnieuws.nl'         => 'RTL Nieuws',
+			'fd.nl'                => 'Het Financieele Dagblad',
+			'nporadio1.nl'         => 'NPO Radio 1',
+			'npo.nl'               => 'NPO',
+			'knmi.nl'              => 'KNMI',
+			'rijksoverheid.nl'     => 'Rijksoverheid',
+			'cbs.nl'               => 'CBS',
+			'pbl.nl'               => 'Planbureau voor de Leefomgeving',
+			'rijkswaterstaat.nl'   => 'Rijkswaterstaat',
+			'scientias.nl'         => 'Scientias',
+			'kennislink.nl'        => 'NEMO Kennislink',
+			'vrt.be'               => 'VRT NWS',
+			'demorgen.be'          => 'De Morgen',
+			'standaard.be'         => 'De Standaard',
+			'hln.be'               => 'HLN',
+			'bbc.com'              => 'BBC',
+			'bbc.co.uk'            => 'BBC',
+			'theguardian.com'      => 'The Guardian',
+			'nationalgeographic.com' => 'National Geographic',
+			'nationalgeographic.nl'  => 'National Geographic',
+		)
+	);
+}
+
 function aklokaal_finish_metadata( $data ) {
+	if ( '' === $data['title'] ) {
+		$data['title']       = aklokaal_title_from_url( $data['url'] );
+		$data['title_guess'] = '' !== $data['title'];
+	}
+	$host = strtolower( preg_replace( '/^(www\.|m\.)/', '', (string) wp_parse_url( $data['canonical'] ? $data['canonical'] : $data['url'], PHP_URL_HOST ) ) );
+	$bekend = aklokaal_known_publishers();
+	if ( isset( $bekend[ $host ] ) && ( '' === $data['publisher'] || false !== stripos( $data['publisher'], 'privacy' ) ) ) {
+		$data['publisher'] = $bekend[ $host ];
+	}
 	if ( '' === $data['publisher'] ) {
 		$host = (string) wp_parse_url( $data['canonical'] ? $data['canonical'] : $data['url'], PHP_URL_HOST );
 		if ( $host ) {
@@ -241,6 +320,9 @@ function aklokaal_finish_metadata( $data ) {
 	}
 	if ( ! empty( $data['publisher_guess'] ) ) {
 		$data['missing'][] = __( 'uitgever (afgeleid van het domein, controleer dit)', 'aklokaal' );
+	}
+	if ( ! empty( $data['title_guess'] ) ) {
+		$data['missing'][] = __( 'titel (afgeleid uit de link, controleer hoofdletters en leestekens)', 'aklokaal' );
 	}
 	$data['duplicate'] = aklokaal_find_news_by_url( $data['canonical'] ? $data['canonical'] : $data['url'] );
 	if ( ! $data['duplicate'] && $data['canonical'] ) {
@@ -325,6 +407,10 @@ function aklokaal_save_news( $data ) {
 	update_post_meta( $id, 'ak_image_url', esc_url_raw( isset( $data['image_url'] ) ? $data['image_url'] : '', array( 'https', 'http' ) ) );
 	update_post_meta( $id, 'ak_show_image', ! empty( $data['show_image'] ) );
 	update_post_meta( $id, 'ak_question', sanitize_text_field( isset( $data['question'] ) ? $data['question'] : '' ) );
+	if ( isset( $data['quote'] ) ) {
+		// Citaatrecht: kort houden.
+		update_post_meta( $id, 'ak_quote', mb_substr( sanitize_textarea_field( $data['quote'] ), 0, 400 ) );
+	}
 	if ( isset( $data['themes'] ) ) {
 		$themes = is_array( $data['themes'] ) ? $data['themes'] : explode( ',', (string) $data['themes'] );
 		wp_set_post_terms( $id, array_filter( array_map( 'sanitize_text_field', array_map( 'trim', $themes ) ) ), 'ak_thema' );

@@ -51,5 +51,15 @@ check( 'OG: relatieve afbeelding absoluut gemaakt', $d2['image_url'], 'https://g
 // 3. Normalisatie voor dubbele links
 check( 'utm en www genegeerd', aklokaal_normalize_url( 'https://www.voorbeeldkrant.nl/nieuws/droogte-rijn/?utm_source=x&id=4' ), aklokaal_normalize_url( 'http://voorbeeldkrant.nl/nieuws/droogte-rijn?id=4' ) );
 
+// 4. Cookiescherm (DPG Media Privacy Gate, zoals bij nu.nl)
+$gate = '<html><head><title>DPG Media Privacy Gate</title><script src="https://myprivacy.dpgmedia.nl/consent.js"></script></head><body>Voordat je verdergaat</body></html>';
+$url  = 'https://www.nu.nl/politiek/6415285/kabinet-na-dag-vol-overleg-eens-over-route-voor-belastingplan-en-box-3.html';
+$g    = array_merge( array( 'url' => $url, 'canonical' => '', 'title' => '', 'publisher' => '', 'author' => '', 'published' => '', 'description' => '', 'image_url' => '', 'missing' => array(), 'sources' => array(), 'warning' => '' ), aklokaal_parse_article_html( $gate, $url ) );
+check( 'cookiescherm herkend', aklokaal_is_consent_wall( $gate, $g ), true );
+$g = aklokaal_finish_metadata( array( 'url' => $url, 'canonical' => '', 'title' => '', 'publisher' => '', 'author' => '', 'published' => '', 'description' => '', 'image_url' => '', 'missing' => array(), 'sources' => array(), 'warning' => '' ) );
+check( 'titel uit de link', $g['title'], 'Kabinet na dag vol overleg eens over route voor belastingplan en box 3' );
+check( 'uitgever herkend', $g['publisher'], 'NU.nl' );
+check( 'gewoon artikel is geen cookiescherm', aklokaal_is_consent_wall( $html, $d ), false );
+
 echo $fail ? "\n$fail fout(en)\n" : "\nAlles in orde\n";
 exit( $fail ? 1 : 0 );
