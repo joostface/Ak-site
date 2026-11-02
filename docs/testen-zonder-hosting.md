@@ -31,7 +31,7 @@ complete WordPress-site op je laptop draait. Geen Docker, geen opdrachtregel.
 8. Klaar met kijken? **Lesmateriaal → Demo-inhoud → Opruimen** haalt alle voorbeeldinhoud weer weg.
 
 **Wat (nog) niet werkt in deze test:** de interactieve toepassingen en kaarten in de demo verwijzen naar
-`https://apps.thejoast.org`. Die verschijnen pas als je de toepassingen op Cloudflare Pages hebt gezet
+`https://apps.aardrijkskundelokaal.nl`. Die verschijnen pas als je de toepassingen op Cloudflare Pages hebt gezet
 (zie [online-zetten.md](online-zetten.md), stap 4). De rest werkt volledig.
 
 **Tip:** Studio kan een site later rechtstreeks overzetten, en je kunt een back-up exporteren. Wat je hier

@@ -1,0 +1,9 @@
+# Beveiligingsheaders voor de toepassingen op apps.aardrijkskundelokaal.nl (Apache, bijvoorbeeld Vimexx).
+# Insluiten alleen toestaan vanaf de eigen website.
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "frame-ancestors 'self' https://aardrijkskundelokaal.nl https://www.aardrijkskundelokaal.nl"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "no-referrer"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+Options -Indexes

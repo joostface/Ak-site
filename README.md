@@ -20,7 +20,7 @@ Draait op een thuisserver met Docker/Portainer, publiek via Cloudflare Tunnel. G
 ## Documentatie
 
 - **[Eerst testen op je laptop, zonder hosting](docs/testen-zonder-hosting.md)**: begin hier
-- **[Online zetten zonder thuisserver](docs/online-zetten.md)**
+- **[Online zetten bij Vimexx (aardrijkskundelokaal.nl)](docs/online-zetten.md)**
 
 - [Installatie op een eigen (thuis)server met Docker](docs/installatie.md) (Docker, Portainer, Cloudflare Tunnel, beveiliging)
 - [Dagelijks gebruik](docs/beheer.md): materiaal toevoegen, hoofdstukken, nieuws, bundels, kaarten

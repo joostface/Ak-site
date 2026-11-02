@@ -319,7 +319,7 @@ foreach ( $maps as $mp ) {
 }
 
 /* ---------- interactief ---------- */
-$apps_base = getenv( 'AKLOKAAL_APPS_URL' ) ? getenv( 'AKLOKAAL_APPS_URL' ) : ( defined( 'AKLOKAAL_APPS_URL' ) ? AKLOKAAL_APPS_URL : 'https://apps.thejoast.org' );
+$apps_base = getenv( 'AKLOKAAL_APPS_URL' ) ? getenv( 'AKLOKAAL_APPS_URL' ) : ( defined( 'AKLOKAAL_APPS_URL' ) ? AKLOKAAL_APPS_URL : 'https://apps.aardrijkskundelokaal.nl' );
 $app       = demo_post( 'ak_toepassing', 'Fossiel of hernieuwbaar?', array( 'post_excerpt' => 'Kies bij acht energiebronnen of ze fossiel of hernieuwbaar zijn. Je ziet meteen of het klopt.' ), array( 'ak_app_url' => trailingslashit( $apps_base ) . 'fossiel-of-hernieuwbaar/', 'ak_height' => 460 ) );
 set_post_thumbnail( $app, $img['energie'] );
 wp_set_post_terms( $app, array( 'Energie' ), 'ak_thema' );

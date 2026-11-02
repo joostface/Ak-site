@@ -1,158 +1,108 @@
-# Online zetten zonder thuisserver
+# Online zetten bij Vimexx: aardrijkskundelokaal.nl
 
-Je huurt gewone WordPress-hosting. De hostingpartij regelt de server, beveiligingsupdates van de
-server, HTTPS en back-ups. Jij uploadt drie zipbestanden en richt WordPress in.
-
-**Kosten:** een domeinnaam (ongeveer €10–15 per jaar) plus hosting (meestal een paar euro per maand).
-Een volledig gratis optie met eigen plugins bestaat niet: het gratis WordPress.com staat geen eigen
-plugins of thema's toe.
-
-**Benodigde tijd:** reken op een middag voor stap 1 tot en met 6.
-
----
-
-## Stap 0 — Eerst kijken en testen (kost niets)
-
-De volledige site uitproberen op je laptop: zie [testen-zonder-hosting.md](testen-zonder-hosting.md).
-Alleen de vormgeving bekijken kan ook zo:
-
-1. Ga naar https://github.com/joostface/Ak-site, kies de branch `claude/bouwplan-aardrijkskunde-website-sjbs41`,
-   klik op **Code → Download ZIP** en pak het bestand uit.
-2. Open `prototype/index.html` en `prototype/hoofdstuk.html` in je browser.
-3. Beslis: bevalt de vormgeving en de opbouw? Wil je iets anders, zeg het nu. Dat is het goedkoopste moment.
-
-## Je hebt al een domein: thejoast.org
-
-Je hoeft geen domein te kopen. Gebruik subdomeinen, zodat `kaarten.thejoast.org` blijft werken zoals nu:
+Domein en hosting staan allebei bij Vimexx. Cloudflare is voor deze site niet nodig.
 
 | Adres | Wat |
 | --- | --- |
-| `aardrijkskunde.thejoast.org` (of een korter adres als `ak.thejoast.org`) | De WordPress-site |
-| `apps.thejoast.org` | De interactieve toepassingen |
-| `kaarten.thejoast.org` | Blijft zoals het is |
+| `https://aardrijkskundelokaal.nl` | De WordPress-site |
+| `https://apps.aardrijkskundelokaal.nl` | De interactieve toepassingen (topografie, landen, wereldkaart) |
+| `https://kaarten.thejoast.org` | Je bestaande kaarten; blijven waar ze zijn |
 
-Wil je de site liever op `thejoast.org` zelf? Dat kan, als daar nu niets anders staat.
+Benodigde bestanden: de map `dist/` uit de download van GitHub
+(`aklokaal-core-plugin.zip`, `aklokaal-thema.zip`, `aklokaal-apps.zip`).
 
-Zoek eerst uit **waar de DNS van thejoast.org beheerd wordt**: bij de partij waar je het domein kocht, of bij
-Cloudflare. Daar maak je straks de verwijzingen naar de nieuwe hosting aan. Raak de bestaande regel voor
-`kaarten` niet aan.
+Eerst uitproberen op je laptop? Zie [testen-zonder-hosting.md](testen-zonder-hosting.md).
 
-## Stap 1 — Hosting kiezen
+---
 
-Kies een **WordPress-hostingpakket** bij een Nederlandse of Europese aanbieder. Let bij het vergelijken op:
+## Stap 1 — Domein koppelen en HTTPS
 
-| Eis | Waarom |
-| --- | --- |
-| PHP 8.1 of hoger | Plugin en thema vragen dat |
-| Uploadlimiet van minstens 64 MB, liefst meer | PowerPoints met veel afbeeldingen zijn groot |
-| Gratis SSL (Let's Encrypt) | HTTPS |
-| Dagelijkse back-ups die je zelf kunt terugzetten | Herstel zonder gedoe |
-| Subdomeinen mogelijk | Voor de interactieve toepassingen (`apps.thejoast.org`) |
-| Opslag van minstens 10 GB | Lesmateriaal groeit |
-| Servers in de EU | Privacy (AVG) |
+1. Log in bij **Vimexx** → klantenpaneel. Controleer dat `aardrijkskundelokaal.nl` aan je hostingpakket gekoppeld is.
+   (Heb je domein en hosting los besteld: koppel het domein aan het pakket. Bij twijfel helpt de Vimexx-support.)
+2. Open het **controlepaneel van je hosting** en zet **SSL / Let's Encrypt** aan voor `aardrijkskundelokaal.nl`
+   en `www.aardrijkskundelokaal.nl`. Vink "HTTPS forceren" aan als die optie er is.
+3. Zet bij de **PHP-instellingen**:
+   - PHP-versie **8.1 of hoger** (8.3 is prima);
+   - `upload_max_filesize` en `post_max_size` op **128M** (of zo hoog als het pakket toestaat);
+   - `memory_limit` op **256M**.
+   Kun je dit niet zelf instellen, vraag het dan aan de support.
 
-Kies het kleinste pakket dat hieraan voldoet. Je domein heb je al: kies bij het bestellen **"eigen domein
-gebruiken"** of **"domein van elders"** (dus niet verhuizen en niet opnieuw registreren).
-
-**Het subdomein koppelen:**
-1. Voeg in het hostingpaneel `aardrijkskunde.thejoast.org` toe als domein of website.
-   De host laat dan zien welk DNS-record nodig is: meestal een **A-record** met een IP-adres, of een **CNAME**.
-2. Maak bij je DNS-beheerder precies dat record aan, met als naam `aardrijkskunde`.
-   Doe hetzelfde voor `apps`.
-3. Wacht een kwartier tot een paar uur. Zet daarna in het hostingpaneel **SSL** aan voor beide adressen.
-
-*Staat je DNS bij Cloudflare?* Zet bij de nieuwe records de oranje wolk tijdelijk uit (grijs, "DNS only"),
-zodat de host een SSL-certificaat kan aanvragen. Wil je daarna Cloudflare ertussen, zet de wolk weer oranje
-en kies bij *SSL/TLS* de stand **Full (strict)**.
+Een nieuw domein kan een paar uur nodig hebben voordat het overal werkt. Wacht met stap 2 tot
+`https://aardrijkskundelokaal.nl` een pagina toont (ook al is het nog een standaardpagina).
 
 ## Stap 2 — WordPress installeren
 
-1. In het klantenpaneel van je host: **WordPress installeren** op `aardrijkskunde.thejoast.org` (vaak één klik).
+1. In het controlepaneel: de **WordPress-installer** (vaak "Softaculous" of "Apps" genoemd) → WordPress.
+   - Domein: `https://aardrijkskundelokaal.nl` (zonder map erachter, dus niet `/wp`).
    - Taal: **Nederlands**.
    - Gebruikersnaam: **niet** "admin". Kies een sterk wachtwoord en bewaar het in een wachtwoordmanager.
-2. Zet in het paneel **SSL/HTTPS aan** en (als dat kan) "HTTP altijd doorsturen naar HTTPS".
-3. Log in op `https://aardrijkskunde.thejoast.org/wp-admin`.
+   - E-mailadres: je eigen adres (voor wachtwoordherstel).
+2. Log in op `https://aardrijkskundelokaal.nl/wp-admin`.
 
-## Stap 3 — Plugin en thema uploaden
-
-De zipbestanden staan in de map `dist/` van de download uit stap 0.
+## Stap 3 — Plugin en thema
 
 1. **Plugins → Nieuwe plugin → Plugin uploaden** → `aklokaal-core-plugin.zip` → **Nu installeren** → **Activeren**.
-2. **Weergave → Thema's → Nieuw thema → Thema uploaden** → `aklokaal-thema.zip` → **Installeren** → **Activeren**.
-3. **Instellingen → Permalinks** → kies **Berichtnaam** → **Wijzigingen opslaan**. Doe dit echt:
-   zonder deze stap geven de hoofdstukpagina's een foutmelding.
-4. Verwijder overbodige standaardplugins en -thema's (zoals "Hello Dolly" en oude Twenty-thema's, behalve één als reserve).
+2. **Weergave → Thema's → Nieuw thema → Thema uploaden** → `aklokaal-thema.zip` → **Nu installeren** → **Activeren**.
+   (Let op: het thema bij *Weergave*, niet bij *Plugins*.)
+3. **Instellingen → Permalinks** → **Berichtnaam** → **Wijzigingen opslaan**. Dit is nodig voor de hoofdstukpagina's.
+4. Ruim op: verwijder bij **Plugins** wat de installer extra heeft meegezet en je niet nodig hebt,
+   en het voorbeeldbericht "Hallo wereld!" bij **Berichten**.
 
-In het menu links staat nu **Lesmateriaal**.
+Controle: open **Lesmateriaal → Structuur**, maak een testhoofdstuk, publiceer het en open het op de website.
+Werkt dat, dan staat alles goed.
 
-## Stap 4 — Interactieve toepassingen online zetten
+## Stap 4 — Beveiligen (10 minuten)
 
-**Snelste route als je al Cloudflare Pages gebruikt (gratis):**
-1. Cloudflare → *Workers & Pages* → *Create* → *Pages* → **Upload assets**. Noem het project bijvoorbeeld `aklokaal-apps`.
-2. Pak `aklokaal-apps.zip` uit op je computer en sleep de map erin. Het bestand `_headers` zorgt dat alleen
-   je eigen site de toepassingen mag insluiten.
-3. *Custom domains* → `apps.thejoast.org`. Cloudflare maakt het DNS-record zelf aan.
-4. Ga verder bij punt 3 hieronder (de toepassingen toevoegen in WordPress).
+1. **Instellingen → Algemeen**: "Iedereen kan zich registreren" **uit**.
+2. **Instellingen → Reacties**: "Sta reacties toe op nieuwe berichten" **uit**.
+3. **Plugins → Nieuwe plugin**: zoek **Two Factor**, installeer en activeer. Ga naar **Gebruikers → Profiel** en zet
+   een authenticator-app aan (bijvoorbeeld Google Authenticator of Microsoft Authenticator).
+4. **Back-ups**: controleer in het Vimexx-paneel dat er automatische back-ups zijn. Wil je een eigen kopie,
+   installeer dan **UpdraftPlus** (gratis) en koppel je Google Drive of OneDrive.
+5. **Gebruikers**: alleen jij. Een collega later toevoegen? Geef die de rol *Redacteur*.
 
-Je kunt het Pages-project ook aan de GitHub-repository koppelen (build-commando leeg, uitvoermap `apps`).
-Dan staat elke nieuwe toepassing automatisch online zodra hij in de repository staat.
+## Stap 5 — Interactieve toepassingen op apps.aardrijkskundelokaal.nl
 
-**Of op de hosting zelf:**
-
-De toepassingen (topografie, landen, wereldkaart) staan los van WordPress op een eigen subdomein.
-
-1. Zorg dat `apps.thejoast.org` in het hostingpaneel een eigen map heeft (zie stap 1). Zet SSL ook daarvoor aan.
-2. Open de **bestandsbeheerder** (of FTP), ga naar de map van dat subdomein en upload `aklokaal-apps.zip`.
-   Pak het daar uit. Controleer daarna `https://apps.thejoast.org/topografie-nederland/` in je browser.
-3. In WordPress: **Lesmateriaal → Interactief → Nieuw**. Vul titel, korte samenvatting en het adres in
-   (bijvoorbeeld `https://apps.thejoast.org/topografie-nederland/`), kies een uitgelichte afbeelding en publiceer.
-   Doe hetzelfde voor `landen-van-de-wereld/`.
-4. **Lesmateriaal → Kaarten → Nieuw**:
-   - "Wereldkaart met lagen": soort *Interactief*, adres `https://apps.thejoast.org/wereldkaart/`.
-   - "Digitale kaarten": soort *Interactief*, adres `https://kaarten.thejoast.org/`. Controleer of die kaart in het venster verschijnt.
-     Verschijnt hij niet, dan blokkeert de server van kaarten.thejoast.org het insluiten. Sta dan insluiten toe
-     vanaf `https://aardrijkskunde.thejoast.org` (header `Content-Security-Policy: frame-ancestors 'self' https://aardrijkskunde.thejoast.org`).
-
-## Stap 5 — Beveiligen (20 minuten)
-
-1. **Plugins → Nieuwe plugin**: installeer **Two Factor** (gratis, van WordPress.org-bijdragers).
-   Zet bij **Gebruikers → Profiel** een authenticator-app aan als tweede stap bij het inloggen.
-2. Zet in het hostingpaneel automatische updates van WordPress aan (als dat kan).
-3. Back-ups:
-   - Controleer dat de host dagelijks back-ups maakt.
-   - Wil je een kopie buiten de host: installeer **UpdraftPlus** (gratis) en koppel je Google Drive of OneDrive.
-4. **Instellingen → Algemeen**: zet "Iedereen kan zich registreren" **uit**.
+1. Maak in het controlepaneel een **subdomein** `apps` aan (dus `apps.aardrijkskundelokaal.nl`).
+   Het paneel maakt daar een eigen map voor. Zet ook hiervoor **SSL** aan.
+2. Open de **bestandsbeheerder**, ga naar de map van het subdomein (vaak `public_html` binnen de map van
+   `apps.aardrijkskundelokaal.nl`), upload `aklokaal-apps.zip` en **pak hem daar uit**.
+   Het bestand `.htaccess` dat erin zit, zorgt dat alleen jouw site de toepassingen mag insluiten.
+3. Controleer in je browser: `https://apps.aardrijkskundelokaal.nl/topografie-nederland/`.
+4. In WordPress:
+   - **Lesmateriaal → Interactief → Nieuw**: "Topografie Nederland", adres `https://apps.aardrijkskundelokaal.nl/topografie-nederland/`,
+     hoogte `720`, korte samenvatting, uitgelichte afbeelding → Publiceren.
+     Doe hetzelfde voor `landen-van-de-wereld/` en `fossiel-of-hernieuwbaar/`.
+   - **Lesmateriaal → Kaarten → Nieuw**: "Wereldkaart met lagen", soort *Interactief*, adres
+     `https://apps.aardrijkskundelokaal.nl/wereldkaart/`.
+   - **Lesmateriaal → Kaarten → Nieuw**: "Digitale kaarten", soort *Interactief*, adres `https://kaarten.thejoast.org/`.
+     Verschijnt die niet in het venster, zie [interactief.md](interactief.md).
 
 ## Stap 6 — Inrichten
 
-1. **Weergave → Customizer → Aardrijkskundelokaal**: pas de teksten op de homepage aan en kies de standaardweergave.
-   **Headerafbeelding** = de grote kaart op de homepage. Kies een eigen kaart of foto; nu staat er een getekende voorbeeldkaart.
-2. **Pagina's → Nieuw**: maak een pagina met de slug `over`, voor "Over deze website".
-3. **Lesmateriaal → Structuur**: maak je eerste hoofdstuk. Het begint als concept, en is pas zichtbaar als je op *Concept* klikt.
-4. Open dat hoofdstuk op de website en sleep er een PowerPoint op. Klaar is je eerste materiaal.
-5. **Instellingen → Lezen**: vink "Zoekmachines ontmoedigen" **uit** zodra de site gevonden mag worden.
-
-Hoe je daarna dagelijks werkt, staat in [beheer.md](beheer.md).
+1. **Weergave → Customizer → Aardrijkskundelokaal**: teksten op de homepage. **Headerafbeelding**: de grote kaart.
+2. **Pagina's → Nieuw**: "Over deze website", met als slug `over`.
+3. **Lesmateriaal → Handleiding**: overzicht van alle dagelijkse handelingen.
+4. **Instellingen → Lezen**: "Zoekmachines ontmoedigen" **uit** zodra de site gevonden mag worden.
 
 ## Stap 7 — Controleren vóór je het aan leerlingen geeft
 
-- [ ] De site werkt op je telefoon, op een laptop en op het digibord, in licht en donker.
+- [ ] Telefoon, laptop en digibord; licht en donker.
 - [ ] Een hoofdstuklink met `#paragraaf-…` opent bij de goede paragraaf.
+- [ ] Een PowerPoint uploaden lukt (anders: uploadlimiet in stap 1 verhogen).
 - [ ] Een nieuwslink plakken haalt titel en uitgever op.
 - [ ] De toepassingen werken in hun venster.
-- [ ] Uitgelogd zie je geen concepten.
-- [ ] Je hebt één keer een back-up teruggezet, bijvoorbeeld op een testkopie (veel hosts bieden een "staging"-omgeving).
+- [ ] Uitgelogd zie je geen concepten en geen *+ Toevoegen*.
 
-## Wat werkt anders dan op een thuisserver
+## Wat er anders werkt dan op een eigen server
 
-- **Geen automatische PDF-voorvertoning van PowerPoints.** Die vraagt een conversiedienst die op gewone hosting
-  niet draait. Leerlingen kunnen de PowerPoint gewoon downloaden. Wil je toch een voorvertoning: sla de
-  presentatie in PowerPoint op als PDF en kies die bij het materiaal onder *PDF-voorvertoning*.
-- **Geen Docker, Portainer of Cloudflare Tunnel nodig.** De bestanden `wordpress/docker-compose.yml` en `docs/installatie.md`
-  kun je negeren. Ze blijven bruikbaar als je later toch zelf wilt hosten.
+- **Geen automatische PDF-voorvertoning van PowerPoints.** Leerlingen downloaden de PowerPoint gewoon.
+  Wil je een voorvertoning: sla de presentatie op als PDF en kies die bij het materiaal onder *PDF-voorvertoning*.
+- Docker, Portainer en Cloudflare Tunnel zijn niet nodig (`wordpress/docker-compose.yml` en `docs/installatie.md`
+  kun je negeren).
 
 ## Later iets laten aanpassen
 
-Je vraagt Claude of Codex om de wijziging, en die maakt nieuwe zips (`tools/maak-zips.sh`). Upload de nieuwe
-plugin- of themazip opnieuw: WordPress vraagt of je de bestaande versie wilt vervangen, kies **Vervangen**.
-Je inhoud blijft staan, want die zit in de database, niet in de zip.
+Vraag Claude of Codex om de wijziging; je krijgt nieuwe zips (`tools/maak-zips.sh`). Upload de nieuwe plugin- of
+themazip opnieuw en kies **Vervangen**. Je inhoud blijft staan. Nieuwe toepassingen upload je in de map van
+`apps.aardrijkskundelokaal.nl`.
