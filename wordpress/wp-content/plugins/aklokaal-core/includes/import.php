@@ -91,6 +91,7 @@ function aklokaal_import_structure( $tree, $vak_id, $jaar_id, $publish ) {
 		'chapters'   => 0,
 		'paragraphs' => 0,
 		'skipped'    => 0,
+		'published'  => 0,
 	);
 	$existing = aklokaal_get_chapters(
 		array(
@@ -110,6 +111,15 @@ function aklokaal_import_structure( $tree, $vak_id, $jaar_id, $publish ) {
 		}
 		if ( $found ) {
 			$cid = $found->ID;
+			if ( $publish && 'publish' !== $found->post_status ) {
+				wp_update_post(
+					array(
+						'ID'          => $cid,
+						'post_status' => 'publish',
+					)
+				);
+				++$stats['published'];
+			}
 		} else {
 			$cid = wp_insert_post(
 				array(
@@ -188,6 +198,7 @@ function aklokaal_startinrichting( $publish = false ) {
 		'chapters'   => 0,
 		'paragraphs' => 0,
 		'skipped'    => 0,
+		'published'  => 0,
 		'removed'    => array(),
 	);
 	$presets = aklokaal_import_presets();
@@ -197,7 +208,7 @@ function aklokaal_startinrichting( $publish = false ) {
 			continue;
 		}
 		$s = aklokaal_import_structure( aklokaal_parse_structure( $presets[ $preset ]['tekst'] ), $vak->term_id, $jaar->term_id, $publish );
-		foreach ( array( 'chapters', 'paragraphs', 'skipped' ) as $k ) {
+		foreach ( array( 'chapters', 'paragraphs', 'skipped', 'published' ) as $k ) {
 			$total[ $k ] += $s[ $k ];
 		}
 	}
@@ -225,7 +236,8 @@ function aklokaal_render_import() {
 			__( 'Startinrichting klaar: %1$d hoofdstukken en %2$d paragrafen in Klas 1, Klas 2 en Klas 3.', 'aklokaal' ),
 			$s['chapters'],
 			$s['paragraphs']
-		) . ( $s['skipped'] ? ' ' . sprintf( /* translators: %d */ __( '%d bestonden al.', 'aklokaal' ), $s['skipped'] ) : '' )
+		) . ( $s['skipped'] ? ' ' . sprintf( /* translators: %d */ __( '%d paragrafen bestonden al.', 'aklokaal' ), $s['skipped'] ) : '' )
+		. ( $s['published'] ? ' ' . sprintf( /* translators: %d */ __( '%d bestaande hoofdstukken gepubliceerd.', 'aklokaal' ), $s['published'] ) : '' )
 		. ( $s['removed'] ? ' ' . sprintf( /* translators: %s */ __( 'Lege oude leerjaren opgeruimd: %s.', 'aklokaal' ), implode( ', ', $s['removed'] ) ) : '' );
 	}
 	if ( isset( $_POST['aklokaal_import_text'] ) && check_admin_referer( 'aklokaal_import' ) && aklokaal_can_manage() ) {
