@@ -1,0 +1,7 @@
+# Beveiligingsheaders voor Cloudflare Pages (apps.thejoast.org).
+# Insluiten alleen toestaan vanaf de eigen website. Pas het adres aan als de site ergens anders komt.
+/*
+  Content-Security-Policy: frame-ancestors 'self' https://aardrijkskunde.thejoast.org https://*.thejoast.org
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

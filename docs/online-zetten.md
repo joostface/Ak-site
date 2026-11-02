@@ -84,6 +84,18 @@ In het menu links staat nu **Lesmateriaal**.
 
 ## Stap 4 — Interactieve toepassingen online zetten
 
+**Snelste route als je al Cloudflare Pages gebruikt (gratis):**
+1. Cloudflare → *Workers & Pages* → *Create* → *Pages* → **Upload assets**. Noem het project bijvoorbeeld `aklokaal-apps`.
+2. Pak `aklokaal-apps.zip` uit op je computer en sleep de map erin. Het bestand `_headers` zorgt dat alleen
+   je eigen site de toepassingen mag insluiten.
+3. *Custom domains* → `apps.thejoast.org`. Cloudflare maakt het DNS-record zelf aan.
+4. Ga verder bij punt 3 hieronder (de toepassingen toevoegen in WordPress).
+
+Je kunt het Pages-project ook aan de GitHub-repository koppelen (build-commando leeg, uitvoermap `apps`).
+Dan staat elke nieuwe toepassing automatisch online zodra hij in de repository staat.
+
+**Of op de hosting zelf:**
+
 De toepassingen (topografie, landen, wereldkaart) staan los van WordPress op een eigen subdomein.
 
 1. Zorg dat `apps.thejoast.org` in het hostingpaneel een eigen map heeft (zie stap 1). Zet SSL ook daarvoor aan.
