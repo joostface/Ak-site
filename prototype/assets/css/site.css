@@ -858,3 +858,5 @@ a.chip { display: inline-grid; place-items: center; text-decoration: none; }
 .nieuws-artikel__bronregel { font-size: var(--step-small); color: var(--muted); }
 .nieuws-artikel .about__aside .button { position: sticky; top: calc(var(--header-h) + var(--admin-offset, 0px) + 24px); white-space: normal; text-align: left; }
 @media (max-width: 860px) { .nieuws-artikel .about__aside { margin-bottom: 0; } }
+.years__leeg { font-size: var(--step-lead); color: var(--muted); max-width: 40ch; }
+.band--draft { opacity: 0.75; outline: 2px dashed var(--surface-3); outline-offset: -2px; }

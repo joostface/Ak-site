@@ -103,7 +103,7 @@ function aktheme_news_card( $post, $heading = 'h3', $extra_class = '' ) {
 				<?php if ( $author ) : ?><span><?php echo esc_html( $author ); ?></span><?php endif; ?>
 				<?php if ( $date ) : ?><span><?php echo esc_html( aktheme_date( $date ) ); ?></span><?php endif; ?>
 			</p>
-			<<?php echo esc_html( $tag ); ?>><a href="<?php echo esc_url( get_permalink( $post ) ); ?>"><?php echo esc_html( get_the_title( $post ) ); ?></a></<?php echo esc_html( $tag ); ?>>
+			<<?php echo esc_html( $tag ); ?>><a href="<?php echo esc_url( $url ? $url : get_permalink( $post ) ); ?>" rel="noopener"<?php echo $url ? ' target="_blank"' : ''; ?>><?php echo esc_html( get_the_title( $post ) ); ?></a></<?php echo esc_html( $tag ); ?>>
 			<?php if ( $desc ) : ?><p><?php echo esc_html( $desc ); ?></p><?php endif; ?>
 			<?php if ( get_post_meta( $post->ID, 'ak_question', true ) ) : ?>
 				<p class="muted"><em><?php echo esc_html( get_post_meta( $post->ID, 'ak_question', true ) ); ?></em></p>
@@ -112,7 +112,7 @@ function aktheme_news_card( $post, $heading = 'h3', $extra_class = '' ) {
 				<?php if ( $themes && ! is_wp_error( $themes ) ) : ?>
 					<ul class="tags"><?php foreach ( $themes as $t ) : ?><li class="tag"><?php echo esc_html( $t->name ); ?></li><?php endforeach; ?></ul>
 				<?php endif; ?>
-				<?php if ( $url ) : ?><a class="news-card__go" href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Bron', 'aklokaal' ); ?> <?php echo aktheme_icon( 'arrow' ); // phpcs:ignore ?></a><?php endif; ?>
+				<span class="news-card__go"><?php esc_html_e( 'Lees bij de bron', 'aklokaal' ); ?> <?php echo aktheme_icon( 'arrow' ); // phpcs:ignore ?></span>
 			</div>
 		</div>
 	</article>
@@ -481,8 +481,9 @@ function aktheme_chapter_bands( $chapters ) {
 			$items += count( aklokaal_get_items( $p->ID ) );
 		}
 		$titles = wp_list_pluck( array_slice( $paras, 0, 3 ), 'post_title' );
+		$concept = 'publish' !== $c->post_status;
 		printf(
-			'<li><a class="band" href="%1$s"><span class="band__num">H%2$s</span><span class="band__title">%3$s<span class="band__note">%4$s</span></span><span class="band__meta">%5$s</span></a></li>',
+			'<li><a class="band%6$s" href="%1$s"><span class="band__num">H%2$s</span><span class="band__title">%3$s<span class="band__note">%4$s</span></span><span class="band__meta">%5$s</span></a></li>',
 			esc_url( get_permalink( $c ) ),
 			esc_html( aklokaal_chapter_number( $c ) ),
 			esc_html( get_the_title( $c ) ),
@@ -493,11 +494,17 @@ function aktheme_chapter_bands( $chapters ) {
 					__( '%1$s · %2$s', 'aklokaal' ),
 					sprintf( _n( '%d paragraaf', '%d paragrafen', count( $paras ), 'aklokaal' ), count( $paras ) ),
 					sprintf( _n( '%d materiaal', '%d materialen', $items, 'aklokaal' ), $items )
-				)
-			)
+				) . ( $concept ? ' · ' . __( 'concept, alleen jij ziet dit', 'aklokaal' ) : '' )
+			),
+			$concept ? ' band--draft' : ''
 		);
 	}
 	echo '</ol>';
+}
+
+/** Welke hoofdstukken mag de huidige bezoeker zien? Beheerders zien ook concepten. */
+function aktheme_visible_statuses() {
+	return ( function_exists( 'aklokaal_can_manage' ) && aklokaal_can_manage() ) ? array( 'publish', 'draft', 'private' ) : array( 'publish' );
 }
 
 /** Hoofdstukken per leerjaar voor één vak (alleen leerjaren met inhoud). */
@@ -511,6 +518,7 @@ function aktheme_years_with_chapters( $vak = '' ) {
 			array(
 				'vak'      => $vak,
 				'leerjaar' => $jaar->term_id,
+				'status'   => aktheme_visible_statuses(),
 			)
 		);
 		if ( $chapters ) {

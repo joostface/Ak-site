@@ -41,7 +41,7 @@ foreach ( $years as $y ) {
 	<?php endif; ?>
 
 	<?php if ( ! $years ) : ?>
-		<div class="wrap section"><p class="on-axis"><?php esc_html_e( 'Er zijn nog geen gepubliceerde hoofdstukken.', 'aklokaal' ); ?></p></div>
+		<div class="wrap section"><p class="on-axis years__leeg"><?php echo esc_html( function_exists( 'aklokaal_can_manage' ) && aklokaal_can_manage() ? __( 'Er zijn nog geen hoofdstukken. Zet ze neer via Lesmateriaal → Importeren (Startinrichting) of Lesmateriaal → Structuur.', 'aklokaal' ) : __( 'Het lesmateriaal wordt op dit moment klaargezet. Kom binnenkort terug.', 'aklokaal' ) ); ?></p></div>
 	<?php endif; ?>
 
 	<?php foreach ( $years as $y ) : ?>

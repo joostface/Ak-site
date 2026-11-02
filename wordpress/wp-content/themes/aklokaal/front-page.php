@@ -68,12 +68,14 @@ $total = wp_count_posts( 'ak_nieuws' );
 		</div>
 	</section>
 
-	<?php if ( $years ) : ?>
 	<section class="section wrap" id="leerjaren" aria-labelledby="years-title">
 		<div class="years__head" data-reveal>
 			<h2 id="years-title"><span><?php esc_html_e( 'Lesmateriaal', 'aklokaal' ); ?></span><?php esc_html_e( 'per leerjaar', 'aklokaal' ); ?></h2>
 			<a class="button button--quiet" href="<?php echo esc_url( get_post_type_archive_link( 'ak_hoofdstuk' ) ); ?>"><?php esc_html_e( 'Alle hoofdstukken', 'aklokaal' ); ?></a>
 		</div>
+		<?php if ( ! $years ) : ?>
+			<p class="years__leeg"><?php echo esc_html( function_exists( 'aklokaal_can_manage' ) && aklokaal_can_manage() ? __( 'Er zijn nog geen hoofdstukken. Zet ze neer via Lesmateriaal → Importeren (Startinrichting) of Lesmateriaal → Structuur.', 'aklokaal' ) : __( 'Het lesmateriaal wordt op dit moment klaargezet. Kom binnenkort terug.', 'aklokaal' ) ); ?></p>
+		<?php else : ?>
 		<div class="years__body" data-tabs data-default="0">
 			<div class="years__tabs" role="tablist" aria-label="<?php esc_attr_e( 'Leerjaren', 'aklokaal' ); ?>" aria-orientation="vertical">
 				<?php foreach ( $years as $y ) : ?>
@@ -89,8 +91,8 @@ $total = wp_count_posts( 'ak_nieuws' );
 				<?php endforeach; ?>
 			</div>
 		</div>
+		<?php endif; ?>
 	</section>
-	<?php endif; ?>
 
 	<?php if ( count( $maps ) >= 2 ) : ?>
 	<section class="section" aria-labelledby="maps-title">

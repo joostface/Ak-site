@@ -99,3 +99,4 @@ textarea.akq-input { min-height: 0; }
 .akb-btn:hover, .akb-select:hover { background: var(--surface-3, #d6e0d3); }
 .akb-btn:focus-visible, .akb-select:focus-visible { outline: 3px solid var(--focus, #2271b1); outline-offset: 2px; }
 .akb-msg { color: var(--accent, #2e6a45); font-weight: 600; }
+.akq-grid[hidden], .akq-field[hidden] { display: none; }

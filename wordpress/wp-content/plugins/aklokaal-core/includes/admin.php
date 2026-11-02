@@ -101,6 +101,32 @@ function aklokaal_render_news_page() {
 		<h1><?php esc_html_e( 'Nieuws importeren', 'aklokaal' ); ?></h1>
 		<p class="aklokaal-lead"><?php esc_html_e( 'Plak de link van een nieuwsartikel. We halen titel, uitgever, datum, beschrijving en afbeelding op. Controleer alles en publiceer.', 'aklokaal' ); ?></p>
 		<div id="aklokaal-news-import"></div>
+		<?php aklokaal_render_bookmarklet(); ?>
+	</div>
+	<?php
+}
+
+/**
+ * Bladwijzerknop: leest in je eigen browser de gegevens van het artikel dat je open hebt
+ * (titel, bron, auteur, datum, beschrijving, afbeelding) en opent het importformulier, al ingevuld.
+ * Handig bij sites die automatische bezoekers een cookiescherm tonen (zoals NU.nl, AD, de Volkskrant).
+ * Er wordt niets van het artikel zelf overgenomen, alleen de openbare metadata.
+ */
+function aklokaal_render_bookmarklet() {
+	$target = admin_url( 'admin.php?page=aklokaal-nieuws' );
+	$js     = "(()=>{const m=n=>{const e=document.querySelector('meta[property=\"'+n+'\"],meta[name=\"'+n+'\"]');return e?e.content:''};"
+		. "let ld={};for(const s of document.querySelectorAll('script[type=\"application/ld+json\"]')){try{let d=JSON.parse(s.textContent);d=d['@graph']||[].concat(d);for(const x of d){if([].concat(x['@type']||[]).some(y=>/Article/.test(y))){ld=x;break}}}catch(e){}}"
+		. "const nm=v=>!v?'':typeof v=='string'?v:Array.isArray(v)?v.map(nm).filter(Boolean).join(', '):(v.name||'');"
+		. "const im=v=>!v?'':typeof v=='string'?v:Array.isArray(v)?im(v[0]):(v.url||'');"
+		. "const c=document.querySelector('link[rel=canonical]');"
+		. "const d={url:c?c.href:location.href,title:ld.headline||m('og:title')||document.title,publisher:nm(ld.publisher)||m('og:site_name'),author:nm(ld.author)||m('author'),published:String(ld.datePublished||m('article:published_time')||'').slice(0,10),description:String(ld.description||m('og:description')||m('description')).slice(0,600),image_url:im(ld.image)||m('og:image')};"
+		. "window.open(" . wp_json_encode( $target ) . "+'#ak='+encodeURIComponent(JSON.stringify(d)))})()";
+	?>
+	<div class="aklokaal-bookmarklet">
+		<h2><?php esc_html_e( 'Werkt het ophalen niet? Gebruik de bladwijzerknop', 'aklokaal' ); ?></h2>
+		<p><?php esc_html_e( 'Sommige nieuwssites (zoals NU.nl, AD en de Volkskrant) tonen automatische bezoekers eerst een cookiescherm. Jouw eigen browser kan het artikel wel lezen. Sleep deze knop één keer naar je bladwijzerbalk:', 'aklokaal' ); ?></p>
+		<p><a class="button button-primary aklokaal-bookmarklet__knop" href="javascript:<?php echo esc_attr( $js ); ?>" onclick="alert('<?php echo esc_js( __( 'Sleep deze knop naar je bladwijzerbalk. Klik er later op terwijl je een nieuwsartikel open hebt.', 'aklokaal' ) ); ?>');return false;">＋ <?php esc_html_e( 'Naar Aardrijkskundelokaal', 'aklokaal' ); ?></a></p>
+		<p class="description"><?php esc_html_e( 'Daarna: open een artikel, accepteer eventueel de cookies, en klik op de bladwijzer. Dit formulier opent dan in een nieuw tabblad, al ingevuld. Zie je je bladwijzerbalk niet? Druk op Ctrl+Shift+B (Mac: Cmd+Shift+B).', 'aklokaal' ); ?></p>
 	</div>
 	<?php
 }
@@ -132,7 +158,6 @@ function aklokaal_meta_fields() {
 			'ak_image_url'  => array( __( 'Afbeelding (URL bij de bron)', 'aklokaal' ), 'url', '' ),
 			'ak_show_image' => array( __( 'Afbeelding van de bron tonen', 'aklokaal' ), 'checkbox', __( 'Uitzetten als je niet zeker weet of het mag. Je kunt ook een eigen uitgelichte afbeelding kiezen.', 'aklokaal' ) ),
 			'ak_question'   => array( __( 'Geografische vraag bij dit artikel', 'aklokaal' ), 'text', '' ),
-			'ak_quote'      => array( __( 'Kort citaat uit het artikel (optioneel)', 'aklokaal' ), 'textarea', __( 'Maximaal een of twee zinnen, letterlijk overgenomen. De bron wordt er automatisch bij vermeld. De samenvatting schrijf je in het grote tekstvak hierboven, in je eigen woorden.', 'aklokaal' ) ),
 		),
 		'ak_collectie'  => array(
 			'ak_questions' => array( __( 'Onderzoeksvragen', 'aklokaal' ), 'textarea', __( 'Eén vraag per regel.', 'aklokaal' ) ),

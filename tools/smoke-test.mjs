@@ -100,9 +100,9 @@ if (PASS) {
   await page.waitForTimeout(600);
   await page.click('[data-add-open]');
   await page.waitForSelector('.akq-dialog[open]');
-  await page.waitForFunction(() => document.querySelectorAll('.akq-dest select')[3]?.options.length > 1);
+  await page.waitForFunction(() => document.querySelectorAll('.akq-grid select')[3]?.options.length > 1);
   const chosen = await page.evaluate(() => {
-    const s = document.querySelectorAll('.akq-dest select');
+    const s = document.querySelectorAll('.akq-grid select');
     return [s[2].selectedOptions[0]?.textContent, s[3].selectedOptions[0]?.textContent];
   });
   ok(/Energie/.test(chosen[0]) && /2\.2/.test(chosen[1]), `bestemming al ingevuld: ${chosen.join(' / ')}`);
