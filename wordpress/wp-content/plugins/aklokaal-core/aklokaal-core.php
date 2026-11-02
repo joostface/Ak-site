@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Aardrijkskundelokaal Core
  * Description:       Inhoudsmodel en beheer voor het digitale aardrijkskundelokaal: vakken, leerjaren, hoofdstukken, paragrafen, materiaal, nieuws, collecties, kaarten en interactieve toepassingen. Bevat de eenvoudige uploadworkflow en de nieuwsimport.
- * Version:           0.6.0
+ * Version:           0.7.0
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            Aardrijkskundelokaal
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'AKLOKAAL_VERSION', '0.6.0' );
+define( 'AKLOKAAL_VERSION', '0.7.0' );
 define( 'AKLOKAAL_FILE', __FILE__ );
 define( 'AKLOKAAL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AKLOKAAL_URL', plugin_dir_url( __FILE__ ) );
@@ -56,6 +56,49 @@ function aklokaal_item_caps() {
 }
 
 /**
+ * Standaardleerjaren: één leerjaar per boek, zodat materiaal maar één keer geplaatst hoeft te worden.
+ * Naam (kort, voor de tabbladen) => toelichting (voor welke klassen).
+ */
+function aklokaal_default_years() {
+	return apply_filters(
+		'aklokaal_default_years',
+		array(
+			'Klas 1' => 'Voor 1 vwo en 1 havo/vwo',
+			'Klas 2' => 'Voor 2 vwo en 2 havo',
+			'Klas 3' => 'Voor 3 havo en 3 vwo',
+			'4 havo' => '',
+			'4 vwo'  => '',
+			'5 havo' => '',
+			'5 vwo'  => '',
+			'6 vwo'  => '',
+		)
+	);
+}
+
+/** Maak ontbrekende standaardleerjaren aan (bestaande blijven ongemoeid). */
+function aklokaal_ensure_default_years() {
+	$i = 0;
+	foreach ( aklokaal_default_years() as $name => $desc ) {
+		++$i;
+		$slug = sanitize_title( str_replace( '/', '-', $name ) );
+		if ( term_exists( $slug, 'ak_leerjaar' ) ) {
+			continue;
+		}
+		$t = wp_insert_term(
+			$name,
+			'ak_leerjaar',
+			array(
+				'slug'        => $slug,
+				'description' => $desc,
+			)
+		);
+		if ( ! is_wp_error( $t ) ) {
+			update_term_meta( $t['term_id'], 'ak_order', $i );
+		}
+	}
+}
+
+/**
  * Activering: rechten geven, basisstructuur aanmaken, permalinks verversen.
  */
 function aklokaal_activate() {
@@ -77,14 +120,6 @@ function aklokaal_activate() {
 			update_term_meta( $t['term_id'], 'ak_order', 1 );
 		}
 	}
-	$years = array( '1 havo/vwo', '2 havo/vwo', '3 havo', '3 vwo', '4 havo', '4 vwo', '5 havo', '5 vwo', '6 vwo' );
-	foreach ( $years as $i => $name ) {
-		if ( ! term_exists( sanitize_title( str_replace( '/', '-', $name ) ), 'ak_leerjaar' ) ) {
-			$t = wp_insert_term( $name, 'ak_leerjaar', array( 'slug' => sanitize_title( str_replace( '/', '-', $name ) ) ) );
-			if ( ! is_wp_error( $t ) ) {
-				update_term_meta( $t['term_id'], 'ak_order', $i + 1 );
-			}
-		}
-	}
+	aklokaal_ensure_default_years();
 	flush_rewrite_rules();
 }

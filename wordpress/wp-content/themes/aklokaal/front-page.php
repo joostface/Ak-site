@@ -77,7 +77,7 @@ $total = wp_count_posts( 'ak_nieuws' );
 		<div class="years__body" data-tabs data-default="0">
 			<div class="years__tabs" role="tablist" aria-label="<?php esc_attr_e( 'Leerjaren', 'aklokaal' ); ?>" aria-orientation="vertical">
 				<?php foreach ( $years as $y ) : ?>
-					<button class="year-tab" role="tab" type="button" id="tab-<?php echo esc_attr( $y['term']->slug ); ?>" aria-controls="panel-<?php echo esc_attr( $y['term']->slug ); ?>" aria-selected="false" data-year="<?php echo esc_attr( $y['term']->slug ); ?>"><strong><?php echo esc_html( $y['term']->name ); ?></strong><span><?php echo esc_html( sprintf( _n( '%d hoofdstuk', '%d hoofdstukken', count( $y['chapters'] ), 'aklokaal' ), count( $y['chapters'] ) ) ); ?></span></button>
+					<button class="year-tab" role="tab" type="button" id="tab-<?php echo esc_attr( $y['term']->slug ); ?>" aria-controls="panel-<?php echo esc_attr( $y['term']->slug ); ?>" aria-selected="false" data-year="<?php echo esc_attr( $y['term']->slug ); ?>"><strong><?php echo esc_html( $y['term']->name ); ?></strong><span><?php echo esc_html( $y['term']->description ? preg_replace( '/^Voor\s+/i', '', $y['term']->description ) : sprintf( _n( '%d hoofdstuk', '%d hoofdstukken', count( $y['chapters'] ), 'aklokaal' ), count( $y['chapters'] ) ) ); ?></span></button>
 				<?php endforeach; ?>
 			</div>
 			<div>

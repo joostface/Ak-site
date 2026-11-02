@@ -80,6 +80,9 @@ Werkt dat, dan staat alles goed.
 
 ## Stap 6 — Inrichten
 
+0. **Lesmateriaal → Importeren → Startinrichting neerzetten.** Dit maakt de leerjaren Klas 1, Klas 2 en Klas 3
+   met alle hoofdstukken en paragrafen uit de boeken (als concept). Publiceer per hoofdstuk zodra je er materiaal
+   in hebt gezet: in **Lesmateriaal → Structuur** op *Concept* klikken.
 1. **Weergave → Customizer → Aardrijkskundelokaal**: teksten op de homepage. **Headerafbeelding**: de grote kaart.
 2. **Pagina's → Nieuw**: "Over deze website", met als slug `over`.
 3. **Lesmateriaal → Handleiding**: overzicht van alle dagelijkse handelingen.

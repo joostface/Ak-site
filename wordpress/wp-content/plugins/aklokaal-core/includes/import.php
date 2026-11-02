@@ -171,6 +171,46 @@ function aklokaal_import_structure( $tree, $vak_id, $jaar_id, $publish ) {
 	return $stats;
 }
 
+/**
+ * Startinrichting: leerjaren Klas 1–3 en de hoofdstukken uit de drie boeken, in één keer.
+ * Ruimt lege oude leerjaren (1 havo/vwo, 2 havo/vwo, 3 havo, 3 vwo) op als daar niets in staat.
+ *
+ * @return array{chapters:int, paragraphs:int, skipped:int, removed:array}
+ */
+function aklokaal_startinrichting( $publish = false ) {
+	aklokaal_ensure_default_years();
+	$vak = get_term_by( 'slug', 'aardrijkskunde', 'ak_vak' );
+	if ( ! $vak ) {
+		$t   = wp_insert_term( 'Aardrijkskunde', 'ak_vak', array( 'slug' => 'aardrijkskunde' ) );
+		$vak = is_wp_error( $t ) ? null : get_term( $t['term_id'], 'ak_vak' );
+	}
+	$total   = array(
+		'chapters'   => 0,
+		'paragraphs' => 0,
+		'skipped'    => 0,
+		'removed'    => array(),
+	);
+	$presets = aklokaal_import_presets();
+	foreach ( array( 'boek-1' => 'klas-1', 'boek-2' => 'klas-2', 'boek-3' => 'klas-3' ) as $preset => $slug ) {
+		$jaar = get_term_by( 'slug', $slug, 'ak_leerjaar' );
+		if ( ! $jaar || ! $vak || empty( $presets[ $preset ] ) ) {
+			continue;
+		}
+		$s = aklokaal_import_structure( aklokaal_parse_structure( $presets[ $preset ]['tekst'] ), $vak->term_id, $jaar->term_id, $publish );
+		foreach ( array( 'chapters', 'paragraphs', 'skipped' ) as $k ) {
+			$total[ $k ] += $s[ $k ];
+		}
+	}
+	foreach ( array( '1-havo-vwo', '2-havo-vwo', '3-havo', '3-vwo' ) as $oud ) {
+		$t = get_term_by( 'slug', $oud, 'ak_leerjaar' );
+		if ( $t && ! aklokaal_get_chapters( array( 'leerjaar' => $t->term_id, 'status' => 'any' ) ) ) {
+			wp_delete_term( $t->term_id, 'ak_leerjaar' );
+			$total['removed'][] = $t->name;
+		}
+	}
+	return $total;
+}
+
 function aklokaal_render_import() {
 	$text    = '';
 	$tree    = array();
@@ -178,6 +218,16 @@ function aklokaal_render_import() {
 	$vak     = 0;
 	$jaar    = 0;
 	$publish = false;
+	if ( isset( $_POST['aklokaal_start'] ) && check_admin_referer( 'aklokaal_start' ) && aklokaal_can_manage() ) {
+		$s       = aklokaal_startinrichting( ! empty( $_POST['publish_start'] ) );
+		$message = sprintf(
+			/* translators: 1: hoofdstukken, 2: paragrafen */
+			__( 'Startinrichting klaar: %1$d hoofdstukken en %2$d paragrafen in Klas 1, Klas 2 en Klas 3.', 'aklokaal' ),
+			$s['chapters'],
+			$s['paragraphs']
+		) . ( $s['skipped'] ? ' ' . sprintf( /* translators: %d */ __( '%d bestonden al.', 'aklokaal' ), $s['skipped'] ) : '' )
+		. ( $s['removed'] ? ' ' . sprintf( /* translators: %s */ __( 'Lege oude leerjaren opgeruimd: %s.', 'aklokaal' ), implode( ', ', $s['removed'] ) ) : '' );
+	}
 	if ( isset( $_POST['aklokaal_import_text'] ) && check_admin_referer( 'aklokaal_import' ) && aklokaal_can_manage() ) {
 		$text    = sanitize_textarea_field( wp_unslash( $_POST['aklokaal_import_text'] ) );
 		$presets = aklokaal_import_presets();
@@ -211,6 +261,14 @@ function aklokaal_render_import() {
 		<?php if ( $message ) : ?>
 			<div class="notice notice-success"><p><?php echo esc_html( $message ); ?> <a href="<?php echo esc_url( admin_url( 'admin.php?page=aklokaal' ) ); ?>"><?php esc_html_e( 'Naar de structuur', 'aklokaal' ); ?></a></p></div>
 		<?php endif; ?>
+		<form method="post" style="max-width:900px;background:#fff;border-radius:6px;padding:4px 18px 16px;margin:16px 0 28px">
+			<?php wp_nonce_field( 'aklokaal_start' ); ?>
+			<h2><?php esc_html_e( 'Startinrichting (één klik)', 'aklokaal' ); ?></h2>
+			<p style="max-width:70ch"><?php esc_html_e( 'Zet de leerjaren Klas 1 (1 vwo en 1 havo/vwo), Klas 2 (2 vwo en 2 havo) en Klas 3 (3 havo en 3 vwo) neer, met alle hoofdstukken en paragrafen uit de boeken. Bestaande hoofdstukken worden aangevuld, niet verdubbeld. Lege oude leerjaren worden opgeruimd.', 'aklokaal' ); ?></p>
+			<p><label><input type="checkbox" name="publish_start" value="1"> <?php esc_html_e( 'Hoofdstukken direct publiceren (anders als concept: leerlingen zien ze pas als je ze publiceert)', 'aklokaal' ); ?></label></p>
+			<p><button class="button button-primary" name="aklokaal_start" value="1"><?php esc_html_e( 'Startinrichting neerzetten', 'aklokaal' ); ?></button></p>
+		</form>
+		<h2><?php esc_html_e( 'Zelf een inhoudsopgave plakken', 'aklokaal' ); ?></h2>
 		<form method="post" style="max-width:900px">
 			<?php wp_nonce_field( 'aklokaal_import' ); ?>
 			<p style="display:flex;gap:16px;flex-wrap:wrap">

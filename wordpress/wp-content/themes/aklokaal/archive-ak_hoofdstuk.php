@@ -48,7 +48,7 @@ foreach ( $years as $y ) {
 		<section class="year-block" id="leerjaar-<?php echo esc_attr( $y['term']->slug ); ?>" aria-labelledby="h-<?php echo esc_attr( $y['term']->slug ); ?>">
 			<div class="year-block__head" data-reveal><div>
 				<h2 id="h-<?php echo esc_attr( $y['term']->slug ); ?>"><?php echo esc_html( $y['term']->name ); ?></h2>
-				<p><?php echo esc_html( sprintf( _n( '%d hoofdstuk', '%d hoofdstukken', count( $y['chapters'] ), 'aklokaal' ), count( $y['chapters'] ) ) ); ?></p>
+				<p><?php echo esc_html( ( $y['term']->description ? $y['term']->description . '. ' : '' ) . sprintf( _n( '%d hoofdstuk', '%d hoofdstukken', count( $y['chapters'] ), 'aklokaal' ), count( $y['chapters'] ) ) ); ?></p>
 				<?php
 				if ( ! empty( $imgs[ $y['term']->term_id ] ) ) {
 					echo wp_get_attachment_image( $imgs[ $y['term']->term_id ], 'ak-card', false, array( 'class' => 'year-block__img', 'alt' => '', 'loading' => 'lazy' ) );

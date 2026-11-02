@@ -49,6 +49,9 @@ if ( 'opruimen' === $aklokaal_demo_actie ) {
 	foreach ( $att as $id ) {
 		wp_delete_attachment( $id, true );
 	}
+	foreach ( get_terms( array( 'taxonomy' => 'ak_leerjaar', 'hide_empty' => false, 'meta_key' => 'ak_demo', 'meta_value' => '1' ) ) as $t ) {
+		wp_delete_term( $t->term_id, 'ak_leerjaar' );
+	}
 	echo 'Opgeruimd: ' . count( $posts ) . ' items, ' . count( $att ) . " bestanden.\n";
 	return;
 }
@@ -74,6 +77,10 @@ flush_rewrite_rules( true );
 function demo_mark( $id ) {
 	update_post_meta( $id, 'ak_demo', '1' );
 	return $id;
+}
+
+function demo_mark_term( $term_id ) {
+	update_term_meta( $term_id, 'ak_demo', '1' );
 }
 
 function demo_image( $file, $title, $alt ) {
@@ -207,6 +214,17 @@ $years = array(
 $paragraph_ids = array();
 foreach ( $years as $slug => $chapters ) {
 	$jaar = get_term_by( 'slug', $slug, 'ak_leerjaar' );
+	if ( ! $jaar ) {
+		// De standaardleerjaren heten tegenwoordig Klas 1–3; de demo maakt zijn eigen leerjaren aan.
+		$namen = array( '1-havo-vwo' => '1 havo/vwo', '2-havo-vwo' => '2 havo/vwo', '3-vwo' => '3 vwo', '5-vwo' => '5 vwo' );
+		$t     = wp_insert_term( $namen[ $slug ], 'ak_leerjaar', array( 'slug' => $slug ) );
+		$jaar  = is_wp_error( $t ) ? null : get_term( $t['term_id'], 'ak_leerjaar' );
+		if ( ! $jaar ) {
+			continue;
+		}
+		update_term_meta( $jaar->term_id, 'ak_order', 20 + count( $paragraph_ids ) );
+		demo_mark_term( $jaar->term_id );
+	}
 	foreach ( $chapters as $order => $c ) {
 		$existing = aklokaal_get_chapters( array( 'leerjaar' => $jaar->term_id, 'status' => 'any' ) );
 		$found    = array_filter( $existing, function ( $p ) use ( $c ) { return $p->post_title === $c[1]; } );
