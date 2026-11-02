@@ -17,13 +17,14 @@ while ( have_posts() ) :
 	$list       = array();
 	$total      = 0;
 	foreach ( $paragraphs as $i => $p ) {
-		$n      = aklokaal_paragraph_number( $p, $i + 1 );
+		$n      = aklokaal_paragraph_number( $p );
 		$items  = aklokaal_get_placed( $p->ID, $can );
 		$total += count( $items );
 		$list[] = array(
 			'post'   => $p,
 			'number' => $n,
-			'anchor' => aklokaal_paragraph_anchor( $n ),
+			'anchor' => aklokaal_paragraph_anchor( $n, $p ),
+			'prefix' => aklokaal_paragraph_prefix( $n ),
 			'items'  => $items,
 		);
 	}
@@ -58,7 +59,7 @@ while ( have_posts() ) :
 			<p class="toc__title">H<?php echo esc_html( $num ); ?> <?php the_title(); ?><span><?php echo esc_html( sprintf( _n( '%d paragraaf', '%d paragrafen', count( $list ), 'aklokaal' ), count( $list ) ) . ' · ' . sprintf( _n( '%d materiaal', '%d materialen', $total, 'aklokaal' ), $total ) ); ?></span></p>
 			<ol>
 				<?php foreach ( $list as $p ) : ?>
-					<li><a href="#<?php echo esc_attr( $p['anchor'] ); ?>" data-toc-link><span>§<?php echo esc_html( $p['number'] ); ?></span><?php echo esc_html( get_the_title( $p['post'] ) ); ?></a></li>
+					<li><a href="#<?php echo esc_attr( $p['anchor'] ); ?>" data-toc-link><span><?php echo $p['number'] ? esc_html( '§' . $p['number'] ) : '&middot;'; ?></span><?php echo esc_html( get_the_title( $p['post'] ) ); ?></a></li>
 				<?php endforeach; ?>
 			</ol>
 			<div class="toc__progress" aria-hidden="true"><i data-toc-progress></i></div>
@@ -71,12 +72,12 @@ while ( have_posts() ) :
 		<div class="chapter__content" data-chapter-content>
 			<div class="toc-mobile">
 				<button class="toc-mobile__button" type="button" data-toc-toggle aria-expanded="false" aria-controls="toc-mobile-list">
-					<span><?php esc_html_e( 'Paragraaf:', 'aklokaal' ); ?> <strong data-toc-current><?php echo $list ? esc_html( '§' . $list[0]['number'] . ' ' . get_the_title( $list[0]['post'] ) ) : ''; ?></strong></span>
+					<span><?php esc_html_e( 'Paragraaf:', 'aklokaal' ); ?> <strong data-toc-current><?php echo $list ? esc_html( $list[0]['prefix'] . get_the_title( $list[0]['post'] ) ) : ''; ?></strong></span>
 					<?php echo aktheme_icon( 'chevron' ); // phpcs:ignore ?>
 				</button>
 				<ol class="toc-mobile__list" id="toc-mobile-list" hidden data-toc-list>
 					<?php foreach ( $list as $p ) : ?>
-						<li><a href="#<?php echo esc_attr( $p['anchor'] ); ?>" data-toc-link>§<?php echo esc_html( $p['number'] . ' ' . get_the_title( $p['post'] ) ); ?></a></li>
+						<li><a href="#<?php echo esc_attr( $p['anchor'] ); ?>" data-toc-link><?php echo esc_html( $p['prefix'] . get_the_title( $p['post'] ) ); ?></a></li>
 					<?php endforeach; ?>
 				</ol>
 			</div>
@@ -84,14 +85,14 @@ while ( have_posts() ) :
 			<?php if ( trim( $chapter->post_content ) || $chapter_items ) : ?>
 				<div class="blocks" style="margin-top:0">
 					<?php if ( trim( $chapter->post_content ) ) : ?><div class="block block--text"><div class="prose"><?php the_content(); ?></div></div><?php endif; ?>
-					<?php foreach ( $chapter_items as $it ) { aktheme_render_item( $it['post'], $it['note'] ); } ?>
+					<?php foreach ( $chapter_items as $it ) { aktheme_render_item_beheer( $it, $chapter->ID, $can ); } ?>
 				</div>
 			<?php endif; ?>
 
 			<?php foreach ( $list as $p ) : ?>
-				<section class="paragraph" id="<?php echo esc_attr( $p['anchor'] ); ?>" data-paragraph="<?php echo esc_attr( '§' . $p['number'] . ' ' . get_the_title( $p['post'] ) ); ?>" data-ak-paragraph-id="<?php echo (int) $p['post']->ID; ?>" aria-labelledby="t-<?php echo esc_attr( $p['anchor'] ); ?>">
+				<section class="paragraph" id="<?php echo esc_attr( $p['anchor'] ); ?>" data-paragraph="<?php echo esc_attr( $p['prefix'] . get_the_title( $p['post'] ) ); ?>" data-ak-paragraph-id="<?php echo (int) $p['post']->ID; ?>" aria-labelledby="t-<?php echo esc_attr( $p['anchor'] ); ?>">
 					<div class="paragraph__head">
-						<h2 id="t-<?php echo esc_attr( $p['anchor'] ); ?>"><span class="num">§<?php echo esc_html( $p['number'] ); ?></span><?php echo esc_html( get_the_title( $p['post'] ) ); ?><?php echo 'draft' === $p['post']->post_status ? ' <small class="muted">(' . esc_html__( 'concept', 'aklokaal' ) . ')</small>' : ''; ?></h2>
+						<h2 id="t-<?php echo esc_attr( $p['anchor'] ); ?>"><?php if ( $p['number'] ) : ?><span class="num">§<?php echo esc_html( $p['number'] ); ?></span><?php endif; ?><?php echo esc_html( get_the_title( $p['post'] ) ); ?><?php echo 'draft' === $p['post']->post_status ? ' <small class="muted">(' . esc_html__( 'concept', 'aklokaal' ) . ')</small>' : ''; ?></h2>
 						<button class="anchor-copy" type="button" data-copy-anchor="<?php echo esc_attr( $p['anchor'] ); ?>"><?php echo aktheme_icon( 'link' ); // phpcs:ignore ?><span><?php esc_html_e( 'Deel link', 'aklokaal' ); ?></span></button>
 					</div>
 					<?php if ( trim( $p['post']->post_content ) ) : ?>
@@ -100,7 +101,7 @@ while ( have_posts() ) :
 					<div class="blocks">
 						<?php
 						foreach ( $p['items'] as $it ) {
-							aktheme_render_item( $it['post'], $it['note'] );
+							aktheme_render_item_beheer( $it, $p['post']->ID, $can );
 						}
 						if ( ! $p['items'] && $can ) {
 							echo '<p class="muted">' . esc_html__( 'Nog leeg. Sleep een bestand op deze pagina of klik op + Toevoegen.', 'aklokaal' ) . '</p>';

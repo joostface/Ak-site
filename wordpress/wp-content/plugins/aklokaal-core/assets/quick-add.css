@@ -80,3 +80,22 @@ textarea.akq-input { min-height: 0; }
   .akq-kind, .akq-size { grid-column: 1; }
 }
 #wp-admin-bar-aklokaal-add > a { font-weight: 600; }
+
+/* beheerbalk boven elk materiaal (alleen zichtbaar voor beheerders) */
+.ak-beheer-item { position: relative; }
+.akb {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  margin-bottom: 6px; padding: 6px 8px; border-radius: var(--radius, 6px);
+  background: var(--surface-2, #e7ece5); color: var(--ink, #18231d);
+  font: 0.875rem/1.3 var(--font-text, system-ui);
+}
+.akb-label { color: var(--muted, #50615a); font-weight: 600; }
+.akb-select, .akb-btn {
+  min-height: 34px; border: 0; border-radius: var(--radius, 6px); padding: 0 10px;
+  background: var(--bg, #fff); color: var(--ink, #18231d); font: inherit; cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center;
+}
+.akb-select { max-width: 220px; }
+.akb-btn:hover, .akb-select:hover { background: var(--surface-3, #d6e0d3); }
+.akb-btn:focus-visible, .akb-select:focus-visible { outline: 3px solid var(--focus, #2271b1); outline-offset: 2px; }
+.akb-msg { color: var(--accent, #2e6a45); font-weight: 600; }

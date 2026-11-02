@@ -183,7 +183,7 @@ if (PASS) {
   await p22.locator('.aks-select').nth(0).check();
   await p22.locator('.aks-select').nth(1).check();
   const target = await p22.locator('.aks-bulk select option', { hasText: '§2.3 De energietransitie' }).first().getAttribute('value');
-  await p22.locator('.aks-bulk select').selectOption(target);
+  await p22.locator('.aks-bulk select').first().selectOption(target);
   await page.waitForTimeout(1800);
   const s1 = await (await page.request.get(SITE + '/wp-json/aklokaal/v1/structure')).json();
   const e1 = s1[0].years.flatMap((y) => y.chapters).find((c) => c.title === 'Energie');
@@ -204,6 +204,22 @@ if (PASS) {
   await anon.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
   ok((await anon.locator('#paragraaf-2-3 h3', { hasText: archTitle }).count()) === 0, `gearchiveerd item niet zichtbaar voor bezoekers (${archTitle})`);
   await anon.close();
+
+  // Materiaal op de hoofdstukpagina zelf verplaatsen naar een andere paragraaf
+  await page.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
+  const P_BRON = 'section[data-paragraph*="Duurzame keuzes"]', P_DOEL = 'section[data-paragraph*="koolstofkringloop"]';
+  await page.waitForSelector(P_BRON + ' .akb select', { timeout: 15000 });
+  const bron = page.locator(P_BRON + ' .ak-beheer-item').first();
+  const verplaatsTitel = await bron.getAttribute('data-ak-title');
+  const doel = await bron.locator('.akb select').first().locator('option', { hasText: 'De koolstofkringloop' }).first().getAttribute('value');
+  await bron.locator('.akb select').first().selectOption(doel);
+  await page.waitForLoadState('load'); await page.waitForTimeout(1500);
+  await page.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
+  ok((await page.locator(`${P_DOEL} .ak-beheer-item[data-ak-title="${verplaatsTitel}"]`).count()) === 1 && (await page.locator(`${P_BRON} .ak-beheer-item[data-ak-title="${verplaatsTitel}"]`).count()) === 0, `materiaal verplaatst vanaf de hoofdstukpagina ("${verplaatsTitel}" van Duurzame keuzes naar De koolstofkringloop)`);
+  const anonPage = await browser.newPage();
+  await anonPage.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
+  ok((await anonPage.locator('.akb').count()) === 0, 'bezoekers zien geen beheerbalk');
+  await anonPage.close();
 
   // Link met eigen voorbeeldafbeelding
   await page.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/#paragraaf-2-4');

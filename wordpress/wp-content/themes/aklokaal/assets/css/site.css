@@ -85,6 +85,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .wordmark span { color: var(--muted); }
 .site-nav { display: flex; gap: 4px; }
 .site-nav a {
+  white-space: nowrap;
   font-size: var(--step-small);
   text-decoration: none;
   padding: 10px 12px;
@@ -115,7 +116,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .button.admin-add { display: none; }
 .is-admin .button.admin-add { display: inline-flex; }
 
-@media (max-width: 1080px) {
+@media (max-width: 1320px) {
   .site-nav { display: none; }
   .menu-toggle { display: inline-grid; }
   .site-header.is-open .site-nav {
@@ -133,6 +134,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* ---------- knoppen ---------- */
 .button {
+  white-space: nowrap;
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   min-height: 52px; padding: 0 24px;
   border: 0; border-radius: var(--radius);
@@ -833,3 +835,11 @@ a.chip { display: inline-grid; place-items: center; text-decoration: none; }
 .search-filters__row label { display: grid; gap: 4px; font-size: var(--step-small); color: var(--muted); }
 .search-filters select { min-height: 44px; border: 0; border-radius: var(--radius); background: var(--surface); color: var(--ink); padding: 0 12px; font-size: 1rem; }
 .filters + .filters { padding-top: 8px; }
+
+/* Office-viewer (PowerPoint/Word in de browser) */
+.office-frame, .pdf-viewer iframe { display: block; width: 100%; height: min(70svh, 640px); border: 0; border-radius: var(--radius); background: var(--bg); }
+.block--pdf .block__actions { flex-wrap: wrap; }
+/* presentatie met één voorbeeldbeeld: volle breedte, titel naast de afbeelding */
+.block--slides .slides:has(> .slide:only-child) { grid-template-columns: 1fr; }
+.block--slides .slides:has(> .slide:only-child) .slide { aspect-ratio: 21 / 9; }
+.slide img ~ .slide__inner b { max-width: 50%; font-size: 5.2cqw; }

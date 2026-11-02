@@ -53,6 +53,28 @@ function aktheme_sandbox( $url ) {
 	return implode( ' ', $sandbox );
 }
 
+/* ---------------------------------------------------------------- Office-viewer */
+
+/**
+ * Adres om een PowerPoint of Word-bestand in de browser te tonen met de gratis viewer van Microsoft
+ * (Office Online). Werkt alleen als het bestand openbaar op internet staat, dus niet op een lokale
+ * testsite. Uit te zetten in Weergave → Customizer → Aardrijkskundelokaal.
+ */
+function aktheme_office_viewer_url( $file_url ) {
+	if ( ! $file_url || ! get_theme_mod( 'ak_office_viewer', true ) ) {
+		return '';
+	}
+	$host = strtolower( (string) wp_parse_url( $file_url, PHP_URL_HOST ) );
+	if ( ! $host || 'localhost' === $host || preg_match( '/^(127\.|10\.|192\.168\.)|\.local$|\.test$/', $host ) ) {
+		return '';
+	}
+	$ext = strtolower( pathinfo( (string) wp_parse_url( $file_url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+	if ( ! in_array( $ext, array( 'pptx', 'ppt', 'docx', 'doc', 'xlsx', 'xls' ), true ) ) {
+		return '';
+	}
+	return 'https://view.officeapps.live.com/op/embed.aspx?src=' . rawurlencode( $file_url );
+}
+
 /* ---------------------------------------------------------------- nieuwskaart */
 
 function aktheme_news_card( $post, $heading = 'h3', $extra_class = '' ) {
@@ -124,6 +146,27 @@ function aktheme_render_item( $post, $note = '' ) {
 	}
 }
 
+/**
+ * Item tonen; voor beheerders in een omhulsel met gegevens voor de beheerbalk
+ * (verplaatsen, ook plaatsen, weghalen, bewerken). Die balk tekent de plugin (quick-add.js).
+ */
+function aktheme_render_item_beheer( $it, $container_id, $can ) {
+	if ( ! $can ) {
+		aktheme_render_item( $it['post'], $it['note'] );
+		return;
+	}
+	printf(
+		'<div class="ak-beheer-item" data-ak-item="%1$d" data-ak-container="%2$d" data-ak-title="%3$s" data-ak-edit="%4$s" data-ak-status="%5$s">',
+		(int) $it['post']->ID,
+		(int) $container_id,
+		esc_attr( get_the_title( $it['post'] ) ),
+		esc_url( (string) get_edit_post_link( $it['post']->ID, 'raw' ) ),
+		esc_attr( $it['post']->post_status )
+	);
+	aktheme_render_item( $it['post'], $it['note'] );
+	echo '</div>';
+}
+
 function aktheme_kind_line( $label, $parts = array() ) {
 	echo '<p class="block__kind"><strong>' . esc_html( $label ) . '</strong>';
 	foreach ( array_filter( $parts ) as $p ) {
@@ -162,6 +205,7 @@ function aktheme_item_presentatie( $post, $note ) {
 	list( $url, $ext, $size ) = aktheme_file_info( $post );
 	$preview                  = (int) get_post_meta( $post->ID, 'ak_preview_id', true );
 	$pid                      = 'preview-' . $post->ID;
+	$viewer                   = $preview ? wp_get_attachment_url( $preview ) : aktheme_office_viewer_url( $url );
 	?>
 	<article class="block block--slides" data-reveal>
 		<div class="slides" aria-hidden="true">
@@ -180,16 +224,17 @@ function aktheme_item_presentatie( $post, $note ) {
 			<?php aktheme_description( $post ); ?>
 			<?php aktheme_note( $note ); ?>
 			<div class="block__actions">
-				<?php if ( $preview ) : ?>
+				<?php if ( $viewer ) : ?>
 					<button class="button button--small" type="button" data-toggle="<?php echo esc_attr( $pid ); ?>" data-label-open="<?php esc_attr_e( 'Verberg presentatie', 'aklokaal' ); ?>" data-label-closed="<?php esc_attr_e( 'Bekijk presentatie', 'aklokaal' ); ?>"><span><?php esc_html_e( 'Bekijk presentatie', 'aklokaal' ); ?></span></button>
 				<?php endif; ?>
 				<?php if ( $url ) : ?>
-					<a class="button <?php echo $preview ? 'button--quiet' : ''; ?> button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php esc_html_e( 'Download PowerPoint', 'aklokaal' ); ?></a>
+					<a class="button <?php echo $viewer ? 'button--quiet' : ''; ?> button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php esc_html_e( 'Download PowerPoint', 'aklokaal' ); ?></a>
 				<?php endif; ?>
 			</div>
-			<?php if ( $preview ) : ?>
+			<?php if ( $viewer ) : ?>
 				<div class="pdf-viewer" id="<?php echo esc_attr( $pid ); ?>" hidden>
-					<iframe title="<?php echo esc_attr( get_the_title( $post ) ); ?>" data-src="<?php echo esc_url( wp_get_attachment_url( $preview ) ); ?>" style="width:100%;height:70svh;border:0" loading="lazy"></iframe>
+					<iframe title="<?php echo esc_attr( get_the_title( $post ) ); ?>" data-src="<?php echo esc_url( $viewer ); ?>" class="office-frame" allowfullscreen loading="lazy"></iframe>
+					<?php if ( ! $preview ) : ?><p class="block__note"><?php esc_html_e( 'Getoond met de viewer van Microsoft Office. Werkt het niet? Download de presentatie.', 'aklokaal' ); ?></p><?php endif; ?>
 				</div>
 			<?php endif; ?>
 		</div>
@@ -228,6 +273,17 @@ function aktheme_item_document( $post, $note ) {
 	aktheme_item_bestand( $post, $note, __( 'Document', 'aklokaal' ) );
 }
 
+/** Knop + venster om een Office-bestand in de browser te bekijken (alleen online). */
+function aktheme_office_toggle( $post, $url ) {
+	$viewer = aktheme_office_viewer_url( $url );
+	if ( ! $viewer ) {
+		return;
+	}
+	$pid = 'office-' . $post->ID;
+	printf( '<button class="button button--small" type="button" data-toggle="%1$s" data-label-open="%2$s" data-label-closed="%3$s"><span>%3$s</span></button>', esc_attr( $pid ), esc_attr__( 'Verberg', 'aklokaal' ), esc_attr__( 'Bekijk hier', 'aklokaal' ) );
+	printf( '<div class="pdf-viewer" id="%1$s" hidden style="flex-basis:100%%"><iframe title="%2$s" data-src="%3$s" class="office-frame" allowfullscreen loading="lazy"></iframe></div>', esc_attr( $pid ), esc_attr( get_the_title( $post ) ), esc_url( $viewer ) );
+}
+
 function aktheme_item_bestand( $post, $note, $label = '' ) {
 	list( $url, $ext, $size ) = aktheme_file_info( $post );
 	$label                    = $label ? $label : __( 'Bestand', 'aklokaal' );
@@ -244,7 +300,8 @@ function aktheme_item_bestand( $post, $note, $label = '' ) {
 			<?php aktheme_note( $note ); ?>
 			<?php if ( $url ) : ?>
 				<div class="block__actions">
-					<a class="button button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php echo esc_html( sprintf( /* translators: %s: extensie */ __( 'Download %s', 'aklokaal' ), $ext ) ); ?></a>
+					<?php aktheme_office_toggle( $post, $url ); ?>
+					<a class="button <?php echo aktheme_office_viewer_url( $url ) ? 'button--quiet' : ''; ?> button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php echo esc_html( sprintf( /* translators: %s: extensie */ __( 'Download %s', 'aklokaal' ), $ext ) ); ?></a>
 				</div>
 			<?php endif; ?>
 		</div>
@@ -489,7 +546,7 @@ function aktheme_placed_in( $post_id, $heading = '' ) {
 			}
 			$n    = aklokaal_paragraph_number( $c );
 			$jaar = aklokaal_first_term( $ch->ID, 'ak_leerjaar' );
-			$items[] = sprintf( '<li><a href="%1$s">§%2$s %3$s</a> <span class="muted">%4$s</span></li>', esc_url( get_permalink( $ch ) . '#' . aklokaal_paragraph_anchor( $n ) ), esc_html( $n ), esc_html( get_the_title( $c ) ), esc_html( ( $jaar ? $jaar->name . ', ' : '' ) . 'H' . aklokaal_chapter_number( $ch ) . ' ' . get_the_title( $ch ) ) );
+			$items[] = sprintf( '<li><a href="%1$s">%2$s%3$s</a> <span class="muted">%4$s</span></li>', esc_url( get_permalink( $ch ) . '#' . aklokaal_paragraph_anchor( $n, $c ) ), esc_html( aklokaal_paragraph_prefix( $n ) ), esc_html( get_the_title( $c ) ), esc_html( ( $jaar ? $jaar->name . ', ' : '' ) . 'H' . aklokaal_chapter_number( $ch ) . ' ' . get_the_title( $ch ) ) );
 		} else {
 			$items[] = sprintf( '<li><a href="%1$s">%2$s</a></li>', esc_url( get_permalink( $c ) ), esc_html( get_the_title( $c ) ) );
 		}

@@ -70,6 +70,9 @@ function aklokaal_render_handleiding() {
 		array( 'Paragrafen toevoegen, hernoemen, ordenen', 'Open het hoofdstuk. Typ onderaan een nieuwe paragraaf. Klik op een titel om te hernoemen. Sleep aan ⋮⋮ of gebruik de pijltjes; de nummers passen zich aan.', $link( 'admin.php?page=aklokaal', 'Lesmateriaal → Structuur' ) ),
 		array( 'Materiaal toevoegen', 'Open het hoofdstuk op de website, scroll naar de paragraaf en sleep een bestand op de pagina, of klik op <em>+ Toevoegen</em>. Hoofdstuk en paragraaf zijn dan al ingevuld.', $link( 'admin.php?page=aklokaal-toevoegen', '+ Toevoegen' ) ),
 		array( 'Materiaal verplaatsen, hergebruiken, archiveren', 'Open een paragraaf in de structuur. Vink items aan en kies <em>Geselecteerde verplaatsen naar…</em> of <em>Archiveren</em>. Met <em>Bestaand materiaal zoeken</em> zet je hetzelfde bestand op een tweede plek.', $link( 'admin.php?page=aklokaal', 'Lesmateriaal → Structuur' ) ),
+		array( 'Een hele paragraaf naar een ander hoofdstuk', 'Open de paragraaf in de structuur en kies onderaan <em>Hele paragraaf verplaatsen naar hoofdstuk…</em>. Al het materiaal gaat mee.', $link( 'admin.php?page=aklokaal', 'Lesmateriaal → Structuur' ) ),
+		array( 'Hetzelfde materiaal op twee plekken', 'Vink het materiaal aan en kies <em>Ook plaatsen in…</em>. Het bestand wordt niet gekopieerd: een wijziging geldt op beide plekken.', $link( 'admin.php?page=aklokaal', 'Lesmateriaal → Structuur' ) ),
+		array( 'Hoofdstukken en paragrafen in één keer neerzetten', 'Plak een inhoudsopgave of kies een kant-en-klare indeling, bekijk het voorbeeld en importeer.', $link( 'admin.php?page=aklokaal-import', 'Lesmateriaal → Importeren' ) ),
 		array( 'Een bestand vervangen', 'Open het materiaal en kies bij <em>Bestand</em> een nieuw bestand. Alle plekken waar het staat, blijven werken.', $link( 'edit.php?post_type=ak_materiaal', 'Lesmateriaal → Materiaal' ) ),
 		array( 'Een nieuwsartikel toevoegen', 'Plak de link, controleer de gegevens, schrijf eventueel een eigen korte beschrijving en publiceer.', $link( 'admin.php?page=aklokaal-nieuws', 'Lesmateriaal → Nieuws importeren' ) ),
 		array( 'Een nieuwsbundel maken', 'Nieuw → titel, inleiding, onderzoeksvragen, en vink artikelen aan. Ordenen met de pijltjes.', $link( 'post-new.php?post_type=ak_collectie', 'Lesmateriaal → Nieuwsbundels' ) ),
@@ -91,6 +94,14 @@ function aklokaal_render_handleiding() {
 			<?php endforeach; ?>
 			</tbody>
 		</table>
+		<h2 style="margin-top:32px"><?php esc_html_e( 'Er komt een nieuwe versie van het boek', 'aklokaal' ); ?></h2>
+		<ol style="max-width:75ch">
+			<li><?php echo wp_kses_post( __( 'Maak een leerjaar voor de nieuwe versie, bijvoorbeeld <em>2 havo/vwo (2027)</em>, onder <em>Leerjaren</em>. Of gebruik hetzelfde leerjaar als de hoofdstukken een andere naam krijgen.', 'aklokaal' ) ); ?></li>
+			<li><?php echo wp_kses_post( __( 'Plak de nieuwe inhoudsopgave bij <em>Importeren</em>. De nieuwe hoofdstukken komen als concept binnen, dus leerlingen zien ze nog niet.', 'aklokaal' ) ); ?></li>
+			<li><?php echo wp_kses_post( __( 'Open in de <em>Structuur</em> de oude paragrafen. Vink materiaal aan en kies <em>Geselecteerde verplaatsen naar…</em>, of <em>Ook plaatsen in…</em> als het oude hoofdstuk nog even moet blijven. Past een oude paragraaf in zijn geheel: <em>Hele paragraaf verplaatsen naar hoofdstuk…</em>.', 'aklokaal' ) ); ?></li>
+			<li><?php echo wp_kses_post( __( 'Klaar? Publiceer de nieuwe hoofdstukken en zet de oude op <em>Concept</em>. Niets wordt weggegooid.', 'aklokaal' ) ); ?></li>
+			<li><?php echo wp_kses_post( __( 'Verwijder je een paragraaf waar nog materiaal in stond, dan verschijnt dat materiaal bovenaan de structuur onder <em>Materiaal zonder plek</em>. Daar zet je het met één keuze op de goede plek.', 'aklokaal' ) ); ?></li>
+		</ol>
 		<h2 style="margin-top:32px"><?php esc_html_e( 'Wanneer heb je hulp nodig?', 'aklokaal' ); ?></h2>
 		<p style="max-width:70ch"><?php esc_html_e( 'Voor een nieuw soort materiaal, een andere opmaak van pagina’s, een nieuwe interactieve toepassing of een nieuwe functie. Vraag het aan Claude of Codex; je krijgt dan nieuwe zipbestanden die je via Plugins of Weergave → Thema’s uploadt (kies “Vervangen”). Je inhoud blijft staan.', 'aklokaal' ); ?></p>
 	</div>

@@ -223,7 +223,7 @@
     const fillPar = () => {
       const f = findChapter(Number(sCh.value));
       const ps = f ? f.c.paragraphs : [];
-      sPar.replaceChildren(opt('', '— alleen bij het hoofdstuk —'), ...ps.map((p) => opt(p.id, `§${p.number} ${p.title}`)));
+      sPar.replaceChildren(opt('', '— alleen bij het hoofdstuk —'), ...ps.map((p) => opt(p.id, p.label)));
     };
     sVak.addEventListener('change', () => { fillJaar(); fillCh(); fillPar(); });
     sJaar.addEventListener('change', () => { fillCh(); fillPar(); });
@@ -293,7 +293,7 @@
         await loadStructure(true);
         const f = findChapter(dest.chapter);
         const where = f ? (f.c.paragraphs.find((p) => p.id === dest.paragraph) || null) : null;
-        status.replaceChildren(`${created} ${created === 1 ? 'item' : 'items'} ${publish ? 'gepubliceerd' : 'als concept bewaard'}${where ? ` in §${where.number} ${where.title}` : ''}. `, f ? h('a', { href: f.c.url + (where ? '#' + where.anchor : ''), text: 'Bekijken' }) : '');
+        status.replaceChildren(`${created} ${created === 1 ? 'item' : 'items'} ${publish ? 'gepubliceerd' : 'als concept bewaard'}${where ? ` in ${where.label}` : ''}. `, f ? h('a', { href: f.c.url + (where ? '#' + where.anchor : ''), text: 'Bekijken' }) : '');
         onDone && onDone({ chapter: dest.chapter });
       } catch (err) {
         status.textContent = err.message;
@@ -346,6 +346,75 @@
       shown = true; open(); setTimeout(() => (shown = false), 1500);
     });
   }
+
+  /* ---------- beheerbalk bij elk materiaal op de hoofdstukpagina ---------- */
+  async function initItemTools() {
+    const items = [...document.querySelectorAll('.ak-beheer-item')];
+    if (!items.length) return;
+    const data = await loadStructure();
+    const huidig = Number(document.body.dataset.akChapter || 0);
+    // Keuzelijst: eerst de paragrafen van dit hoofdstuk, daarna alle andere, gegroepeerd per hoofdstuk.
+    const groepen = [];
+    data.forEach((v) => v.years.forEach((y) => y.chapters.forEach((c) => {
+      const label = `${y.name} · H${c.number || '?'} ${c.title}${c.status !== 'publish' ? ' (concept)' : ''}`;
+      const opts = [{ id: c.id, label: `Bij het hoofdstuk zelf (boven de paragrafen)` }, ...c.paragraphs.map((p) => ({ id: p.id, label: p.label }))];
+      groepen[c.id === huidig ? 'unshift' : 'push']({ label: c.id === huidig ? 'Dit hoofdstuk' : label, opts });
+    })));
+    const keuzelijst = (eerste, behalve) => {
+      const s = h('select', { class: 'akb-select', 'aria-label': eerste }, h('option', { value: '', text: eerste }));
+      groepen.forEach((g) => {
+        const og = h('optgroup', { label: g.label });
+        g.opts.filter((o) => o.id !== behalve).forEach((o) => og.append(h('option', { value: o.id, text: o.label })));
+        s.append(og);
+      });
+      return s;
+    };
+    const herlaad = (msg, el) => { if (el) el.textContent = msg; setTimeout(() => location.reload(), 600); };
+    items.forEach((wrap) => {
+      const id = Number(wrap.dataset.akItem), van = Number(wrap.dataset.akContainer), titel = wrap.dataset.akTitle;
+      const melding = h('span', { class: 'akb-msg', role: 'status' });
+      const verplaats = keuzelijst('Verplaats naar…', van);
+      verplaats.addEventListener('change', async () => {
+        if (!verplaats.value) return;
+        verplaats.disabled = true;
+        await api('items/move', { method: 'POST', json: { ids: [id], from: van, to: Number(verplaats.value) } });
+        herlaad('Verplaatst.', melding);
+      });
+      const ook = keuzelijst('Ook plaatsen in…', van);
+      ook.addEventListener('change', async () => {
+        if (!ook.value) return;
+        await api(`items/${ook.value}/add`, { method: 'POST', json: { item: id } });
+        melding.textContent = 'Staat nu ook daar (zelfde bestand).';
+        ook.value = '';
+      });
+      const omhoog = h('button', { type: 'button', class: 'akb-btn', title: 'Omhoog', 'aria-label': 'Verplaats ' + titel + ' omhoog', text: '↑' });
+      const omlaag = h('button', { type: 'button', class: 'akb-btn', title: 'Omlaag', 'aria-label': 'Verplaats ' + titel + ' omlaag', text: '↓' });
+      const schuif = async (richting) => {
+        const lijst = await api('items/' + van);
+        const i = lijst.findIndex((x) => x.id === id), j = i + richting;
+        if (i < 0 || j < 0 || j >= lijst.length) return;
+        [lijst[i], lijst[j]] = [lijst[j], lijst[i]];
+        await api('items/' + van, { method: 'POST', json: { items: lijst.map((x) => ({ id: x.id, note: x.note })) } });
+        herlaad('Volgorde aangepast.', melding);
+      };
+      omhoog.addEventListener('click', () => schuif(-1));
+      omlaag.addEventListener('click', () => schuif(1));
+      const weg = h('button', { type: 'button', class: 'akb-btn', text: 'Weghalen', title: 'Haal weg uit deze paragraaf (het materiaal blijft bewaard)', onclick: async () => {
+        if (!confirm(`“${titel}” weghalen uit deze paragraaf? Het materiaal zelf blijft bewaard.`)) return;
+        const lijst = await api('items/' + van);
+        await api('items/' + van, { method: 'POST', json: { items: lijst.filter((x) => x.id !== id).map((x) => ({ id: x.id, note: x.note })) } });
+        herlaad('Weggehaald.', melding);
+      } });
+      const balk = h('div', { class: 'akb', role: 'group', 'aria-label': 'Beheer: ' + titel },
+        h('span', { class: 'akb-label', text: 'Beheer' }),
+        verplaats, ook, omhoog, omlaag, weg,
+        wrap.dataset.akEdit ? h('a', { class: 'akb-btn', href: wrap.dataset.akEdit, text: 'Bewerken' }) : null,
+        wrap.dataset.akStatus !== 'publish' ? h('span', { class: 'akb-label', text: '(concept)' }) : null,
+        melding);
+      wrap.prepend(balk);
+    });
+  }
+  initItemTools().catch(() => {});
 
   window.AKLokaalAdd = { open, api, loadStructure, buildForm, h };
 })();

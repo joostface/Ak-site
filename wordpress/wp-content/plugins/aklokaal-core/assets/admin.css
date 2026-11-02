@@ -52,3 +52,8 @@
 .aks-bulk { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; }
 .aks-all { display: inline-flex; gap: 4px; align-items: center; margin-right: 6px; }
 .aks-archive { font-size: 13px; }
+
+.aks-losse { background: #fff7e0; border-radius: 6px; padding: 4px 18px 14px; margin: 14px 0; }
+.aks-losse:empty { display: none; }
+.aks-losse h2 { font-size: 17px; }
+.aks-item--los { grid-template-columns: 90px 1fr 280px !important; }

@@ -20,7 +20,33 @@ Vanuit een andere pagina onthoudt het venster je laatst gebruikte bestemming.
 PowerPoints krijgen automatisch een PDF-voorvertoning als de conversiedienst draait (profiel `conversie`);
 het origineel blijft altijd te downloaden.
 
+## Materiaal verplaatsen, direct op de hoofdstukpagina
+
+Ben je ingelogd, dan staat boven elk materiaal op de hoofdstukpagina een balk **Beheer**:
+
+- **Verplaats naar…**: kies een andere paragraaf (van dit of een ander hoofdstuk). Het materiaal verhuist; de pagina ververst.
+- **Ook plaatsen in…**: het materiaal staat dan op twee plekken (hetzelfde bestand, niet gekopieerd).
+- **↑ ↓**: volgorde binnen de paragraaf.
+- **Weghalen**: uit deze paragraaf halen; het materiaal blijft bewaard.
+- **Bewerken**: titel, beschrijving of bestand aanpassen.
+
+Bezoekers zien deze balk niet.
+
+## Een nieuwe versie van het boek
+
+1. Importeer de nieuwe inhoudsopgave (**Lesmateriaal → Importeren**). Nieuwe hoofdstukken komen als concept binnen.
+2. Verplaats materiaal naar de nieuwe paragrafen (balk *Beheer* op de hoofdstukpagina, of meerdere tegelijk in de structuur).
+3. Publiceer de nieuwe hoofdstukken en zet de oude op concept.
+4. Materiaal dat door het verwijderen van een paragraaf nergens meer staat, vind je bovenaan **Lesmateriaal → Structuur**
+   onder *Materiaal zonder plek*.
+
 ## Hoofdstukken en paragrafen (Lesmateriaal → Structuur)
+
+**Snel starten:** **Lesmateriaal → Importeren** → kies een kant-en-klare indeling (boek klas 1, 2 of 3) of plak een
+inhoudsopgave → *Voorbeeld bekijken* → *Importeren*. Paragrafen zonder nummer (zoals "België en Nepal") krijgen geen
+nummer en verschuiven de nummering niet. Een paragraafnummer kun je in de structuur aanklikken en aanpassen
+(leeg = automatisch, `-` = geen nummer).
+
 
 - **Nieuw hoofdstuk**: onder een leerjaar nummer en titel invullen → *Hoofdstuk maken*. Het begint als **Concept**
   met een eerste paragraaf, en is pas zichtbaar als je op *Concept* klikt (wordt *Gepubliceerd*).

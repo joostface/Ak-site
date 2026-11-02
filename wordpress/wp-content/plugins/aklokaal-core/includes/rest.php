@@ -295,12 +295,14 @@ function aklokaal_chapter_json( $c, $status = array( 'publish' ) ) {
 		'paragraphs' => array_values(
 			array_map(
 				function ( $p, $i ) {
-					$num = aklokaal_paragraph_number( $p, $i + 1 );
+					$num = aklokaal_paragraph_number( $p );
 					return array(
 						'id'     => $p->ID,
 						'title'  => get_the_title( $p ),
 						'number' => $num,
-						'anchor' => aklokaal_paragraph_anchor( $num ),
+						'anchor' => aklokaal_paragraph_anchor( $num, $p ),
+						'label'  => aklokaal_paragraph_prefix( $num ) . get_the_title( $p ),
+						'raw'    => (string) get_post_meta( $p->ID, 'ak_nummer', true ),
 						'status' => $p->post_status,
 						'count'  => count( aklokaal_get_items( $p->ID ) ),
 					);
@@ -399,7 +401,17 @@ function aklokaal_rest_paragraph_save( WP_REST_Request $r ) {
 	}
 	if ( $id ) {
 		$post['ID'] = $id;
-		$res        = wp_update_post( $post, true );
+		// Paragraaf (met al zijn materiaal) naar een ander hoofdstuk verplaatsen.
+		$naar = (int) $r->get_param( 'chapter' );
+		if ( $naar && 'ak_hoofdstuk' === get_post_type( $naar ) && (int) wp_get_post_parent_id( $id ) !== $naar ) {
+			$post['post_parent'] = $naar;
+			$post['menu_order']  = count( aklokaal_get_paragraphs( $naar, 'any' ) ) + 1;
+			// Een eigen nummer uit het oude hoofdstuk klopt niet meer; "geen nummer" blijft wel staan.
+			if ( '-' !== get_post_meta( $id, 'ak_nummer', true ) ) {
+				delete_post_meta( $id, 'ak_nummer' );
+			}
+		}
+		$res = wp_update_post( $post, true );
 	} else {
 		$chapter = (int) $r->get_param( 'chapter' );
 		if ( 'ak_hoofdstuk' !== get_post_type( $chapter ) ) {
@@ -435,6 +447,10 @@ function aklokaal_rest_trash( WP_REST_Request $r ) {
 	}
 	if ( get_post_type( $id ) === 'ak_paragraaf' && aklokaal_get_items( $id ) && ! $r->get_param( 'force' ) ) {
 		return new WP_Error( 'aklokaal_not_empty', __( 'Deze paragraaf bevat nog materiaal. Verplaats het eerst, of bevestig dat je hem toch wilt verwijderen.', 'aklokaal' ), array( 'status' => 409 ) );
+	}
+	if ( 'ak_paragraaf' === get_post_type( $id ) ) {
+		// Het materiaal blijft bewaard en verschijnt onder "Materiaal zonder plek".
+		aklokaal_set_items( $id, array() );
 	}
 	wp_trash_post( $id );
 	return rest_ensure_response( array( 'ok' => true ) );
@@ -718,16 +734,26 @@ function aklokaal_rest_material_file( WP_REST_Request $r ) {
 }
 
 function aklokaal_rest_library( WP_REST_Request $r ) {
-	$q = new WP_Query(
-		array(
-			'post_type'      => aklokaal_placeable_types(),
-			'post_status'    => array( 'publish', 'draft' ),
-			's'              => sanitize_text_field( (string) $r->get_param( 'q' ) ),
-			'posts_per_page' => 30,
-			'orderby'        => 'modified',
-			'no_found_rows'  => true,
-		)
+	$args = array(
+		'post_type'      => aklokaal_placeable_types(),
+		'post_status'    => array( 'publish', 'draft' ),
+		's'              => sanitize_text_field( (string) $r->get_param( 'q' ) ),
+		'posts_per_page' => 30,
+		'orderby'        => 'modified',
+		'no_found_rows'  => true,
 	);
+	if ( $r->get_param( 'unplaced' ) ) {
+		// Materiaal dat nergens (meer) staat, bijvoorbeeld na het verwijderen van een paragraaf.
+		$args['post_type']      = 'ak_materiaal';
+		$args['posts_per_page'] = 200;
+		$args['meta_query']     = array( // phpcs:ignore WordPress.DB.SlowDBQuery
+			array(
+				'key'     => 'ak_placed_in',
+				'compare' => 'NOT EXISTS',
+			),
+		);
+	}
+	$q = new WP_Query( $args );
 	return rest_ensure_response(
 		array_map(
 			function ( $p ) {
@@ -806,10 +832,10 @@ function aklokaal_rest_search( WP_REST_Request $r ) {
 				continue;
 			}
 			$num     = aklokaal_paragraph_number( $p );
-			$title   = '§' . $num . ' ' . $title;
+			$title   = aklokaal_paragraph_prefix( $num ) . $title;
 			$jaar    = aklokaal_first_term( $chapter->ID, 'ak_leerjaar' );
 			$context .= ' · ' . ( $jaar ? $jaar->name . ', ' : '' ) . get_the_title( $chapter );
-			$url     = get_permalink( $chapter ) . '#' . aklokaal_paragraph_anchor( $num );
+			$url     = get_permalink( $chapter ) . '#' . aklokaal_paragraph_anchor( $num, $p );
 		} elseif ( 'ak_hoofdstuk' === $p->post_type ) {
 			$jaar     = aklokaal_first_term( $p->ID, 'ak_leerjaar' );
 			$context .= $jaar ? ' · ' . $jaar->name : '';

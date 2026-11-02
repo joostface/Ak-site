@@ -515,7 +515,7 @@ add_action(
 	function () {
 		if ( is_singular( 'ak_paragraaf' ) ) {
 			$p = get_queried_object();
-			wp_safe_redirect( get_permalink( $p->post_parent ) . '#' . aklokaal_paragraph_anchor( aklokaal_paragraph_number( $p ) ), 301 );
+			wp_safe_redirect( get_permalink( $p->post_parent ) . '#' . aklokaal_paragraph_anchor_for( $p ), 301 );
 			exit;
 		}
 	}

@@ -259,8 +259,8 @@ function aklokaal_render_used_box( $post ) {
 		}
 		if ( 'ak_paragraaf' === $c->post_type ) {
 			$ch    = get_post( $c->post_parent );
-			$label = '§' . aklokaal_paragraph_number( $c ) . ' ' . get_the_title( $c ) . ( $ch ? ' (' . get_the_title( $ch ) . ')' : '' );
-			$link  = $ch ? get_permalink( $ch ) . '#' . aklokaal_paragraph_anchor( aklokaal_paragraph_number( $c ) ) : '';
+			$label = aklokaal_paragraph_label( $c ) . ( $ch ? ' (' . get_the_title( $ch ) . ')' : '' );
+			$link  = $ch ? get_permalink( $ch ) . '#' . aklokaal_paragraph_anchor_for( $c ) : '';
 		} else {
 			$label = get_the_title( $c );
 			$link  = get_permalink( $c );

@@ -169,6 +169,22 @@ add_action(
 			'ak_tools_title'   => array( __( 'Kop boven de interactieve toepassingen', 'aklokaal' ), 'text', 'Oefenen, spelen, onderzoeken' ),
 			'ak_footer_note'   => array( __( 'Regel onderaan', 'aklokaal' ), 'text', 'Lesmateriaal mag vrij gebruikt worden in de les. Nieuwsartikelen blijven van hun oorspronkelijke uitgever.' ),
 		);
+		$wp_customize->add_setting(
+			'ak_office_viewer',
+			array(
+				'default'           => true,
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			)
+		);
+		$wp_customize->add_control(
+			'ak_office_viewer',
+			array(
+				'label'       => __( 'PowerPoint en Word in de browser tonen (viewer van Microsoft Office)', 'aklokaal' ),
+				'description' => __( 'Laadt pas als een bezoeker op “Bekijk presentatie” klikt. Werkt alleen op de online site, niet op een lokale testsite.', 'aklokaal' ),
+				'section'     => 'aklokaal',
+				'type'        => 'checkbox',
+			)
+		);
 		foreach ( $settings as $id => $s ) {
 			$wp_customize->add_setting(
 				$id,

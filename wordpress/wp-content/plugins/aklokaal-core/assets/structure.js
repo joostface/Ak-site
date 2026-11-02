@@ -65,7 +65,7 @@
   }
 
   /* ---------- materiaal in een paragraaf ---------- */
-  async function itemsPanel(container, allParagraphs) {
+  async function itemsPanel(container, allParagraphs, allChapters) {
     const wrap = h('div', { class: 'aks-items' });
     const list = h('ol', { class: 'aks-item-list' });
     const render = async () => {
@@ -120,9 +120,19 @@
       await api('items/status', { method: 'POST', json: { ids, status } });
       say(`${ids.length} ${ids.length === 1 ? 'item' : 'items'}: ${tekst.toLowerCase()}.`); render();
     } });
+    const bulkCopy = h('select', { class: 'aks-input aks-small', 'aria-label': 'Geselecteerde ook plaatsen in' },
+      h('option', { value: '', text: 'Ook plaatsen in…' }),
+      ...allParagraphs.filter((p) => p.id !== container).map((p) => h('option', { value: p.id, text: p.label })));
+    bulkCopy.addEventListener('change', async () => {
+      const ids = geselecteerd();
+      if (!bulkCopy.value || !ids.length) { bulkCopy.value = ''; say('Vink eerst één of meer items aan.'); return; }
+      for (const id of ids) await api(`items/${bulkCopy.value}/add`, { method: 'POST', json: { item: id } });
+      say(`${ids.length} ${ids.length === 1 ? 'item staat' : 'items staan'} nu ook op de tweede plek (hetzelfde bestand, niet gekopieerd).`);
+      bulkCopy.value = ''; refreshAll();
+    });
     const bulk = h('div', { class: 'aks-bulk' },
       h('label', { class: 'aks-all' }, h('input', { type: 'checkbox', 'aria-label': 'Alles selecteren', onchange: (e) => list.querySelectorAll('.aks-select').forEach((c) => (c.checked = e.target.checked)) }), ' Alles'),
-      bulkMove, bulkStatus('publish', 'Publiceren'), bulkStatus('draft', 'Naar concept'), bulkStatus('ak_archief', 'Archiveren'));
+      bulkMove, bulkCopy, bulkStatus('publish', 'Publiceren'), bulkStatus('draft', 'Naar concept'), bulkStatus('ak_archief', 'Archiveren'));
     async function saveOrder() {
       const items = [...list.children].filter((li) => li.dataset.id).map(toItem);
       await api('items/' + container, { method: 'POST', json: { items } });
@@ -145,9 +155,19 @@
         } }, `${it.label}: ${it.title}`))));
       }, 300);
     });
+    const chapterId = () => Number(wrap.closest('[data-chapter]').dataset.chapter);
+    const moveParagraph = h('select', { class: 'aks-input aks-small', 'aria-label': 'Deze paragraaf verplaatsen naar hoofdstuk' },
+      h('option', { value: '', text: 'Hele paragraaf verplaatsen naar hoofdstuk…' }),
+      ...allChapters.map((c) => h('option', { value: c.id, text: c.label })));
+    moveParagraph.addEventListener('change', async () => {
+      if (!moveParagraph.value || Number(moveParagraph.value) === chapterId()) { moveParagraph.value = ''; return; }
+      await api('paragraphs/' + container, { method: 'POST', json: { chapter: Number(moveParagraph.value) } });
+      say('Paragraaf verplaatst, met al het materiaal. Hij staat achteraan in het nieuwe hoofdstuk.');
+      refreshAll();
+    });
     wrap.append(bulk, list, h('div', { class: 'aks-tools' },
       h('button', { type: 'button', class: 'button button-primary', text: '+ Nieuw materiaal', onclick: () => open({ context: { chapter: wrap.closest('[data-chapter]').dataset.chapter * 1, paragraph: container }, onDone: render }) }),
-      search), results);
+      search), results, h('div', { class: 'aks-tools' }, moveParagraph));
     await render();
     return wrap;
   }
@@ -162,9 +182,30 @@
 
   function render(openIds = []) {
     const allParagraphs = [];
-    state.forEach((v) => v.years.forEach((y) => y.chapters.forEach((c) => c.paragraphs.forEach((p) => allParagraphs.push({ id: p.id, label: `${y.name} · §${p.number} ${p.title}` })))));
+    const allChapters = [];
+    state.forEach((v) => v.years.forEach((y) => y.chapters.forEach((c) => {
+      allChapters.push({ id: c.id, label: `${y.name} · H${c.number || '?'} ${c.title}${c.status !== 'publish' ? ' (concept)' : ''}` });
+      c.paragraphs.forEach((p) => allParagraphs.push({ id: p.id, label: `${y.name} · H${c.number || '?'} · ${p.label}` }));
+    })));
+    const losse = h('section', { class: 'aks-losse' });
+    api('library?unplaced=1').then((items) => {
+      if (!items.length) return;
+      losse.append(
+        h('h2', { text: `Materiaal zonder plek (${items.length})` }),
+        h('p', { class: 'description', text: 'Dit materiaal staat in geen enkele paragraaf, bijvoorbeeld omdat een paragraaf is verwijderd. Kies waar het moet komen.' }),
+        h('ul', { class: 'aks-item-list' }, ...items.map((it) => {
+          const naar = h('select', { class: 'aks-input aks-small', 'aria-label': 'Plaats ' + it.title + ' in' },
+            h('option', { value: '', text: 'Plaats in…' }), ...allParagraphs.map((p) => h('option', { value: p.id, text: p.label })));
+          naar.addEventListener('change', async () => {
+            if (!naar.value) return;
+            await api(`items/${naar.value}/add`, { method: 'POST', json: { item: it.id } });
+            say(`${it.title} geplaatst.`); refreshAll();
+          });
+          return h('li', { class: 'aks-item aks-item--los' }, h('span', { class: 'aks-kind', text: it.label }), h('a', { href: it.edit, class: 'aks-item-title', text: it.title }), naar);
+        })));
+    }).catch(() => {});
 
-    root.replaceChildren(live, ...state.map((vak) => h('section', { class: 'aks-vak' },
+    root.replaceChildren(live, losse, ...state.map((vak) => h('section', { class: 'aks-vak' },
       h('h2', { text: vak.name }),
       ...vak.years.map((jaar) => {
         const list = h('ol', { class: 'aks-chapters' });
@@ -174,7 +215,7 @@
             const det = h('details', { class: 'aks-para' },
               h('summary', {},
                 h('span', { class: 'aks-grip', 'aria-hidden': 'true', text: '⋮⋮' }),
-                h('span', { class: 'aks-num', text: '§' + p.number }),
+                editable(p.number ? '§' + p.number : '§ –', (n) => api('paragraphs/' + p.id, { method: 'POST', json: { number: n.replace(/^§\s*/, '').replace(/^–$/, '-').trim() } }).then(refreshAll), 'Paragraafnummer (leeg = automatisch, - = geen nummer)'),
                 editable(p.title, (title) => api('paragraphs/' + p.id, { method: 'POST', json: { title } }), 'Paragraaf'),
                 h('span', { class: 'aks-count', text: `${p.count} items` }),
                 moveButtons('Paragraaf ' + p.title),
@@ -189,7 +230,7 @@
                   say('Paragraaf verwijderd.'); refreshAll();
                 } })));
             det.addEventListener('toggle', async () => {
-              if (det.open && !det.dataset.loaded) { det.dataset.loaded = '1'; det.append(await itemsPanel(p.id, allParagraphs)); }
+              if (det.open && !det.dataset.loaded) { det.dataset.loaded = '1'; det.append(await itemsPanel(p.id, allParagraphs, allChapters)); }
             }, { once: false });
             paras.append(h('li', { 'data-id': p.id, draggable: 'true' }, det));
           });

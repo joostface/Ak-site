@@ -136,30 +136,60 @@ function aklokaal_chapter_number( $chapter ) {
 }
 
 /**
- * Paragraafnummer, bijvoorbeeld 2.3. Een handmatig nummer wint;
- * anders hoofdstuknummer + positie.
+ * Paragraafnummer, bijvoorbeeld 2.3.
+ * - Een eigen nummer (meta ak_nummer) wint.
+ * - "-" betekent: geen nummer (bijvoorbeeld een casus als "België en Nepal"); dan geeft dit ''.
+ * - Anders: hoofdstuknummer + positie, waarbij paragrafen zonder nummer niet meetellen.
  */
-function aklokaal_paragraph_number( $paragraph, $position = null ) {
+function aklokaal_paragraph_number( $paragraph, $unused = null ) {
 	$paragraph = get_post( $paragraph );
 	if ( ! $paragraph ) {
 		return '';
 	}
-	$manual = get_post_meta( $paragraph->ID, 'ak_nummer', true );
-	if ( '' !== $manual ) {
-		return (string) $manual;
+	$manual = trim( (string) get_post_meta( $paragraph->ID, 'ak_nummer', true ) );
+	if ( '-' === $manual || '–' === $manual ) {
+		return '';
 	}
-	if ( null === $position ) {
-		$siblings = wp_list_pluck( aklokaal_get_paragraphs( $paragraph->post_parent, array( 'publish', 'draft', 'private' ) ), 'ID' );
-		$position = array_search( $paragraph->ID, $siblings, true );
-		$position = false === $position ? 0 : $position + 1;
+	if ( '' !== $manual ) {
+		return $manual;
+	}
+	$position = 0;
+	foreach ( aklokaal_get_paragraphs( $paragraph->post_parent, array( 'publish', 'draft', 'private' ) ) as $sib ) {
+		$m = trim( (string) get_post_meta( $sib->ID, 'ak_nummer', true ) );
+		if ( '-' === $m || '–' === $m ) {
+			continue;
+		}
+		++$position;
+		if ( $sib->ID === $paragraph->ID ) {
+			break;
+		}
 	}
 	$c = aklokaal_chapter_number( $paragraph->post_parent );
 	return '' !== $c ? $c . '.' . $position : (string) $position;
 }
 
-/** Anker-id van een paragraaf: paragraaf-2-3. */
-function aklokaal_paragraph_anchor( $number ) {
+/** "§2.3 " of '' (voor paragrafen zonder nummer). */
+function aklokaal_paragraph_prefix( $number ) {
+	return '' !== (string) $number ? '§' . $number . ' ' : '';
+}
+
+/** Volledige naam: "§2.3 De energietransitie" of "België en Nepal". */
+function aklokaal_paragraph_label( $paragraph ) {
+	$paragraph = get_post( $paragraph );
+	return $paragraph ? aklokaal_paragraph_prefix( aklokaal_paragraph_number( $paragraph ) ) . get_the_title( $paragraph ) : '';
+}
+
+/** Anker-id: paragraaf-2-3, of paragraaf-belgie-en-nepal voor een paragraaf zonder nummer. */
+function aklokaal_paragraph_anchor( $number, $paragraph = null ) {
+	if ( '' === (string) $number && $paragraph ) {
+		return 'paragraaf-' . sanitize_title( get_the_title( $paragraph ) );
+	}
 	return 'paragraaf-' . sanitize_title( str_replace( '.', '-', (string) $number ) );
+}
+
+/** Anker van een paragraaf-post. */
+function aklokaal_paragraph_anchor_for( $paragraph ) {
+	return aklokaal_paragraph_anchor( aklokaal_paragraph_number( $paragraph ), $paragraph );
 }
 
 /** Leesbare bestandsgrootte in het Nederlands. */
