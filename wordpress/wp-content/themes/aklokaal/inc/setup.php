@@ -276,10 +276,14 @@ function aktheme_ids_in_year( $slug ) {
 /** Maanden waarin nieuwsartikelen verschenen, nieuwste eerst: [ '202610' => 'oktober 2026', ... ]. */
 function aktheme_news_months() {
 	global $wpdb;
-	$rows = $wpdb->get_results( "SELECT DISTINCT YEAR(post_date) AS y, MONTH(post_date) AS m FROM {$wpdb->posts} WHERE post_type = 'ak_nieuws' AND post_status = 'publish' ORDER BY y DESC, m DESC LIMIT 36" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-	$out  = array();
-	foreach ( $rows as $r ) {
-		$out[ sprintf( '%04d%02d', $r->y, $r->m ) ] = date_i18n( 'F Y', mktime( 12, 0, 0, (int) $r->m, 1, (int) $r->y ) );
+	// Bewust zonder MySQL-datumfuncties: werkt ook met SQLite (bijvoorbeeld WordPress Studio).
+	$dates = $wpdb->get_col( "SELECT post_date FROM {$wpdb->posts} WHERE post_type = 'ak_nieuws' AND post_status = 'publish' ORDER BY post_date DESC LIMIT 3000" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	$out   = array();
+	foreach ( $dates as $d ) {
+		$k = substr( $d, 0, 4 ) . substr( $d, 5, 2 );
+		if ( ! isset( $out[ $k ] ) && count( $out ) < 36 ) {
+			$out[ $k ] = date_i18n( 'F Y', mktime( 12, 0, 0, (int) substr( $d, 5, 2 ), 1, (int) substr( $d, 0, 4 ) ) );
+		}
 	}
 	return $out;
 }

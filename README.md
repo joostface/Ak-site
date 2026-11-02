@@ -13,13 +13,14 @@ Draait op een thuisserver met Docker/Portainer, publiek via Cloudflare Tunnel. G
 | `wordpress/wp-content/themes/aklokaal/` | Het thema: alleen weergave. |
 | `wordpress/docker-compose.yml` | De Docker-stack: WordPress, MariaDB, back-ups, toepassingen, optioneel PDF-conversie en Cloudflare Tunnel. |
 | `apps/` | Interactieve toepassingen (eigen HTML/JS), los van WordPress op een eigen subdomein. |
-| `dist/` | **Uploadbestanden**: plugin, thema en toepassingen als zip (opnieuw maken met `tools/maak-zips.sh`). |
+| `dist/` | **Uploadbestanden**: plugin, thema, demo-inhoud en toepassingen als zip (opnieuw maken met `tools/maak-zips.sh`). |
 | `tools/` | Hulpscripts: thema-assets bijwerken, zips maken, rooktest. |
 | `docs/` | Documentatie. Begin bij [docs/installatie.md](docs/installatie.md). |
 
 ## Documentatie
 
-- **[Online zetten zonder thuisserver](docs/online-zetten.md)**: begin hier
+- **[Eerst testen op je laptop, zonder hosting](docs/testen-zonder-hosting.md)**: begin hier
+- **[Online zetten zonder thuisserver](docs/online-zetten.md)**
 
 - [Installatie op een eigen (thuis)server met Docker](docs/installatie.md) (Docker, Portainer, Cloudflare Tunnel, beveiliging)
 - [Dagelijks gebruik](docs/beheer.md): materiaal toevoegen, hoofdstukken, nieuws, bundels, kaarten

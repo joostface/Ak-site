@@ -11,7 +11,10 @@ plugins of thema's toe.
 
 ---
 
-## Stap 0 — Eerst kijken (15 minuten, kost niets)
+## Stap 0 — Eerst kijken en testen (kost niets)
+
+De volledige site uitproberen op je laptop: zie [testen-zonder-hosting.md](testen-zonder-hosting.md).
+Alleen de vormgeving bekijken kan ook zo:
 
 1. Ga naar https://github.com/joostface/Ak-site, kies de branch `claude/bouwplan-aardrijkskunde-website-sjbs41`,
    klik op **Code → Download ZIP** en pak het bestand uit.

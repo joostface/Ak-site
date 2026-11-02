@@ -8,30 +8,39 @@
  *   docker compose cp ../prototype/assets/img wordpress:/tmp/aklokaal-tools/img
  *   docker compose exec -u www-data wordpress php /tmp/aklokaal-tools/demo-content.php
  *
+ * Zonder opdrachtregel: upload dist/aklokaal-demo-plugin.zip als plugin; die zet deze inhoud
+ * met één knop neer (Lesmateriaal → Demo-inhoud) en ruimt hem ook weer op.
+ *
  * Het script is veilig om opnieuw te draaien: het slaat over wat al bestaat.
  * Alles wat het maakt, krijgt de metawaarde ak_demo=1, zodat je het later
  * in één keer kunt opruimen met:  ... demo-content.php opruimen
  */
 
-if ( PHP_SAPI !== 'cli' ) {
-	exit( 'Alleen via de opdrachtregel.' );
+if ( ! defined( 'ABSPATH' ) ) {
+	// Losse aanroep via de opdrachtregel (Docker).
+	if ( PHP_SAPI !== 'cli' ) {
+		exit( 'Alleen via de opdrachtregel of de demo-plugin.' );
+	}
+	$_SERVER['HTTP_HOST']   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+	$_SERVER['REQUEST_URI'] = '/';
+	require getenv( 'WP_LOAD' ) ? getenv( 'WP_LOAD' ) : '/var/www/html/wp-load.php';
 }
-$_SERVER['HTTP_HOST']   = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$_SERVER['REQUEST_URI'] = '/';
-require '/var/www/html/wp-load.php';
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/media.php';
 require_once ABSPATH . 'wp-admin/includes/image.php';
 require_once ABSPATH . 'wp-admin/includes/misc.php';
 
-$admins = get_users( array( 'role' => 'administrator', 'number' => 1 ) );
-wp_set_current_user( $admins ? $admins[0]->ID : 1 );
+if ( ! is_user_logged_in() ) {
+	$admins = get_users( array( 'role' => 'administrator', 'number' => 1 ) );
+	wp_set_current_user( $admins ? $admins[0]->ID : 1 );
+}
 
-$dir = __DIR__;
+$GLOBALS['aklokaal_demo_dir'] = __DIR__;
+$aklokaal_demo_actie          = isset( $aklokaal_demo_actie ) ? $aklokaal_demo_actie : ( isset( $argv[1] ) ? $argv[1] : 'plaatsen' );
 
 /* ---------- opruimen ---------- */
-if ( isset( $argv[1] ) && 'opruimen' === $argv[1] ) {
+if ( 'opruimen' === $aklokaal_demo_actie ) {
 	$posts = get_posts( array( 'post_type' => 'any', 'post_status' => 'any', 'posts_per_page' => -1, 'meta_key' => 'ak_demo', 'meta_value' => '1', 'fields' => 'ids' ) );
 	$att   = get_posts( array( 'post_type' => 'attachment', 'post_status' => 'any', 'posts_per_page' => -1, 'meta_key' => 'ak_demo', 'meta_value' => '1', 'fields' => 'ids' ) );
 	foreach ( $posts as $id ) {
@@ -41,7 +50,7 @@ if ( isset( $argv[1] ) && 'opruimen' === $argv[1] ) {
 		wp_delete_attachment( $id, true );
 	}
 	echo 'Opgeruimd: ' . count( $posts ) . ' items, ' . count( $att ) . " bestanden.\n";
-	exit;
+	return;
 }
 
 /* ---------- basis ---------- */
@@ -68,7 +77,7 @@ function demo_mark( $id ) {
 }
 
 function demo_image( $file, $title, $alt ) {
-	global $dir;
+	$dir      = $GLOBALS['aklokaal_demo_dir'];
 	$existing = get_posts( array( 'post_type' => 'attachment', 'title' => $title, 'posts_per_page' => 1, 'fields' => 'ids', 'post_status' => 'any' ) );
 	if ( $existing ) {
 		return $existing[0];
@@ -310,7 +319,7 @@ foreach ( $maps as $mp ) {
 }
 
 /* ---------- interactief ---------- */
-$apps_base = getenv( 'AKLOKAAL_APPS_URL' ) ? getenv( 'AKLOKAAL_APPS_URL' ) : 'http://localhost:8081';
+$apps_base = getenv( 'AKLOKAAL_APPS_URL' ) ? getenv( 'AKLOKAAL_APPS_URL' ) : ( defined( 'AKLOKAAL_APPS_URL' ) ? AKLOKAAL_APPS_URL : 'https://apps.thejoast.org' );
 $app       = demo_post( 'ak_toepassing', 'Fossiel of hernieuwbaar?', array( 'post_excerpt' => 'Kies bij acht energiebronnen of ze fossiel of hernieuwbaar zijn. Je ziet meteen of het klopt.' ), array( 'ak_app_url' => trailingslashit( $apps_base ) . 'fossiel-of-hernieuwbaar/', 'ak_height' => 460 ) );
 set_post_thumbnail( $app, $img['energie'] );
 wp_set_post_terms( $app, array( 'Energie' ), 'ak_thema' );
