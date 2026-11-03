@@ -860,3 +860,11 @@ a.chip { display: inline-grid; place-items: center; text-decoration: none; }
 @media (max-width: 860px) { .nieuws-artikel .about__aside { margin-bottom: 0; } }
 .years__leeg { font-size: var(--step-lead); color: var(--muted); max-width: 40ch; }
 .band--draft { opacity: 0.75; outline: 2px dashed var(--surface-3); outline-offset: -2px; }
+
+/* ---------- eigen nieuwsbericht ---------- */
+.news-own .about__aside { display: grid; gap: 16px; align-content: start; }
+.news-own .prose img { border-radius: var(--radius); max-width: 100%; height: auto; }
+.news-own__image { margin: 0 0 1.4em; }
+.news-own__image img { width: 100%; aspect-ratio: auto; }
+.news-own__image figcaption, .news-own .prose figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 8px; }
+.news-own .prose h2 { font-size: var(--step-card); }

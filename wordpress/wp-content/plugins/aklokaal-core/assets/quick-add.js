@@ -362,7 +362,7 @@
   }
 
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-add-open], #wp-admin-bar-aklokaal-add > a');
+    const t = e.target.closest('[data-add-open], #wp-admin-bar-aklokaal-add > a, #wp-admin-bar-aklokaal-add-materiaal > a');
     if (!t) return;
     e.preventDefault();
     open();

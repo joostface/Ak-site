@@ -38,6 +38,22 @@ add_action(
 				'meta'  => array( 'class' => 'aklokaal-adminbar-add' ),
 			)
 		);
+		$bar->add_node(
+			array(
+				'parent' => 'aklokaal-add',
+				'id'     => 'aklokaal-add-materiaal',
+				'title'  => __( 'Materiaal of nieuwslink', 'aklokaal' ),
+				'href'   => admin_url( 'admin.php?page=aklokaal-toevoegen' ),
+			)
+		);
+		$bar->add_node(
+			array(
+				'parent' => 'aklokaal-add',
+				'id'     => 'aklokaal-add-bericht',
+				'title'  => __( 'Eigen nieuwsbericht schrijven', 'aklokaal' ),
+				'href'   => admin_url( 'post-new.php?post_type=ak_nieuws' ),
+			)
+		);
 	},
 	80
 );

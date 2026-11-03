@@ -8,7 +8,7 @@ global $wp_query;
 $bundels = get_posts( array( 'post_type' => 'ak_collectie', 'posts_per_page' => 6 ) );
 ?>
 <main id="main">
-	<?php get_template_part( 'template-parts/page-title', null, array( 'title' => __( 'Nieuws', 'aklokaal' ), 'lead' => __( 'Artikelen uit kranten en tijdschriften die laten zien dat aardrijkskunde nu gebeurt. Elk artikel linkt naar de oorspronkelijke bron.', 'aklokaal' ) ) ); ?>
+	<?php get_template_part( 'template-parts/page-title', null, array( 'title' => __( 'Nieuws', 'aklokaal' ), 'lead' => __( 'Artikelen uit kranten en tijdschriften die laten zien dat aardrijkskunde nu gebeurt, met een link naar de oorspronkelijke bron. Plus eigen berichten van het lokaal.', 'aklokaal' ) ) ); ?>
 	<?php
 	$aktheme_months = aktheme_news_months();
 	$aktheme_m      = aktheme_news_month_param();

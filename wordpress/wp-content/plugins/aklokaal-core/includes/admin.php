@@ -18,6 +18,7 @@ add_action(
 		add_submenu_page( 'aklokaal', __( 'Structuur', 'aklokaal' ), __( 'Structuur', 'aklokaal' ), AKLOKAAL_CAP, 'aklokaal', 'aklokaal_render_structure_page', 0 );
 		add_submenu_page( 'aklokaal', __( 'Toevoegen', 'aklokaal' ), __( '+ Toevoegen', 'aklokaal' ), AKLOKAAL_CAP, 'aklokaal-toevoegen', 'aklokaal_render_add_page', 1 );
 		add_submenu_page( 'aklokaal', __( 'Nieuws importeren', 'aklokaal' ), __( 'Nieuws importeren', 'aklokaal' ), AKLOKAAL_CAP, 'aklokaal-nieuws', 'aklokaal_render_news_page', 2 );
+		add_submenu_page( 'aklokaal', __( 'Eigen nieuwsbericht', 'aklokaal' ), __( 'Eigen nieuwsbericht', 'aklokaal' ), AKLOKAAL_CAP, 'post-new.php?post_type=ak_nieuws', '', 2 );
 		add_submenu_page( 'aklokaal', __( 'Vakken', 'aklokaal' ), __( 'Vakken', 'aklokaal' ), AKLOKAAL_CAP, 'edit-tags.php?taxonomy=ak_vak&post_type=ak_hoofdstuk', '', 50 );
 		add_submenu_page( 'aklokaal', __( 'Leerjaren', 'aklokaal' ), __( 'Leerjaren', 'aklokaal' ), AKLOKAAL_CAP, 'edit-tags.php?taxonomy=ak_leerjaar&post_type=ak_hoofdstuk', '', 51 );
 		add_submenu_page( 'aklokaal', __( 'Thema’s', 'aklokaal' ), __( 'Thema’s', 'aklokaal' ), AKLOKAAL_CAP, 'edit-tags.php?taxonomy=ak_thema&post_type=ak_materiaal', '', 52 );
@@ -100,6 +101,7 @@ function aklokaal_render_news_page() {
 	<div class="wrap aklokaal-admin">
 		<h1><?php esc_html_e( 'Nieuws importeren', 'aklokaal' ); ?></h1>
 		<p class="aklokaal-lead"><?php esc_html_e( 'Plak de link van een nieuwsartikel. We halen titel, uitgever, datum, beschrijving en afbeelding op. Controleer alles en publiceer.', 'aklokaal' ); ?></p>
+		<p><?php esc_html_e( 'Zelf iets schrijven, zonder link naar een krant?', 'aklokaal' ); ?> <a class="button" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=ak_nieuws' ) ); ?>"><?php esc_html_e( 'Eigen nieuwsbericht schrijven', 'aklokaal' ); ?></a></p>
 		<div id="aklokaal-news-import"></div>
 		<?php aklokaal_render_bookmarklet(); ?>
 	</div>
@@ -151,8 +153,8 @@ function aklokaal_meta_fields() {
 			'ak_source'        => array( __( 'Bron', 'aklokaal' ), 'text', __( 'Bij materiaal van anderen: maker en licentie.', 'aklokaal' ) ),
 		),
 		'ak_nieuws'     => array(
-			'ak_url'        => array( __( 'Link naar het artikel', 'aklokaal' ), 'url', '' ),
-			'ak_publisher'  => array( __( 'Uitgever', 'aklokaal' ), 'text', '' ),
+			'ak_url'        => array( __( 'Link naar het artikel', 'aklokaal' ), 'url', __( 'Leeg laten voor een eigen bericht: dan opent de kaart je eigen tekst op deze site.', 'aklokaal' ) ),
+			'ak_publisher'  => array( __( 'Uitgever', 'aklokaal' ), 'text', __( 'Bij een eigen bericht leeg laten: dan staat de naam van de site erbij.', 'aklokaal' ) ),
 			'ak_author'     => array( __( 'Auteur', 'aklokaal' ), 'text', '' ),
 			'ak_published'  => array( __( 'Publicatiedatum', 'aklokaal' ), 'date', '' ),
 			'ak_image_url'  => array( __( 'Afbeelding (URL bij de bron)', 'aklokaal' ), 'url', '' ),

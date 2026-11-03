@@ -77,19 +77,31 @@ function aktheme_office_viewer_url( $file_url ) {
 
 /* ---------------------------------------------------------------- nieuwskaart */
 
+/** Een eigen bericht is een nieuwsitem zonder link naar een externe bron. */
+function aktheme_news_is_own( $post ) {
+	$post = get_post( $post );
+	return $post && ! get_post_meta( $post->ID, 'ak_url', true );
+}
+
 function aktheme_news_card( $post, $heading = 'h3', $extra_class = '' ) {
 	$post      = get_post( $post );
 	$url       = get_post_meta( $post->ID, 'ak_url', true );
 	$publisher = get_post_meta( $post->ID, 'ak_publisher', true );
 	$author    = get_post_meta( $post->ID, 'ak_author', true );
 	$date      = get_post_meta( $post->ID, 'ak_published', true );
+	$own       = aktheme_news_is_own( $post );
+	if ( $own ) {
+		// Eigen bericht: de site is de bron, de datum is de publicatiedatum van het bericht.
+		$publisher = $publisher ? $publisher : get_bloginfo( 'name' );
+		$date      = $date ? $date : get_the_date( 'Y-m-d', $post );
+	}
 	$img       = has_post_thumbnail( $post ) ? get_the_post_thumbnail( $post, 'ak-card', array( 'loading' => 'lazy', 'alt' => '' ) ) : '';
 	if ( ! $img && get_post_meta( $post->ID, 'ak_show_image', true ) && get_post_meta( $post->ID, 'ak_image_url', true ) ) {
 		// Afbeelding van de uitgever, niet gekopieerd maar bij de bron geladen.
 		$img = sprintf( '<img src="%s" alt="" loading="lazy" referrerpolicy="no-referrer">', esc_url( get_post_meta( $post->ID, 'ak_image_url', true ) ) );
 	}
 	$themes = get_the_terms( $post, 'ak_thema' );
-	$desc   = $post->post_excerpt ? $post->post_excerpt : wp_trim_words( wp_strip_all_tags( $post->post_content ), 30 );
+	$desc   = $post->post_excerpt ? $post->post_excerpt : wp_trim_words( wp_strip_all_tags( preg_replace( '#</(p|h[1-6]|li|div|figcaption)>#i', ' ', $post->post_content ) ), 30 );
 	$tag    = in_array( $heading, array( 'h2', 'h3', 'h4' ), true ) ? $heading : 'h3';
 	ob_start();
 	?>
@@ -112,7 +124,7 @@ function aktheme_news_card( $post, $heading = 'h3', $extra_class = '' ) {
 				<?php if ( $themes && ! is_wp_error( $themes ) ) : ?>
 					<ul class="tags"><?php foreach ( $themes as $t ) : ?><li class="tag"><?php echo esc_html( $t->name ); ?></li><?php endforeach; ?></ul>
 				<?php endif; ?>
-				<span class="news-card__go"><?php esc_html_e( 'Lees bij de bron', 'aklokaal' ); ?> <?php echo aktheme_icon( 'arrow' ); // phpcs:ignore ?></span>
+				<span class="news-card__go"><?php echo esc_html( $own ? __( 'Lees verder', 'aklokaal' ) : __( 'Lees bij de bron', 'aklokaal' ) ); ?> <?php echo aktheme_icon( 'arrow' ); // phpcs:ignore ?></span>
 			</div>
 		</div>
 	</article>

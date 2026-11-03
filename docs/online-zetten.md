@@ -51,6 +51,26 @@ Een nieuw domein kan een paar uur nodig hebben voordat het overal werkt. Wacht m
 Controle: open **Lesmateriaal → Structuur**, maak een testhoofdstuk, publiceer het en open het op de website.
 Werkt dat, dan staat alles goed.
 
+## Stap 3b — Controleren dat PowerPoints en documenten goed worden opgeslagen
+
+Alle bestanden komen in de mediabibliotheek, op de server in `wp-content/uploads/jaar/maand/`.
+Elk bestand staat er één keer; plaats je het bij meerdere paragrafen, dan wordt het niet opnieuw geüpload.
+
+1. **Gereedschap → Sitediagnose → tabblad Info → Media-afhandeling**: "Max. grootte van een upload" moet
+   **128 MB** (of hoger) zijn. Staat er 2, 8 of 64 MB, dan is de PHP-instelling uit stap 1 niet goed opgeslagen.
+   Kijk in hetzelfde tabblad bij **Map- en bestandsgroottes → Uploadmap**: daar moet "Schrijfbaar" staan.
+2. **Lesmateriaal → + Toevoegen**: sleep een echte PowerPoint (`.pptx`) en een Word-bestand (`.docx`) erin
+   en laat Hoofdstuk en Paragraaf leeg (het komt dan onder "Materiaal zonder plek" in Structuur). Je moet "2 items gepubliceerd" zien.
+3. **Media → Bibliotheek**: beide bestanden staan erin. Klik er een aan en open de bestands-URL;
+   die begint met `https://aardrijkskundelokaal.nl/wp-content/uploads/…` en het bestand downloadt.
+4. Open het materiaal op de site: een PowerPoint toont een voorbeeld via de Office-viewer van Microsoft.
+   Dat werkt alleen op een openbare site met https, dus niet op je laptop met WordPress Studio.
+5. Ruimte: in het klantenpaneel van Vimexx zie je hoeveel opslag je pakket heeft. Een les-PowerPoint met
+   foto's is snel 20 tot 60 MB. Maak grote presentaties kleiner met **Bestand → Afbeeldingen comprimeren**
+   in PowerPoint (150 ppi is genoeg voor het digibord).
+6. Back-ups: zet in het hostingpaneel de automatische back-ups aan als die er zijn, en volg `docs/backups.md`.
+   De map `wp-content/uploads` is het belangrijkste onderdeel: daar staan al je bestanden.
+
 ## Stap 4 — Beveiligen (10 minuten)
 
 1. **Instellingen → Algemeen**: "Iedereen kan zich registreren" **uit**.
