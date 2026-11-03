@@ -29,6 +29,7 @@ while ( have_posts() ) :
 		);
 	}
 	$chapter_items = aklokaal_get_placed( $chapter->ID, $can );
+	$total        += count( $chapter_items );
 
 	// Volgende hoofdstuk in hetzelfde leerjaar
 	$siblings = $jaar ? wp_list_pluck( aklokaal_get_chapters( array( 'leerjaar' => $jaar->term_id ) ), 'ID' ) : array();
@@ -105,6 +106,8 @@ while ( have_posts() ) :
 						}
 						if ( ! $p['items'] && $can ) {
 							echo '<p class="muted">' . esc_html__( 'Nog leeg. Sleep een bestand op deze pagina of klik op + Toevoegen.', 'aklokaal' ) . '</p>';
+						} elseif ( ! $p['items'] && ! trim( $p['post']->post_content ) ) {
+							echo '<p class="paragraph__empty muted">' . esc_html__( 'Het materiaal voor deze paragraaf volgt nog.', 'aklokaal' ) . '</p>';
 						}
 						?>
 					</div>

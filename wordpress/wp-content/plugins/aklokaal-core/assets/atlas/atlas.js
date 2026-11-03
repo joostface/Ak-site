@@ -47,8 +47,12 @@
   const koppenDetailUrl = CFG.base + 'data/koppen-detail.png';
   const koppenMainUrl = CFG.base + 'data/koppen-main.png';
   const elevationDataUrl = CFG.base + 'data/elevation.webp';
-  const world = await loadJson('countries-110m.json');
-  const worldGeo = topojson.feature(world, world.objects.features);
+  // Landgrenzen als achtergrond; lukt het laden niet, dan werkt de atlas zonder die laag verder.
+  let worldGeo = { type: 'FeatureCollection', features: [] };
+  try {
+    const world = await loadJson('countries-110m.json');
+    if (window.topojson) worldGeo = topojson.feature(world, world.objects.features);
+  } catch (e) { /* zie hierboven */ }
 
   const worldOffsets = [-360,0,360];
   function shiftCoordinates(value,offset) {

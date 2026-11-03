@@ -22,6 +22,7 @@ Draait op een thuisserver met Docker/Portainer, publiek via Cloudflare Tunnel. G
 - **[Eerst testen op je laptop, zonder hosting](docs/testen-zonder-hosting.md)**: begin hier
 - **[Online zetten bij Vimexx (aardrijkskundelokaal.nl)](docs/online-zetten.md)**
 - **[Wereldatlas: lagen toevoegen en beheren](docs/atlas.md)**
+- **[Vindbaar in Google](docs/vindbaarheid.md)**
 
 - [Installatie op een eigen (thuis)server met Docker](docs/installatie.md) (Docker, Portainer, Cloudflare Tunnel, beveiliging)
 - [Dagelijks gebruik](docs/beheer.md): materiaal toevoegen, hoofdstukken, nieuws, bundels, kaarten

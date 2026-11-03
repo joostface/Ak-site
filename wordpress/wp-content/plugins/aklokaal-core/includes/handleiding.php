@@ -105,6 +105,7 @@ function aklokaal_render_handleiding() {
 			<li><?php echo wp_kses_post( __( 'Klaar? Publiceer de nieuwe hoofdstukken en zet de oude op <em>Concept</em>. Niets wordt weggegooid.', 'aklokaal' ) ); ?></li>
 			<li><?php echo wp_kses_post( __( 'Verwijder je een paragraaf waar nog materiaal in stond, dan verschijnt dat materiaal bovenaan de structuur onder <em>Materiaal zonder plek</em>. Daar zet je het met één keuze op de goede plek.', 'aklokaal' ) ); ?></li>
 		</ol>
+		<?php if ( function_exists( 'aklokaal_render_site_box' ) ) { aklokaal_render_site_box(); } ?>
 		<h2 style="margin-top:32px"><?php esc_html_e( 'Wanneer heb je hulp nodig?', 'aklokaal' ); ?></h2>
 		<p style="max-width:70ch"><?php esc_html_e( 'Voor een nieuw soort materiaal, een andere opmaak van pagina’s, een nieuwe interactieve toepassing of een nieuwe functie. Vraag het aan Claude of Codex; je krijgt dan nieuwe zipbestanden die je via Plugins of Weergave → Thema’s uploadt (kies “Vervangen”). Je inhoud blijft staan.', 'aklokaal' ); ?></p>
 	</div>

@@ -49,7 +49,7 @@
     </footer>
   </aside>
 
-  <main class="atlas-map-wrap">
+  <div class="atlas-map-wrap" role="region" aria-label="Kaart">
     <div id="atlas-map" role="application" aria-label="Interactieve wereldkaart met combineerbare aardrijkskundelagen"></div>
 
     <div id="population-marginals" class="atlas-population-marginals" aria-label="Bevolkingsverdeling per lengte- en breedtegraad" hidden>
@@ -94,7 +94,7 @@
     </div>
 
     <div class="atlas-coordinate-readout" aria-live="polite"><span id="mouse-coords">18.0° N · 0.0° E</span><span id="zoom-readout">zoom 2</span></div>
-  </main>
+  </div>
 
   <dialog id="sources-dialog" class="atlas-dialog">
     <form method="dialog" class="atlas-dialog-card">

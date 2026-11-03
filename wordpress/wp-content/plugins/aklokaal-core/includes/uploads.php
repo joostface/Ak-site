@@ -62,7 +62,7 @@ function aklokaal_type_for_filename( $filename ) {
 /** Titelvoorstel uit een bestandsnaam: "H2_energie-bronnen v3.pptx" → "H2 energie bronnen v3". */
 function aklokaal_title_from_filename( $filename ) {
 	$t = pathinfo( $filename, PATHINFO_FILENAME );
-	$t = preg_replace( '/[_\-.]+/', ' ', $t );
+	$t = preg_replace( '/[_\-]+|(?<!\d)\.|\.(?!\d)/', ' ', $t ); // punten tussen cijfers (3.1) blijven staan
 	$t = trim( preg_replace( '/\s+/', ' ', $t ) );
 	return $t ? mb_strtoupper( mb_substr( $t, 0, 1 ) ) . mb_substr( $t, 1 ) : __( 'Naamloos bestand', 'aklokaal' );
 }
@@ -249,3 +249,30 @@ function aklokaal_video_embed_url( $url ) {
 	}
 	return '';
 }
+
+/**
+ * Titel voor een link zonder ingevulde titel: bij video's de echte titel (oEmbed van YouTube/Vimeo),
+ * bij websites de paginatitel. Lukt dat niet, dan de domeinnaam.
+ */
+function aklokaal_title_for_link( $url, $type = '' ) {
+	$host = preg_replace( '/^www\./', '', (string) wp_parse_url( $url, PHP_URL_HOST ) );
+	if ( ! $url ) {
+		return $host;
+	}
+	if ( 'video' === $type || aklokaal_video_embed_url( $url ) ) {
+		$oembed = function_exists( '_wp_oembed_get_object' ) ? _wp_oembed_get_object() : null;
+		$data   = $oembed ? $oembed->get_data( $url, array( 'discover' => false ) ) : false;
+		if ( $data && ! empty( $data->title ) ) {
+			return sanitize_text_field( html_entity_decode( (string) $data->title, ENT_QUOTES, 'UTF-8' ) );
+		}
+		return $host;
+	}
+	if ( 'weblink' === $type && function_exists( 'aklokaal_fetch_article_metadata' ) ) {
+		$meta = aklokaal_fetch_article_metadata( $url );
+		if ( ! is_wp_error( $meta ) && ! empty( $meta['title'] ) ) {
+			return sanitize_text_field( $meta['title'] );
+		}
+	}
+	return $host;
+}
+

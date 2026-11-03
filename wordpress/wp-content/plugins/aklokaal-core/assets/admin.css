@@ -138,3 +138,6 @@
 .aka .aka-flash--ok { background: #d7f0dd; }
 .aka .aka-flash--info { background: #e5f0fa; }
 .aka .aka-flash--error { background: #fbe0de; }
+
+/* Snelheid en zoekmachines (Handleiding) */
+.aklokaal-site-box { margin-top: 32px; max-width: 75ch; background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 4px 20px 12px; }

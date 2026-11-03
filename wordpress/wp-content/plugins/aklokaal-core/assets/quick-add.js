@@ -54,7 +54,8 @@
     return { pptx: 'Presentatie', ppt: 'Presentatie', odp: 'Presentatie', pdf: 'PDF', docx: 'Document', doc: 'Document', odt: 'Document', jpg: 'Afbeelding', jpeg: 'Afbeelding', png: 'Afbeelding', webp: 'Afbeelding', gif: 'Afbeelding' }[ext] || 'Bestand';
   };
   const titleFor = (name) => {
-    const t = name.replace(/\.[^.]+$/, '').replace(/[_\-.]+/g, ' ').replace(/\s+/g, ' ').trim();
+    // Punten tussen cijfers blijven staan: "§3.1-water.pptx" wordt "§3.1 water".
+    const t = name.replace(/\.[^.]+$/, '').replace(/[_\-]+|(?<!\d)\.|\.(?!\d)/g, ' ').replace(/\s+/g, ' ').trim();
     return t.charAt(0).toUpperCase() + t.slice(1);
   };
   const fmtSize = (b) => (b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' kB' : (b / 1048576).toFixed(1).replace('.', ',') + ' MB');

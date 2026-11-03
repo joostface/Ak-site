@@ -40,7 +40,12 @@ $total = wp_count_posts( 'ak_nieuws' );
 				if ( has_header_image() ) {
 					the_header_image_tag( array( 'alt' => '' ) );
 				} else {
-					printf( '<img src="%s" width="2400" height="1350" alt="%s">', esc_url( $img . 'reliefkaart.jpg' ), esc_attr__( 'Reliëfkaart met heuvelruggen, dalen en meren', 'aklokaal' ) );
+					printf(
+						'<img src="%1$s" srcset="%2$s 900w, %1$s 1600w" sizes="(max-width: 760px) 100vw, 64vw" width="1600" height="900" fetchpriority="high" decoding="async" alt="%3$s">',
+						esc_url( $img . 'reliefkaart-1600.webp' ),
+						esc_url( $img . 'reliefkaart-900.webp' ),
+						esc_attr__( 'Reliëfkaart met heuvelruggen, dalen en meren', 'aklokaal' )
+					);
 				}
 				?>
 			</figure>
@@ -60,7 +65,7 @@ $total = wp_count_posts( 'ak_nieuws' );
 			<div class="search-live" id="home-results" aria-live="polite"></div>
 		</form>
 		<div class="tile tile--photo">
-			<img src="<?php echo esc_url( $img . 'bevolking.jpg' ); ?>" width="1600" height="1000" loading="lazy" alt="<?php esc_attr_e( 'Kaart van bevolkingsdichtheid', 'aklokaal' ); ?>">
+			<img src="<?php echo esc_url( $img . 'bevolking-1200.webp' ); ?>" srcset="<?php echo esc_url( $img . 'bevolking-700.webp' ); ?> 700w, <?php echo esc_url( $img . 'bevolking-1200.webp' ); ?> 1200w" sizes="(max-width: 860px) 100vw, 34vw" width="1200" height="750" loading="lazy" decoding="async" alt="<?php esc_attr_e( 'Kaart van bevolkingsdichtheid', 'aklokaal' ); ?>">
 		</div>
 		<div class="tile tile--text" data-reveal>
 			<p class="tile__aside muted"><?php echo esc_html( aktheme_mod( 'ak_intro_aside', 'Voor leerlingen, collega’s en iedereen die nieuwsgierig is. Geen account nodig.' ) ); ?></p>
@@ -116,7 +121,7 @@ $total = wp_count_posts( 'ak_nieuws' );
 	<section class="section" aria-labelledby="news-title">
 		<div class="news-row__head" data-reveal>
 			<h2 id="news-title"><?php esc_html_e( 'Nieuws & actualiteit', 'aklokaal' ); ?></h2>
-			<a class="button button--quiet" href="<?php echo esc_url( get_post_type_archive_link( 'ak_nieuws' ) ); ?>"><?php echo esc_html( sprintf( __( 'Alle %d artikelen', 'aklokaal' ), (int) $total->publish ) ); ?></a>
+			<a class="button button--quiet" href="<?php echo esc_url( get_post_type_archive_link( 'ak_nieuws' ) ); ?>"><?php echo esc_html( ( 1 === (int) $total->publish ? __( 'Naar het nieuws', 'aklokaal' ) : sprintf( __( 'Alle %d artikelen', 'aklokaal' ), (int) $total->publish ) ) ); ?></a>
 		</div>
 		<div class="news-board">
 			<?php

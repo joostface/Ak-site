@@ -98,7 +98,7 @@ function aktheme_news_card( $post, $heading = 'h3', $extra_class = '' ) {
 	$img       = has_post_thumbnail( $post ) ? get_the_post_thumbnail( $post, 'ak-card', array( 'loading' => 'lazy', 'alt' => '' ) ) : '';
 	if ( ! $img && get_post_meta( $post->ID, 'ak_show_image', true ) && get_post_meta( $post->ID, 'ak_image_url', true ) ) {
 		// Afbeelding van de uitgever, niet gekopieerd maar bij de bron geladen.
-		$img = sprintf( '<img src="%s" alt="" loading="lazy" referrerpolicy="no-referrer">', esc_url( get_post_meta( $post->ID, 'ak_image_url', true ) ) );
+		$img = sprintf( '<img src="%s" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()">', esc_url( get_post_meta( $post->ID, 'ak_image_url', true ) ) );
 	}
 	$themes = get_the_terms( $post, 'ak_thema' );
 	$desc   = $post->post_excerpt ? $post->post_excerpt : wp_trim_words( wp_strip_all_tags( preg_replace( '#</(p|h[1-6]|li|div|figcaption)>#i', ' ', $post->post_content ) ), 30 );
@@ -216,8 +216,34 @@ function aktheme_file_info( $post ) {
 function aktheme_item_presentatie( $post, $note ) {
 	list( $url, $ext, $size ) = aktheme_file_info( $post );
 	$preview                  = (int) get_post_meta( $post->ID, 'ak_preview_id', true );
-	$pid                      = 'preview-' . $post->ID;
 	$viewer                   = $preview ? wp_get_attachment_url( $preview ) : aktheme_office_viewer_url( $url );
+	if ( $viewer ) {
+		// De presentatie staat meteen in beeld (de viewer laadt pas als de bezoeker in de buurt scrolt).
+		?>
+		<article class="block block--deck" data-reveal>
+			<div class="block__body">
+				<?php aktheme_kind_line( __( 'Presentatie', 'aklokaal' ), array( trim( $ext . ', ' . $size, ', ' ) ) ); ?>
+				<h3><?php echo esc_html( get_the_title( $post ) ); ?></h3>
+				<?php aktheme_description( $post ); ?>
+				<?php aktheme_note( $note ); ?>
+			</div>
+			<div class="deck-frame">
+				<iframe title="<?php echo esc_attr( sprintf( /* translators: %s: titel */ __( 'Presentatie: %s', 'aklokaal' ), get_the_title( $post ) ) ); ?>" src="<?php echo esc_url( $viewer ); ?>" class="office-frame" allowfullscreen loading="lazy"></iframe>
+			</div>
+			<div class="block__body block__body--foot">
+				<div class="block__actions">
+					<?php if ( $url ) : ?>
+						<a class="button button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php esc_html_e( 'Download PowerPoint', 'aklokaal' ); ?></a>
+					<?php endif; ?>
+					<a class="button button--quiet button--small" href="<?php echo esc_url( str_replace( '/op/embed.aspx', '/op/view.aspx', $viewer ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Open in nieuw tabblad', 'aklokaal' ); ?></a>
+				</div>
+				<?php if ( ! $preview ) : ?><p class="block__note"><?php esc_html_e( 'Getoond met de viewer van Microsoft Office. Werkt het niet? Download de presentatie.', 'aklokaal' ); ?></p><?php endif; ?>
+			</div>
+		</article>
+		<?php
+		return;
+	}
+	// Geen viewer mogelijk (bijvoorbeeld op je eigen laptop): een rustig voorblad met downloadknop.
 	?>
 	<article class="block block--slides" data-reveal>
 		<div class="slides" aria-hidden="true">
@@ -236,19 +262,10 @@ function aktheme_item_presentatie( $post, $note ) {
 			<?php aktheme_description( $post ); ?>
 			<?php aktheme_note( $note ); ?>
 			<div class="block__actions">
-				<?php if ( $viewer ) : ?>
-					<button class="button button--small" type="button" data-toggle="<?php echo esc_attr( $pid ); ?>" data-label-open="<?php esc_attr_e( 'Verberg presentatie', 'aklokaal' ); ?>" data-label-closed="<?php esc_attr_e( 'Bekijk presentatie', 'aklokaal' ); ?>"><span><?php esc_html_e( 'Bekijk presentatie', 'aklokaal' ); ?></span></button>
-				<?php endif; ?>
 				<?php if ( $url ) : ?>
-					<a class="button <?php echo $viewer ? 'button--quiet' : ''; ?> button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php esc_html_e( 'Download PowerPoint', 'aklokaal' ); ?></a>
+					<a class="button button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php esc_html_e( 'Download PowerPoint', 'aklokaal' ); ?></a>
 				<?php endif; ?>
 			</div>
-			<?php if ( $viewer ) : ?>
-				<div class="pdf-viewer" id="<?php echo esc_attr( $pid ); ?>" hidden>
-					<iframe title="<?php echo esc_attr( get_the_title( $post ) ); ?>" data-src="<?php echo esc_url( $viewer ); ?>" class="office-frame" allowfullscreen loading="lazy"></iframe>
-					<?php if ( ! $preview ) : ?><p class="block__note"><?php esc_html_e( 'Getoond met de viewer van Microsoft Office. Werkt het niet? Download de presentatie.', 'aklokaal' ); ?></p><?php endif; ?>
-				</div>
-			<?php endif; ?>
 		</div>
 	</article>
 	<?php
@@ -482,10 +499,12 @@ function aktheme_item_ak_collectie( $post, $note ) {
 function aktheme_chapter_bands( $chapters ) {
 	echo '<ol class="bands">';
 	foreach ( $chapters as $c ) {
-		$paras = aktheme_has_core() ? aklokaal_get_paragraphs( $c->ID ) : array();
-		$items = 0;
+		$can   = aktheme_has_core() && aklokaal_can_manage();
+		$paras = aktheme_has_core() ? aklokaal_get_paragraphs( $c->ID, $can ? array( 'publish', 'draft' ) : array( 'publish' ) ) : array();
+		// Zelfde telling als op de hoofdstukpagina: alleen materiaal dat de bezoeker ook ziet.
+		$items = aktheme_has_core() ? count( aklokaal_get_placed( $c->ID, $can ) ) : 0;
 		foreach ( $paras as $p ) {
-			$items += count( aklokaal_get_items( $p->ID ) );
+			$items += count( aklokaal_get_placed( $p->ID, $can ) );
 		}
 		$titles = wp_list_pluck( array_slice( $paras, 0, 3 ), 'post_title' );
 		$concept = 'publish' !== $c->post_status;

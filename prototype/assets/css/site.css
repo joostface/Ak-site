@@ -925,3 +925,15 @@ html, body { overflow-x: clip; }
 .atlas-teaser strong { font-family: var(--font-display); font-weight: 400; font-size: var(--step-card); }
 .atlas-teaser__go { font-weight: 600; margin-top: 4px; }
 .atlas-teaser:hover .atlas-teaser__go { text-decoration: underline; }
+
+/* presentatie direct in beeld */
+.block--deck { display: block; }
+.block--deck .deck-frame { padding: 0 4px; }
+.block--deck .office-frame { height: auto; aspect-ratio: 16 / 9.6; max-height: 78svh; }
+.block--deck .block__body--foot { padding-top: 14px; }
+.paragraph__empty { font-size: var(--step-small); }
+
+/* mobiel: links in de voettekst groot genoeg om aan te tikken */
+@media (max-width: 760px) {
+  .site-footer li a { display: inline-block; padding-block: 10px; }
+}

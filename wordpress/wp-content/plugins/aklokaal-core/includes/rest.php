@@ -673,7 +673,7 @@ function aklokaal_rest_material_create( WP_REST_Request $r ) {
 			}
 			$made[] = $mid;
 		}
-		$title = ! empty( $titles[0] ) ? sanitize_text_field( $titles[0] ) : (string) wp_parse_url( $url, PHP_URL_HOST );
+		$title = ! empty( $titles[0] ) ? sanitize_text_field( $titles[0] ) : aklokaal_title_for_link( $url, $type );
 		$mid   = $made ? 0 : aklokaal_create_material(
 			array(
 				'title'       => $title,
