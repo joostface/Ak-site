@@ -22,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
 		</nav>
 		<div class="header-tools">
 			<?php if ( function_exists( 'aklokaal_can_manage' ) && aklokaal_can_manage() ) : ?>
-				<button class="button button--accent button--small admin-add" type="button" data-add-open>+ <?php esc_html_e( 'Toevoegen', 'aklokaal' ); ?></button>
+				<button class="button button--accent button--small admin-add" type="button" data-add-open aria-label="<?php esc_attr_e( 'Toevoegen', 'aklokaal' ); ?>">+<span class="admin-add__label"> <?php esc_html_e( 'Toevoegen', 'aklokaal' ); ?></span></button>
 			<?php endif; ?>
 			<button class="icon-button" type="button" data-search-open aria-label="<?php esc_attr_e( 'Zoeken', 'aklokaal' ); ?>">
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
