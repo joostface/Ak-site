@@ -270,6 +270,25 @@ if (PASS) {
   await page.close();
 }
 
+/* ---------- wereldatlas ---------- */
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const fouten = [];
+  page.on('pageerror', (e) => fouten.push(e.message));
+  await page.route(/earthquake\.usgs\.gov|arcgis\.com|arcgisonline\.com|larc\.nasa\.gov/, (r) => r.abort());
+  const res = await page.goto(SITE + '/atlas/');
+  ok(res.status() === 200, '/atlas/ laadt (200)');
+  await page.waitForSelector('.atlas-layer-row', { timeout: 15000 }).catch(() => {});
+  const rijen = await page.locator('.atlas-layer-row').count();
+  ok(rijen >= 15, `atlas toont de lagen uit de database (${rijen})`);
+  ok(await page.locator('.atlas-layer-row', { hasText: 'Aardbevingen afgelopen 24 uur' }).count() === 1, 'atlas heeft de laag aardbevingen (24 uur)');
+  await page.fill('#atlas-layer-search', 'vulkaan');
+  const zichtbaar = await page.locator('.atlas-layer-row:not([hidden])').count();
+  ok(zichtbaar >= 1 && zichtbaar < rijen, `zoeken in de lagen filtert (${zichtbaar} van ${rijen})`);
+  ok(fouten.length === 0, 'atlas zonder scriptfouten' + (fouten.length ? ': ' + fouten.join('; ') : ''));
+  await page.close();
+}
+
 /* ---------- beveiliging ---------- */
 {
   const ctx = await browser.newContext();

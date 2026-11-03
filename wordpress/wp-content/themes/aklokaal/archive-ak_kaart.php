@@ -6,6 +6,15 @@ global $wp_query;
 ?>
 <main id="main">
 	<?php get_template_part( 'template-parts/page-title', null, array( 'title' => __( 'Kaarten', 'aklokaal' ), 'lead' => __( 'Kaarten om in de les te bekijken en thuis zelf te verkennen. Klik op een kaart om hem groot te openen; bovenaan kies je snel een andere kaart.', 'aklokaal' ) ) ); ?>
+	<?php $aktheme_atlas = get_page_by_path( 'atlas' ); ?>
+	<?php if ( $aktheme_atlas && 'publish' === $aktheme_atlas->post_status ) : ?>
+		<a class="atlas-teaser" href="<?php echo esc_url( get_permalink( $aktheme_atlas ) ); ?>">
+			<span class="atlas-teaser__kicker"><?php esc_html_e( 'Interactief', 'aklokaal' ); ?></span>
+			<strong><?php echo esc_html( get_the_title( $aktheme_atlas ) ); ?></strong>
+			<span><?php echo esc_html( $aktheme_atlas->post_excerpt ? $aktheme_atlas->post_excerpt : __( 'Combineer kaartlagen en ontdek verbanden.', 'aklokaal' ) ); ?></span>
+			<span class="atlas-teaser__go"><?php esc_html_e( 'Open de atlas', 'aklokaal' ); ?> →</span>
+		</a>
+	<?php endif; ?>
 	<div data-filter-group=".map-list .map-item">
 		<?php get_template_part( 'template-parts/theme-filter', null, array( 'posts' => $wp_query->posts ) ); ?>
 		<div class="map-list map-list--grid" data-reveal>
