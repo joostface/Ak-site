@@ -355,17 +355,12 @@ function aktheme_item_video( $post, $note ) {
 	?>
 	<article class="block" data-reveal>
 		<?php if ( $embed ) : ?>
-			<div class="video-consent" data-video="<?php echo esc_url( $embed ); ?>" data-title="<?php echo esc_attr( get_the_title( $post ) ); ?>">
-				<?php
-				if ( has_post_thumbnail( $post ) ) {
-					echo get_the_post_thumbnail( $post, 'ak-wide', array( 'alt' => '' ) );
-				}
-				?>
-				<button class="button" type="button"><?php esc_html_e( 'Video afspelen', 'aklokaal' ); ?></button>
+			<div class="video-consent video-frame">
+				<iframe src="<?php echo esc_url( $embed ); ?>" title="<?php echo esc_attr( get_the_title( $post ) ); ?>" loading="lazy" allow="fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
 			</div>
 		<?php endif; ?>
 		<div class="block__body">
-			<?php aktheme_kind_line( __( 'Video', 'aklokaal' ), array( preg_replace( '/^www\./', '', $host ), $embed ? __( 'laadt pas na klikken', 'aklokaal' ) : '' ) ); ?>
+			<?php aktheme_kind_line( __( 'Video', 'aklokaal' ), array( preg_replace( '/^www\./', '', $host ) ) ); ?>
 			<h3><?php echo esc_html( get_the_title( $post ) ); ?></h3>
 			<?php aktheme_description( $post ); ?>
 			<?php aktheme_note( $note ); ?>

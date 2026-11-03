@@ -60,3 +60,34 @@
 
 .aklokaal-bookmarklet { background: #fff; border-radius: 6px; padding: 4px 18px 14px; margin-top: 28px; max-width: 760px; }
 .aklokaal-bookmarklet__knop { cursor: grab; }
+
+/* ---------- Kaarten toevoegen ---------- */
+.akm-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: start; max-width: 1400px; margin-top: 16px; }
+@media (max-width: 1100px) { .akm-layout { grid-template-columns: 1fr; } }
+.akm-form, .akm-preview { background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 20px 24px; }
+.akm-form h2, .akm-preview h2 { margin-top: 0; }
+.akm-field { margin-bottom: 18px; }
+.akm-field label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+.akm-field label em { font-weight: 400; font-style: normal; color: #646970; font-size: 12px; margin-left: 4px; }
+.akm-field .description { margin-top: 4px; }
+.akm-step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #1d2327; color: #fff; font-size: 12px; margin-right: 4px; }
+.akm-bulk { margin-top: 24px; border-top: 1px solid #dcdcde; padding-top: 16px; }
+.akm-bulk summary { cursor: pointer; font-weight: 600; }
+.akm-preview { position: sticky; top: 46px; background: #1b211e; color: #eef2ec; border-color: #1b211e; }
+.akm-preview h2 { color: #eef2ec; }
+.akm-preview .description { color: #b9c4bb; }
+.akm-preview__label { color: #b9c4bb; margin: 12px 0 8px; }
+.akm-card { width: 280px; border-radius: 10px; overflow: hidden; background: #243029; }
+.akm-card__media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #2c3a32; display: grid; place-items: center; }
+.akm-live { position: absolute; top: 0; left: 0; width: 400%; height: 400%; border: 0; transform: scale(0.25); transform-origin: 0 0; pointer-events: none; background: #1b211e; }
+.akm-card__body { padding: 12px 14px 14px; display: grid; gap: 4px; }
+.akm-card__body strong { font-size: 15px; }
+.akm-card__body span { color: #b9c4bb; font-size: 13px; }
+.akm-big { position: relative; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden; background: #2c3a32; display: grid; place-items: center; }
+.akm-big__frame { position: absolute; top: 0; left: 0; width: 200%; height: 200%; border: 0; transform: scale(0.5); transform-origin: 0 0; background: #1b211e; }
+.akm-empty { color: #8fa094; font-size: 13px; padding: 12px; text-align: center; }
+.akm-table { max-width: 1000px; margin-top: 8px; }
+.akm-table__thumb { width: 90px; }
+.akm-table__thumb img { border-radius: 4px; }
+.akm-nothumb { display: inline-block; font-size: 11px; color: #646970; border: 1px dashed #c3c4c7; border-radius: 4px; padding: 14px 18px; }
+.akm-table__actions { text-align: right; white-space: nowrap; }

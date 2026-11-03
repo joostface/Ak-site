@@ -239,7 +239,7 @@ if (PASS) {
   await page.waitForTimeout(1500);
   await page.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
   const vid = page.locator('#paragraaf-2-4 article', { hasText: 'Windmolens van dichtbij' });
-  ok((await vid.locator('.video-consent img').count()) === 1, 'video toont de eigen voorbeeldafbeelding');
+  ok(/youtube-nocookie\.com\/embed\//.test((await vid.locator('.video-frame iframe').getAttribute('src').catch(() => '')) || ''), 'video staat direct in beeld (YouTube-privacymodus)');
   await ctx.close();
 }
 

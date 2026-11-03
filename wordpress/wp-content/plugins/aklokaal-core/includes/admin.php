@@ -70,6 +70,9 @@ add_action(
 		if ( 'toplevel_page_aklokaal' === $hook ) {
 			wp_enqueue_script( 'aklokaal-structure', AKLOKAAL_URL . 'assets/structure.js', array( 'aklokaal-quick-add' ), AKLOKAAL_VERSION, true );
 		}
+		if ( false !== strpos( $hook, 'aklokaal-kaarten' ) ) {
+			wp_enqueue_script( 'aklokaal-maps', AKLOKAAL_URL . 'assets/maps.js', array( 'aklokaal-quick-add' ), AKLOKAAL_VERSION, true );
+		}
 		if ( false !== strpos( $hook, 'aklokaal-nieuws' ) ) {
 			wp_enqueue_script( 'aklokaal-news', AKLOKAAL_URL . 'assets/news-import.js', array( 'aklokaal-quick-add' ), AKLOKAAL_VERSION, true );
 		}
@@ -168,15 +171,15 @@ function aklokaal_meta_fields() {
 			'ak_kind'          => array(
 				__( 'Soort kaart', 'aklokaal' ),
 				array(
-					'afbeelding'  => __( 'Afbeelding (inzoomen en verschuiven)', 'aklokaal' ),
-					'interactief' => __( 'Interactieve kaart (eigen HTML/JS, afgeschermd)', 'aklokaal' ),
+					'interactief' => __( 'Interactieve kaart (een webadres, bijvoorbeeld van kaarten.thejoast.org)', 'aklokaal' ),
+					'afbeelding'  => __( 'Kaartafbeelding (een plaatje om in te zoomen)', 'aklokaal' ),
 				),
-				'',
+				__( 'Heeft de kaart een webadres, kies dan Interactief en vul hieronder het adres in. Dat gaat makkelijker via Lesmateriaal → Kaarten toevoegen.', 'aklokaal' ),
 			),
-			'ak_attachment_id' => array( __( 'Kaartafbeelding', 'aklokaal' ), 'media', '' ),
-			'ak_app_url'       => array( __( 'Adres van de interactieve kaart', 'aklokaal' ), 'url', __( 'Bij voorkeur op een apart subdomein, bijvoorbeeld https://apps.jouwdomein.nl/kaart/', 'aklokaal' ) ),
-			'ak_legend'        => array( __( 'Legenda', 'aklokaal' ), 'textarea', __( 'Eén regel per onderdeel, bijvoorbeeld: Donkergroen = laagland', 'aklokaal' ) ),
-			'ak_source'        => array( __( 'Bron', 'aklokaal' ), 'text', '' ),
+			'ak_app_url'       => array( __( 'Adres van de interactieve kaart', 'aklokaal' ), 'url', __( 'Het adres uit de adresbalk van je browser als de kaart open staat, bijvoorbeeld https://kaarten.thejoast.org/…', 'aklokaal' ) ),
+			'ak_attachment_id' => array( __( 'Kaartafbeelding (alleen bij soort Afbeelding)', 'aklokaal' ), 'media', __( 'Een groot plaatje (jpg of png). Bezoekers kunnen erin zoomen en verschuiven.', 'aklokaal' ) ),
+			'ak_legend'        => array( __( 'Legenda (optioneel)', 'aklokaal' ), 'textarea', __( 'Eén regel per onderdeel, bijvoorbeeld: Donkergroen = laagland. Komt onder de kaart.', 'aklokaal' ) ),
+			'ak_source'        => array( __( 'Bron (optioneel)', 'aklokaal' ), 'text', __( 'Komt klein onder de kaart, bijvoorbeeld: Natural Earth.', 'aklokaal' ) ),
 		),
 		'ak_toepassing' => array(
 			'ak_app_url' => array( __( 'Adres van de toepassing', 'aklokaal' ), 'url', __( 'Bij voorkeur op een apart subdomein. De toepassing draait in een afgeschermd venster.', 'aklokaal' ) ),
