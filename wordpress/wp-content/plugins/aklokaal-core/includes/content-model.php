@@ -118,6 +118,7 @@ function aklokaal_register_content_model() {
 			$base,
 			array(
 				'labels'      => aklokaal_labels( 'Kaart', 'Kaarten' ),
+				'supports'    => array( 'title', 'editor', 'excerpt', 'thumbnail', 'revisions', 'page-attributes', 'custom-fields' ),
 				'public'      => true,
 				'has_archive' => 'kaarten',
 				'rewrite'     => array(

@@ -1,5 +1,12 @@
 /* Kaartviewer: zoomen met knoppen, wiel, knijpen of toetsen; verschuiven met slepen of pijltjes; schermvullend. */
 (() => {
+  // Kaartenstrook: de huidige kaart in het midden van de strook zetten.
+  const list = document.querySelector('[data-map-switch] .map-switch__list');
+  const cur = list && list.querySelector('[aria-current="page"]');
+  if (cur) {
+    const lr = list.getBoundingClientRect(), cr = cur.getBoundingClientRect();
+    list.scrollLeft += (cr.left - lr.left) - (lr.width - cr.width) / 2;
+  }
   const viewer = document.querySelector('[data-map-viewer]');
   if (!viewer) return;
   const stage = viewer.querySelector('[data-map-stage]');

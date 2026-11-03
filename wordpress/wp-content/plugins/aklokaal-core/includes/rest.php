@@ -654,8 +654,27 @@ function aklokaal_rest_material_create( WP_REST_Request $r ) {
 		if ( ! $url && ! in_array( $type, array( 'tekst', 'opdracht' ), true ) ) {
 			return new WP_Error( 'aklokaal_url', __( 'Plak een volledige link, beginnend met https://', 'aklokaal' ), array( 'status' => 400 ) );
 		}
+		if ( 'kaart' === $type ) {
+			// Interactieve kaart: komt in de kaartenbibliotheek, titel en voorbeeld van de pagina zelf.
+			$mid = aklokaal_create_map(
+				array(
+					'url'         => $url,
+					'title'       => $titles[0] ?? '',
+					'description' => $desc,
+					'status'      => $status,
+					'themes'      => $themes,
+				)
+			);
+			if ( is_wp_error( $mid ) && 'aklokaal_map_exists' === $mid->get_error_code() ) {
+				$mid = (int) $mid->get_error_data()['id'];
+			}
+			if ( is_wp_error( $mid ) ) {
+				return $mid;
+			}
+			$made[] = $mid;
+		}
 		$title = ! empty( $titles[0] ) ? sanitize_text_field( $titles[0] ) : (string) wp_parse_url( $url, PHP_URL_HOST );
-		$mid   = aklokaal_create_material(
+		$mid   = $made ? 0 : aklokaal_create_material(
 			array(
 				'title'       => $title,
 				'type'        => $type,
@@ -668,7 +687,9 @@ function aklokaal_rest_material_create( WP_REST_Request $r ) {
 		if ( is_wp_error( $mid ) ) {
 			return $mid;
 		}
-		$made[] = $mid;
+		if ( $mid ) {
+			$made[] = $mid;
+		}
 	} else {
 		return new WP_Error( 'aklokaal_empty', __( 'Kies een bestand of plak een link.', 'aklokaal' ), array( 'status' => 400 ) );
 	}

@@ -576,3 +576,88 @@ function aktheme_placed_in( $post_id, $heading = '' ) {
 	}
 	return ( $heading ? '<h2>' . esc_html( $heading ) . '</h2>' : '' ) . '<ul class="placed-in">' . implode( '', $items ) . '</ul>';
 }
+
+/* ---------------------------------------------------------------- kaarten */
+
+/** Adres van een interactieve kaart, of '' bij een afbeeldingskaart. */
+function aktheme_map_app_url( $post ) {
+	$post = get_post( $post );
+	$app  = (string) get_post_meta( $post->ID, 'ak_app_url', true );
+	if ( ! $app ) {
+		return '';
+	}
+	$kind = get_post_meta( $post->ID, 'ak_kind', true );
+	return ( 'interactief' === $kind || ! get_post_meta( $post->ID, 'ak_attachment_id', true ) ) ? $app : '';
+}
+
+/**
+ * Kleine voorvertoning: de uitgelichte afbeelding, anders de kaartafbeelding,
+ * anders de interactieve kaart zelf, verkleind en niet bedienbaar.
+ */
+function aktheme_map_preview( $post, $size = 'ak-wide' ) {
+	$post = get_post( $post );
+	if ( has_post_thumbnail( $post ) ) {
+		return get_the_post_thumbnail( $post, $size, array( 'loading' => 'lazy', 'alt' => '' ) );
+	}
+	$att = (int) get_post_meta( $post->ID, 'ak_attachment_id', true );
+	if ( $att ) {
+		return wp_get_attachment_image( $att, $size, false, array( 'loading' => 'lazy', 'alt' => '' ) );
+	}
+	$app = aktheme_map_app_url( $post );
+	if ( $app ) {
+		return sprintf(
+			'<iframe class="map-live" src="%s" title="" aria-hidden="true" tabindex="-1" loading="lazy" sandbox="%s" referrerpolicy="no-referrer" scrolling="no"></iframe>',
+			esc_url( $app ),
+			esc_attr( aktheme_sandbox( $app ) )
+		);
+	}
+	return '<span class="map-blank" aria-hidden="true"></span>';
+}
+
+/** Alle gepubliceerde kaarten in de volgorde van de bibliotheek. */
+function aktheme_all_maps() {
+	return get_posts(
+		array(
+			'post_type'      => 'ak_kaart',
+			'post_status'    => 'publish',
+			'posts_per_page' => 100,
+			'orderby'        => array(
+				'menu_order' => 'ASC',
+				'title'      => 'ASC',
+			),
+		)
+	);
+}
+
+/** Strook bovenaan een kaartpagina: snel naar een andere kaart. */
+function aktheme_map_switcher( $current_id ) {
+	$maps = aktheme_all_maps();
+	if ( count( $maps ) < 2 ) {
+		return '';
+	}
+	$index = 0;
+	foreach ( $maps as $i => $m ) {
+		if ( (int) $m->ID === (int) $current_id ) {
+			$index = $i;
+		}
+	}
+	$prev = $maps[ ( $index - 1 + count( $maps ) ) % count( $maps ) ];
+	$next = $maps[ ( $index + 1 ) % count( $maps ) ];
+	ob_start();
+	?>
+	<nav class="map-switch" aria-label="<?php esc_attr_e( 'Andere kaarten', 'aklokaal' ); ?>" data-map-switch>
+		<a class="icon-button map-switch__step" href="<?php echo esc_url( get_permalink( $prev ) ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Vorige kaart: %s', 'aklokaal' ), get_the_title( $prev ) ) ); ?>" data-map-prev><span aria-hidden="true">←</span></a>
+		<ol class="map-switch__list">
+			<?php foreach ( $maps as $m ) : ?>
+				<?php $thumb = has_post_thumbnail( $m ) ? get_the_post_thumbnail( $m, 'thumbnail', array( 'loading' => 'lazy', 'alt' => '' ) ) : ( get_post_meta( $m->ID, 'ak_attachment_id', true ) ? wp_get_attachment_image( (int) get_post_meta( $m->ID, 'ak_attachment_id', true ), 'thumbnail', false, array( 'loading' => 'lazy', 'alt' => '' ) ) : '' ); ?>
+				<li><a class="map-switch__item" href="<?php echo esc_url( get_permalink( $m ) ); ?>"<?php echo (int) $m->ID === (int) $current_id ? ' aria-current="page"' : ''; ?>>
+					<?php if ( $thumb ) : ?><span class="map-switch__thumb"><?php echo $thumb; // phpcs:ignore ?></span><?php endif; ?>
+					<span><?php echo esc_html( get_the_title( $m ) ); ?></span>
+				</a></li>
+			<?php endforeach; ?>
+		</ol>
+		<a class="icon-button map-switch__step" href="<?php echo esc_url( get_permalink( $next ) ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Volgende kaart: %s', 'aklokaal' ), get_the_title( $next ) ) ); ?>" data-map-next><span aria-hidden="true">→</span></a>
+	</nav>
+	<?php
+	return ob_get_clean();
+}

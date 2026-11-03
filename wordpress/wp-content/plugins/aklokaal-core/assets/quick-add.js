@@ -91,6 +91,7 @@
     const urlInput = h('input', { type: 'url', class: 'akq-input', placeholder: 'https://', 'aria-describedby': 'akq-url-help' });
     const urlKind = h('select', { class: 'akq-input', 'aria-label': 'Soort link' },
       h('option', { value: 'nieuws', text: 'Nieuwsartikel' }),
+      h('option', { value: 'kaart', text: 'Kaart (interactief)' }),
       h('option', { value: 'video', text: 'Video' }),
       h('option', { value: 'weblink', text: 'Website' }));
     const urlTitle = h('input', { type: 'text', class: 'akq-input', placeholder: 'Titel', 'aria-label': 'Titel van de link' });
@@ -213,6 +214,7 @@
     urlInput.addEventListener('input', () => {
       const u = urlInput.value.trim();
       if (isVideo(u)) urlKind.value = 'video';
+      else if (/kaart/i.test(u) && urlKind.value === 'nieuws') urlKind.value = 'kaart';
       clearTimeout(lookupTimer);
       lookupTimer = setTimeout(lookup, 500);
     });

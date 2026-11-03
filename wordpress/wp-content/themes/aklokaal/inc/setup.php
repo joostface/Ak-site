@@ -243,6 +243,9 @@ add_action(
 		}
 		if ( ! is_admin() && $q->is_main_query() && ( $q->is_post_type_archive( array( 'ak_kaart', 'ak_toepassing' ) ) ) ) {
 			$q->set( 'posts_per_page', 60 );
+			if ( $q->is_post_type_archive( 'ak_kaart' ) ) {
+				$q->set( 'orderby', array( 'menu_order' => 'ASC', 'title' => 'ASC' ) );
+			}
 		}
 		if ( ! is_admin() && $q->is_main_query() && $q->is_post_type_archive( 'ak_nieuws' ) ) {
 			$q->set( 'posts_per_page', 24 );
