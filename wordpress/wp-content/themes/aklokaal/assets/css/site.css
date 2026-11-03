@@ -844,20 +844,9 @@ a.chip { display: inline-grid; place-items: center; text-decoration: none; }
 .block--slides .slides:has(> .slide:only-child) .slide { aspect-ratio: 21 / 9; }
 .slide img ~ .slide__inner b { max-width: 50%; font-size: 5.2cqw; }
 
-/* nieuwsartikel op de eigen site */
+/* nieuwskaart: knop "Lees bij de bron" */
 .news-card__go { position: relative; z-index: 1; text-decoration: none; }
 .news-card__go:hover { text-decoration: underline; }
-.nieuws-artikel__bron { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: var(--step-small); color: var(--muted); margin-bottom: 20px; }
-.nieuws-artikel__bron strong { color: var(--ink); }
-.nieuws-artikel .page-title h1.nieuws-artikel__titel { font-size: var(--step-head); line-height: 1.05; }
-.nieuws-artikel__citaat { margin: 1.5em 0; padding: 4px 0 4px 24px; position: relative; font-style: italic; }
-.nieuws-artikel__citaat::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 4px; background: var(--accent); }
-.nieuws-artikel__citaat footer { margin-top: 8px; font-style: normal; font-size: var(--step-small); color: var(--muted); }
-.nieuws-artikel__vraag { background: var(--surface-2); border-radius: var(--radius); padding: 20px 24px; margin: 1.5em 0; }
-.nieuws-artikel__vraag h2 { font-size: var(--step-card) !important; margin: 0 0 8px !important; }
-.nieuws-artikel__bronregel { font-size: var(--step-small); color: var(--muted); }
-.nieuws-artikel .about__aside .button { position: sticky; top: calc(var(--header-h) + var(--admin-offset, 0px) + 24px); white-space: normal; text-align: left; }
-@media (max-width: 860px) { .nieuws-artikel .about__aside { margin-bottom: 0; } }
 .years__leeg { font-size: var(--step-lead); color: var(--muted); max-width: 40ch; }
 .band--draft { opacity: 0.75; outline: 2px dashed var(--surface-3); outline-offset: -2px; }
 

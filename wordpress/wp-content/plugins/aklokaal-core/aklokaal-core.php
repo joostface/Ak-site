@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Aardrijkskundelokaal Core
  * Description:       Inhoudsmodel en beheer voor het digitale aardrijkskundelokaal: vakken, leerjaren, hoofdstukken, paragrafen, materiaal, nieuws, collecties, kaarten en interactieve toepassingen. Bevat de eenvoudige uploadworkflow en de nieuwsimport.
- * Version:           0.13.0
+ * Version:           0.13.1
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            Aardrijkskundelokaal
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'AKLOKAAL_VERSION', '0.13.0' );
+define( 'AKLOKAAL_VERSION', '0.13.1' );
 define( 'AKLOKAAL_FILE', __FILE__ );
 define( 'AKLOKAAL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AKLOKAAL_URL', plugin_dir_url( __FILE__ ) );
@@ -145,7 +145,7 @@ function aklokaal_ensure_about_page() {
 			'post_title'   => 'Over dit lokaal',
 			'post_status'  => 'publish',
 			'post_excerpt' => 'Een openbare bibliotheek met al het materiaal uit de aardrijkskundeles. Gemaakt door een docent, voor leerlingen en collega’s.',
-			'post_content' => "<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">Waarom</h2>\n<!-- /wp:heading -->\n\n<!-- wp:paragraph -->\n<p>Lesmateriaal raakt verspreid: een presentatie in de ene map, een werkblad in een mail, een nieuwsbericht in een chat. Hier staat alles op één plek, geordend zoals in de les: per leerjaar, hoofdstuk en paragraaf.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:heading -->\n<h2 class=\"wp-block-heading\" id=\"bronnen\">Bronnen en auteursrecht</h2>\n<!-- /wp:heading -->\n\n<!-- wp:paragraph -->\n<p>Nieuwsartikelen van anderen worden niet overgenomen. Je ziet de titel, een korte beschrijving en de naam van de uitgever, met een link naar het origineel. Kaarten en afbeeldingen van anderen staan altijd met hun bron vermeld.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:heading -->\n<h2 class=\"wp-block-heading\" id=\"privacy\">Privacy</h2>\n<!-- /wp:heading -->\n\n<!-- wp:paragraph -->\n<p>Je hebt geen account nodig. Er staan geen gegevens van leerlingen op deze website. De site onthoudt alleen of je de lichte of donkere weergave gekozen hebt, op je eigen apparaat. Video’s worden getoond via de privacymodus van YouTube (youtube-nocookie.com), zonder advertentiecookies.</p>\n<!-- /wp:paragraph -->",
+			'post_content' => "<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">Waarom</h2>\n<!-- /wp:heading -->\n\n<!-- wp:paragraph -->\n<p>Lesmateriaal raakt verspreid: een presentatie in de ene map, een werkblad in een mail, een nieuwsbericht in een chat. Hier staat alles op één plek, geordend zoals in de les: per leerjaar, hoofdstuk en paragraaf.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:heading -->\n<h2 class=\"wp-block-heading\" id=\"bronnen\">Bronnen en auteursrecht</h2>\n<!-- /wp:heading -->\n\n<!-- wp:paragraph -->\n<p>Nieuwsartikelen van anderen worden niet overgenomen. Je ziet de titel, een korte beschrijving en de naam van de uitgever, met een link naar het origineel. Kaarten en afbeeldingen van anderen staan altijd met hun bron vermeld.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:heading -->\n<h2 class=\"wp-block-heading\" id=\"privacy\">Privacy</h2>\n<!-- /wp:heading -->\n\n<!-- wp:paragraph -->\n<p>Je hebt geen account nodig. Er staan geen gegevens van leerlingen op deze website. De site onthoudt alleen of je de lichte of donkere weergave gekozen hebt, op je eigen apparaat. Video’s worden getoond via de privacymodus van YouTube (youtube-nocookie.com), zonder advertentiecookies. Presentaties worden getoond met de viewer van Microsoft Office; die laadt pas als je naar de presentatie scrolt.</p>\n<!-- /wp:paragraph -->",
 		)
 	);
 	update_option( 'aklokaal_about_page', 1 );

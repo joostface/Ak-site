@@ -88,8 +88,11 @@ function aklokaal_cache_rules() {
 		'ExpiresByType image/jpeg "access plus 1 month"',
 		'ExpiresByType image/svg+xml "access plus 1 month"',
 		'ExpiresByType image/x-icon "access plus 6 months"',
-		'ExpiresByType application/json "access plus 1 week"',
-		'ExpiresByType application/geo+json "access plus 1 week"',
+		// Alleen echte .json/.geojson-bestanden (atlasdata). REST-antwoorden zijn ook JSON, maar lopen via
+		// index.php en vallen hier dus buiten: die blijven altijd vers.
+		'<FilesMatch "\\.(geo)?json$">',
+		'ExpiresDefault "access plus 1 week"',
+		'</FilesMatch>',
 		'</IfModule>',
 		'<IfModule mod_mime.c>',
 		'AddType application/geo+json .geojson',
@@ -201,48 +204,70 @@ function aklokaal_render_site_box() {
 add_action(
 	'admin_init',
 	function () {
-		if ( get_option( 'aklokaal_fix_0_13' ) || ! aklokaal_can_manage() ) {
+		if ( ! aklokaal_can_manage() || wp_doing_ajax() ) {
 			return;
 		}
-		update_option( 'aklokaal_fix_0_13', 1 );
 
-		// Over-pagina: video's staan nu direct in beeld (privacymodus), niet meer "pas na klikken".
-		$over = get_page_by_path( 'over' );
-		$oud  = 'Video’s van YouTube laden pas als je op afspelen klikt.';
-		if ( $over && false !== strpos( $over->post_content, $oud ) ) {
-			wp_update_post(
-				array(
-					'ID'           => $over->ID,
-					'post_content' => str_replace( $oud, 'Video’s worden getoond via de privacymodus van YouTube (youtube-nocookie.com), zonder advertentiecookies.', $over->post_content ),
-				)
-			);
+		// Over-pagina: video's en presentaties staan nu direct in beeld; de privacytekst zegt dat ook.
+		if ( ! get_option( 'aklokaal_fix_privacy_0_13' ) ) {
+			update_option( 'aklokaal_fix_privacy_0_13', 1 );
+			$over = get_page_by_path( 'over' );
+			$oud  = 'Video’s van YouTube laden pas als je op afspelen klikt.';
+			if ( $over && false !== strpos( $over->post_content, $oud ) ) {
+				wp_update_post(
+					wp_slash(
+						array(
+							'ID'           => $over->ID,
+							'post_content' => str_replace( $oud, aklokaal_privacy_media_text(), $over->post_content ),
+						)
+					)
+				);
+			}
 		}
 
 		// Video's die alleen de domeinnaam als titel kregen ("www.youtube.com"): echte titel ophalen.
-		$hosts = array( 'www.youtube.com', 'youtube.com', 'youtu.be', 'm.youtube.com', 'vimeo.com', 'www.vimeo.com' );
-		$items = get_posts(
+		// Hooguit drie per paginalading (elke poging is een verzoek naar YouTube) en elke video maar één keer.
+		if ( get_option( 'aklokaal_fix_videotitels_0_13' ) ) {
+			return;
+		}
+		$hosts = array( 'www.youtube.com', 'youtube.com', 'youtu.be', 'm.youtube.com', 'vimeo.com', 'www.vimeo.com', 'player.vimeo.com' );
+		$todo  = array();
+		foreach ( get_posts(
 			array(
 				'post_type'      => 'ak_materiaal',
 				'post_status'    => array( 'publish', 'draft', 'ak_archief' ),
-				'posts_per_page' => 20,
+				'posts_per_page' => -1,
 				'meta_key'       => 'ak_type', // phpcs:ignore WordPress.DB.SlowDBQuery
 				'meta_value'     => 'video', // phpcs:ignore WordPress.DB.SlowDBQuery
 			)
-		);
-		foreach ( $items as $it ) {
-			if ( ! in_array( strtolower( $it->post_title ), $hosts, true ) ) {
-				continue;
+		) as $it ) {
+			if ( in_array( strtolower( $it->post_title ), $hosts, true ) && ! get_post_meta( $it->ID, '_ak_titel_geprobeerd', true ) ) {
+				$todo[] = $it;
 			}
+		}
+		if ( ! $todo ) {
+			update_option( 'aklokaal_fix_videotitels_0_13', 1 );
+			return;
+		}
+		foreach ( array_slice( $todo, 0, 3 ) as $it ) {
+			update_post_meta( $it->ID, '_ak_titel_geprobeerd', 1 );
 			$title = aklokaal_title_for_link( (string) get_post_meta( $it->ID, 'ak_url', true ), 'video' );
-			if ( $title && ! in_array( strtolower( $title ), $hosts, true ) && strtolower( $title ) !== preg_replace( '/^www\./', '', strtolower( $it->post_title ) ) ) {
+			if ( $title && ! in_array( strtolower( $title ), $hosts, true ) ) {
 				wp_update_post(
-					array(
-						'ID'         => $it->ID,
-						'post_title' => $title,
-						'post_name'  => '',
+					wp_slash(
+						array(
+							'ID'         => $it->ID,
+							'post_title' => $title,
+							'post_name'  => '',
+						)
 					)
 				);
 			}
 		}
 	}
 );
+
+/** Zin over video's en presentaties voor de privacytekst. */
+function aklokaal_privacy_media_text() {
+	return 'Video’s worden getoond via de privacymodus van YouTube (youtube-nocookie.com), zonder advertentiecookies. Presentaties worden getoond met de viewer van Microsoft Office; die laadt pas als je naar de presentatie scrolt.';
+}

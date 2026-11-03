@@ -55,7 +55,8 @@
   };
   const titleFor = (name) => {
     // Punten tussen cijfers blijven staan: "§3.1-water.pptx" wordt "§3.1 water".
-    const t = name.replace(/\.[^.]+$/, '').replace(/[_\-]+|(?<!\d)\.|\.(?!\d)/g, ' ').replace(/\s+/g, ' ').trim();
+    // (Geen lookbehind: oudere iPads/Safari kunnen die niet lezen en dan werkt het hele script niet.)
+    const t = name.replace(/\.[^.]+$/, '').replace(/(\d)\.(?=\d)|[_\-.]+/g, (m, d) => (d ? d + '.' : ' ')).replace(/\s+/g, ' ').trim();
     return t.charAt(0).toUpperCase() + t.slice(1);
   };
   const fmtSize = (b) => (b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' kB' : (b / 1048576).toFixed(1).replace('.', ',') + ' MB');

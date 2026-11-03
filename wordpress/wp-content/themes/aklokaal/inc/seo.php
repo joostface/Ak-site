@@ -17,6 +17,11 @@ function aktheme_seo_plugin_active() {
 	return defined( 'WPSEO_VERSION' ) || defined( 'RANK_MATH_VERSION' ) || defined( 'AIOSEO_VERSION' ) || class_exists( 'The_SEO_Framework\Load' );
 }
 
+/** Titel als platte tekst (zonder &#8211; en &amp;), voor beschrijvingen en gestructureerde data. */
+function aktheme_seo_title( $post ) {
+	return html_entity_decode( wp_strip_all_tags( get_the_title( $post ) ), ENT_QUOTES, 'UTF-8' );
+}
+
 /** Tekst inkorten tot een nette beschrijving van hooguit ~155 tekens. */
 function aktheme_seo_trim( $text, $max = 155 ) {
 	$text = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( strip_shortcodes( html_entity_decode( (string) $text, ENT_QUOTES, 'UTF-8' ) ) ) ) );
@@ -63,7 +68,7 @@ function aktheme_seo_description() {
 			$jaar  = get_the_terms( $post, 'ak_leerjaar' );
 			$paras = wp_list_pluck( aklokaal_get_paragraphs( $post->ID ), 'post_title' );
 			$intro = has_excerpt( $post ) ? get_the_excerpt( $post ) . ' ' : '';
-			$voor  = $jaar && ! is_wp_error( $jaar ) ? sprintf( /* translators: 1: hoofdstuk, 2: leerjaar */ __( 'Aardrijkskunde %2$s, hoofdstuk %1$s.', 'aklokaal' ), get_the_title( $post ), $jaar[0]->name ) : get_the_title( $post ) . '.';
+			$voor  = $jaar && ! is_wp_error( $jaar ) ? sprintf( /* translators: 1: hoofdstuk, 2: leerjaar */ __( 'Aardrijkskunde %2$s, hoofdstuk %1$s.', 'aklokaal' ), aktheme_seo_title( $post ), $jaar[0]->name ) : aktheme_seo_title( $post ) . '.';
 			return aktheme_seo_trim( $voor . ' ' . $intro . ( $paras ? __( 'Met', 'aklokaal' ) . ' ' . implode( ', ', $paras ) : '' ) );
 		}
 		if ( 'ak_nieuws' === $post->post_type ) {
@@ -80,7 +85,7 @@ function aktheme_seo_description() {
 		if ( 'ak_materiaal' === $post->post_type && function_exists( 'aklokaal_material_types' ) ) {
 			$types = aklokaal_material_types();
 			$type  = get_post_meta( $post->ID, 'ak_type', true );
-			return aktheme_seo_trim( sprintf( /* translators: 1: soort, 2: titel */ __( '%1$s voor aardrijkskunde: %2$s.', 'aklokaal' ), isset( $types[ $type ] ) ? $types[ $type ] : __( 'Lesmateriaal', 'aklokaal' ), get_the_title( $post ) ) );
+			return aktheme_seo_trim( sprintf( /* translators: 1: soort, 2: titel */ __( '%1$s voor aardrijkskunde: %2$s.', 'aklokaal' ), isset( $types[ $type ] ) ? $types[ $type ] : __( 'Lesmateriaal', 'aklokaal' ), aktheme_seo_title( $post ) ) );
 		}
 	}
 	return aktheme_seo_trim( get_bloginfo( 'description' ) );
@@ -107,7 +112,13 @@ function aktheme_seo_canonical() {
 	if ( ! $url || is_wp_error( $url ) ) {
 		return '';
 	}
-	return $paged > 1 ? get_pagenum_link( $paged ) : $url;
+	if ( $paged > 1 ) {
+		// Zelf opbouwen: get_pagenum_link() neemt de hele querystring mee (ook ?utm_source=…).
+		$query = (string) wp_parse_url( $url, PHP_URL_QUERY );
+		$base  = trailingslashit( strtok( $url, '?' ) ) . user_trailingslashit( 'page/' . $paged, 'paged' );
+		return $query ? $base . '?' . $query : $base;
+	}
+	return $url;
 }
 
 /** Afbeelding voor het deelkaartje: de uitgelichte afbeelding, anders de vaste afbeelding van de site. */
@@ -129,9 +140,12 @@ add_action(
 		}
 		$desc      = aktheme_seo_description();
 		$canonical = aktheme_seo_canonical();
-		$title     = is_front_page() ? get_bloginfo( 'name' ) : wp_get_document_title();
-		if ( is_singular() ) {
+		if ( is_front_page() ) {
+			$title = get_bloginfo( 'name' );
+		} elseif ( is_singular() ) {
 			$title = single_post_title( '', false );
+		} else {
+			$title = wp_get_document_title();
 		}
 		$title = html_entity_decode( wp_strip_all_tags( (string) $title ), ENT_QUOTES, 'UTF-8' );
 		list( $img, $w, $h ) = aktheme_seo_image();
@@ -192,7 +206,7 @@ add_action(
 			if ( $jaar && ! is_wp_error( $jaar ) ) {
 				$items[] = array( $jaar[0]->name, get_post_type_archive_link( 'ak_hoofdstuk' ) . '#leerjaar-' . $jaar[0]->slug );
 			}
-			$items[] = array( get_the_title( $post ), get_permalink( $post ) );
+			$items[] = array( aktheme_seo_title( $post ), get_permalink( $post ) );
 			$graph[] = array(
 				'@type'           => 'BreadcrumbList',
 				'itemListElement' => array_map(
@@ -210,7 +224,7 @@ add_action(
 			);
 			$graph[] = array(
 				'@type'            => 'LearningResource',
-				'name'             => get_the_title( $post ),
+				'name'             => aktheme_seo_title( $post ),
 				'url'              => get_permalink( $post ),
 				'description'      => $desc,
 				'inLanguage'       => 'nl-NL',
@@ -224,7 +238,7 @@ add_action(
 			$post    = get_queried_object();
 			$graph[] = array(
 				'@type'         => 'Article',
-				'headline'      => get_the_title( $post ),
+				'headline'      => aktheme_seo_title( $post ),
 				'datePublished' => get_the_date( 'c', $post ),
 				'dateModified'  => get_the_modified_date( 'c', $post ),
 				'image'         => $img,
@@ -246,7 +260,7 @@ add_action(
 					'@context' => 'https://schema.org',
 					'@graph'   => $graph,
 				),
-				JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+				JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP
 			) . "</script>\n";
 		}
 	},

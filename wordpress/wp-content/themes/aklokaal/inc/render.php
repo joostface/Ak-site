@@ -497,28 +497,44 @@ function aktheme_item_ak_collectie( $post, $note ) {
 
 /** Lijst hoofdstukken als banden (home + lesmateriaal). */
 function aktheme_chapter_bands( $chapters ) {
+	$core  = aktheme_has_core();
+	$can   = $core && aklokaal_can_manage();
+	$paras = array();
+	if ( $core ) {
+		// Eerst alle paragrafen en geplaatste items in één keer in het geheugen laden, dan tellen.
+		$ids = array();
+		foreach ( $chapters as $c ) {
+			$paras[ $c->ID ] = aklokaal_get_paragraphs( $c->ID, $can ? array( 'publish', 'draft' ) : array( 'publish' ) );
+			foreach ( array_merge( array( $c ), $paras[ $c->ID ] ) as $container ) {
+				$ids = array_merge( $ids, wp_list_pluck( aklokaal_get_items( $container->ID ), 'id' ) );
+			}
+		}
+		if ( $ids ) {
+			_prime_post_caches( array_unique( array_map( 'intval', $ids ) ), false, false );
+		}
+	}
 	echo '<ol class="bands">';
 	foreach ( $chapters as $c ) {
-		$can   = aktheme_has_core() && aklokaal_can_manage();
-		$paras = aktheme_has_core() ? aklokaal_get_paragraphs( $c->ID, $can ? array( 'publish', 'draft' ) : array( 'publish' ) ) : array();
+		$list  = $paras[ $c->ID ] ?? array();
 		// Zelfde telling als op de hoofdstukpagina: alleen materiaal dat de bezoeker ook ziet.
-		$items = aktheme_has_core() ? count( aklokaal_get_placed( $c->ID, $can ) ) : 0;
-		foreach ( $paras as $p ) {
+		$items = $core ? count( aklokaal_get_placed( $c->ID, $can ) ) : 0;
+		foreach ( $list as $p ) {
 			$items += count( aklokaal_get_placed( $p->ID, $can ) );
 		}
-		$titles = wp_list_pluck( array_slice( $paras, 0, 3 ), 'post_title' );
+		$paras_c = $list;
+		$titles = wp_list_pluck( array_slice( $paras_c, 0, 3 ), 'post_title' );
 		$concept = 'publish' !== $c->post_status;
 		printf(
 			'<li><a class="band%6$s" href="%1$s"><span class="band__num">H%2$s</span><span class="band__title">%3$s<span class="band__note">%4$s</span></span><span class="band__meta">%5$s</span></a></li>',
 			esc_url( get_permalink( $c ) ),
 			esc_html( aklokaal_chapter_number( $c ) ),
 			esc_html( get_the_title( $c ) ),
-			esc_html( implode( ' · ', $titles ) . ( count( $paras ) > 3 ? ' …' : '' ) ),
+			esc_html( implode( ' · ', $titles ) . ( count( $paras_c ) > 3 ? ' …' : '' ) ),
 			esc_html(
 				sprintf(
 					/* translators: 1: aantal paragrafen, 2: aantal materialen */
 					__( '%1$s · %2$s', 'aklokaal' ),
-					sprintf( _n( '%d paragraaf', '%d paragrafen', count( $paras ), 'aklokaal' ), count( $paras ) ),
+					sprintf( _n( '%d paragraaf', '%d paragrafen', count( $paras_c ), 'aklokaal' ), count( $paras_c ) ),
 					sprintf( _n( '%d materiaal', '%d materialen', $items, 'aklokaal' ), $items )
 				) . ( $concept ? ' · ' . __( 'concept, alleen jij ziet dit', 'aklokaal' ) : '' )
 			),

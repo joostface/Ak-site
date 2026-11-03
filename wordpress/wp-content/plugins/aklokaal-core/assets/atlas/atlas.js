@@ -335,7 +335,7 @@
     { max: 300, color: '#f08c2a', label: 'middeldiep (70–300 km)' },
     { max: Infinity, color: '#f2c94c', label: 'diep (meer dan 300 km)' }
   ];
-  const quakeColor = (depth) => (quakeDepths.find((d) => depth < d.max) || quakeDepths.at(-1)).color;
+  const quakeColor = (depth) => (quakeDepths.find((d) => depth < d.max) || quakeDepths[quakeDepths.length - 1]).color;
   const timeAgo = (ms) => {
     const rtf = new Intl.RelativeTimeFormat('nl', { numeric: 'auto' });
     const minutes = Math.round((ms - Date.now()) / 60000);
@@ -446,7 +446,7 @@
             onEachFeature:(feature,layer)=>{
               const p=feature.properties||{},type=(p.type||'').toUpperCase(),info=plateTypeInfo[type]||plateTypeInfo.TRANSFORM;
               const name=(p.geogdesc||info.label).replace(/\s+/g,' ').trim();
-              layer.bindTooltip(`<strong>${name}</strong><span>${info.label} · ${info.motion}<br>Pijlen zijn schematisch; geen snelheidsmeting.</span>`,{sticky:true,direction:'top',opacity:.97,className:'atlas-area-tooltip'});
+              layer.bindTooltip(`<strong>${esc(name)}</strong><span>${info.label} · ${info.motion}<br>Pijlen zijn schematisch; geen snelheidsmeting.</span>`,{sticky:true,direction:'top',opacity:.97,className:'atlas-area-tooltip'});
               prioritizeFeatureHover(layer);
               const anchor=pathAnchor(feature.geometry),key=`${offset}|${type}|${name}`;
               if (anchor && (!candidateByName.has(key)||candidateByName.get(key).total<anchor.total)) candidateByName.set(key,{...anchor,type,name});
@@ -522,7 +522,7 @@
   ];
 
   function populationDensityColor(value) {
-    return (populationDensityClasses.find(item=>value<item.max)||populationDensityClasses.at(-1)).color;
+    return (populationDensityClasses.find(item=>value<item.max)||populationDensityClasses[populationDensityClasses.length - 1]).color;
   }
 
   function readableAreaName(value, fallback) {
@@ -1090,9 +1090,9 @@
       try {
         const data=JSON.parse(reader.result);
         const id=`custom-${Date.now()}`;
-        const layer=L.geoJSON(data,{pane:'surfacePane',style:{color:'#2f7f77',weight:1.5,fillColor:'#2f7f77',fillOpacity:.45},pointToLayer:(f,latlng)=>L.circleMarker(latlng,{pane:'pointPane',radius:6,color:'#2f7f77',fillColor:'#2f7f77',fillOpacity:.8}),onEachFeature:(f,l)=>{const label=f.properties?.name||f.properties?.naam||file.name;l.bindTooltip(`<strong>${label}</strong>`);}});
+        const layer=L.geoJSON(data,{pane:'surfacePane',style:{color:'#2f7f77',weight:1.5,fillColor:'#2f7f77',fillOpacity:.45},pointToLayer:(f,latlng)=>L.circleMarker(latlng,{pane:'pointPane',radius:6,color:'#2f7f77',fillColor:'#2f7f77',fillOpacity:.8}),onEachFeature:(f,l)=>{const label=f.properties?.name||f.properties?.naam||file.name;l.bindTooltip(`<strong>${esc(label)}</strong>`);}});
         catalog.push({id,group:'custom',title:file.name.replace(/\.(geo)?json$/i,''),subtitle:'lokale GeoJSON-laag',color:'#2f7f77',opacity:.75,legend:[['#2f7f77','eigen data']],source:'Lokaal bestand',factory:()=>layer});
-        opacityState.set(id,.75); renderCatalog(); setLayer(catalog.at(-1),true); map.fitBounds(layer.getBounds(),{padding:[30,30],maxZoom:6}); showToast(`${file.name} is toegevoegd`);
+        opacityState.set(id,.75); renderCatalog(); setLayer(catalog[catalog.length - 1],true); map.fitBounds(layer.getBounds(),{padding:[30,30],maxZoom:6}); showToast(`${file.name} is toegevoegd`);
       } catch(error) { showToast('Dit bestand kon niet als GeoJSON worden gelezen.'); }
       event.target.value='';
     };
