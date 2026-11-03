@@ -261,7 +261,7 @@
       btnPub.disabled = btnDraft.disabled = true;
       const ids = [];
       try {
-        let created = 0;
+        let created = 0; let newsResult = null;
         if (mode === 'files') {
           if (!files.length) throw new Error('Kies eerst één of meer bestanden.');
           for (const f of files) {
@@ -289,6 +289,7 @@
             payload.show_image = news.show_image.checked;
             const n = await api('news', { method: 'POST', json: payload });
             ids.push(n.id);
+            newsResult = n;
           } else {
             const m = await api('materials', { method: 'POST', json: { url: u, type: urlKind.value, titles: [urlTitle.value], container, status: publish ? 'publish' : 'draft', description: desc.value, themes: themes.value } });
             m.created.forEach((c) => ids.push(c.id));
@@ -306,10 +307,17 @@
           thumb.value = '';
         }
         if (dest.chapter) store.set('aklokaal-last', dest);
-        await loadStructure(true);
-        const f = findChapter(dest.chapter);
+        // Opslaan is gelukt; een mislukte verversing van het structuurlijstje mag dat niet als fout laten lijken.
+        try { await loadStructure(true); } catch { /* structuur blijft de vorige */ }
+        const f = dest.chapter ? findChapter(dest.chapter) : null;
         const where = f ? (f.c.paragraphs.find((p) => p.id === dest.paragraph) || null) : null;
-        status.replaceChildren(`${created} ${created === 1 ? 'item' : 'items'} ${publish ? 'gepubliceerd' : 'als concept bewaard'}${where ? ` in ${where.label}` : ''}. `, f ? h('a', { href: f.c.url + (where ? '#' + where.anchor : ''), text: 'Bekijken' }) : '');
+        if (newsResult && newsResult.duplicate) {
+          status.replaceChildren('Dit artikel stond er al; er is geen tweede kopie gemaakt. ', h('a', { href: newsResult.url, text: 'Bekijken' }));
+        } else if (newsResult && !f) {
+          status.replaceChildren(`Nieuwsartikel ${publish ? 'gepubliceerd' : 'als concept bewaard'}. Het staat nu bij Nieuws. `, h('a', { href: newsResult.url, text: 'Bekijken' }));
+        } else {
+          status.replaceChildren(`${created} ${created === 1 ? 'item' : 'items'} ${publish ? 'gepubliceerd' : 'als concept bewaard'}${where ? ` in ${where.label}` : ''}. `, f ? h('a', { href: f.c.url + (where ? '#' + where.anchor : ''), text: 'Bekijken' }) : '');
+        }
         onDone && onDone({ chapter: dest.chapter });
       } catch (err) {
         status.textContent = err.message;

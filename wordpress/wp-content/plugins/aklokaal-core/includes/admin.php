@@ -461,10 +461,20 @@ add_filter(
 add_action(
 	'template_redirect',
 	function () {
-		if ( is_author() ) {
+		// Vóór redirect_canonical (prioriteit 10), anders verraadt ?author=1 eerst de gebruikersnaam.
+		if ( is_author() || ( isset( $_GET['author'] ) && ! is_admin() ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			wp_safe_redirect( home_url( '/' ), 301 );
 			exit;
 		}
+	},
+	1
+);
+/** oEmbed-gegevens zonder auteursnaam en -link. */
+add_filter(
+	'oembed_response_data',
+	function ( $data ) {
+		unset( $data['author_name'], $data['author_url'] );
+		return $data;
 	}
 );
 add_filter( 'xmlrpc_enabled', '__return_false' );

@@ -809,6 +809,25 @@ function aklokaal_rest_news_lookup( WP_REST_Request $r ) {
 }
 
 function aklokaal_rest_news_save( WP_REST_Request $r ) {
+	// Nooit twee keer hetzelfde artikel (bijvoorbeeld door nog eens op Publiceren te klikken).
+	$dup = aklokaal_find_news_by_url( (string) $r->get_param( 'url' ) );
+	if ( ! $dup && $r->get_param( 'canonical' ) ) {
+		$dup = aklokaal_find_news_by_url( (string) $r->get_param( 'canonical' ) );
+	}
+	if ( $dup ) {
+		$container = (int) $r->get_param( 'container' );
+		if ( $container && aklokaal_check_container( $container ) ) {
+			aklokaal_place_item( $dup['id'], $container );
+		}
+		return rest_ensure_response(
+			array(
+				'id'        => $dup['id'],
+				'url'       => get_permalink( $dup['id'] ),
+				'edit'      => $dup['edit'],
+				'duplicate' => true,
+			)
+		);
+	}
 	$id = aklokaal_save_news( $r->get_params() );
 	if ( is_wp_error( $id ) ) {
 		$id->add_data( array_merge( (array) $id->get_error_data(), array( 'status' => 400 ) ) );
