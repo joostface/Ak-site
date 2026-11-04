@@ -278,6 +278,14 @@
         if (span && b.dataset.labelOpen) span.textContent = target.hidden ? b.dataset.labelClosed : b.dataset.labelOpen;
       });
     });
+    // Presentatie opnieuw laden: de viewer van Microsoft geeft soms een tijdelijke foutmelding.
+    document.querySelectorAll('[data-reload-frame]').forEach((b) => b.addEventListener('click', () => {
+      const frame = b.closest('.block') && b.closest('.block').querySelector('iframe');
+      if (!frame) return;
+      const src = frame.src;
+      frame.src = 'about:blank';
+      setTimeout(() => { frame.src = src; }, 150);
+    }));
     // video pas laden na klik: geen tracking zonder toestemming
     $$('[data-video]').forEach((box) => {
       $('button', box)?.addEventListener('click', () => {

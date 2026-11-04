@@ -151,6 +151,15 @@ function aklokaal_register_rest() {
 	);
 	register_rest_route(
 		$ns,
+		'/items/(?P<id>\d+)/view',
+		array(
+			'methods'             => 'POST',
+			'callback'            => 'aklokaal_rest_items_view',
+			'permission_callback' => $manage,
+		)
+	);
+	register_rest_route(
+		$ns,
 		'/items/(?P<id>\d+)/add',
 		array(
 			'methods'             => 'POST',
@@ -490,7 +499,7 @@ function aklokaal_rest_trash( WP_REST_Request $r ) {
 
 /* ---------------------------------------------------------------- plaatsingen */
 
-function aklokaal_item_json( $post, $note = '' ) {
+function aklokaal_item_json( $post, $note = '', $view = '' ) {
 	$type  = $post->post_type;
 	$kind  = 'ak_materiaal' === $type ? get_post_meta( $post->ID, 'ak_type', true ) : $type;
 	$names = array_merge(
@@ -509,6 +518,7 @@ function aklokaal_item_json( $post, $note = '' ) {
 		'label'  => isset( $names[ $kind ] ) ? $names[ $kind ] : $kind,
 		'status' => $post->post_status,
 		'note'   => $note,
+		'view'   => $view,
 		'edit'   => get_edit_post_link( $post->ID, 'raw' ),
 		'thumb'  => get_the_post_thumbnail_url( $post, 'thumbnail' ),
 		'used'   => count( aklokaal_item_placements( $post->ID ) ),
@@ -520,7 +530,7 @@ function aklokaal_rest_items_get( WP_REST_Request $r ) {
 	foreach ( aklokaal_get_items( (int) $r['id'] ) as $it ) {
 		$p = get_post( $it['id'] );
 		if ( $p ) {
-			$out[] = aklokaal_item_json( $p, $it['note'] );
+			$out[] = aklokaal_item_json( $p, $it['note'], $it['view'] );
 		}
 	}
 	return rest_ensure_response( $out );
@@ -535,7 +545,38 @@ function aklokaal_rest_items_set( WP_REST_Request $r ) {
 	if ( ! aklokaal_check_container( $id ) ) {
 		return new WP_Error( 'aklokaal_container', __( 'Hier kan geen materiaal geplaatst worden.', 'aklokaal' ), array( 'status' => 400 ) );
 	}
-	aklokaal_set_items( $id, (array) $r->get_param( 'items' ) );
+	// Lijsten die geen weergave meesturen (oudere schermen) behouden de bestaande keuze per item.
+	$old   = array_column( aklokaal_get_items( $id ), 'view', 'id' );
+	$items = array_map(
+		function ( $it ) use ( $old ) {
+			$it = is_array( $it ) ? $it : array( 'id' => (int) $it );
+			if ( ! array_key_exists( 'view', $it ) && isset( $it['id'], $old[ (int) $it['id'] ] ) ) {
+				$it['view'] = $old[ (int) $it['id'] ];
+			}
+			return $it;
+		},
+		(array) $r->get_param( 'items' )
+	);
+	aklokaal_set_items( $id, $items );
+	return aklokaal_rest_items_get( $r );
+}
+
+/** Weergave (automatisch, groot, compact) van één item op één plek. */
+function aklokaal_rest_items_view( WP_REST_Request $r ) {
+	$id   = (int) $r['id'];
+	$item = (int) $r->get_param( 'item' );
+	$view = (string) $r->get_param( 'view' );
+	if ( ! aklokaal_check_container( $id ) ) {
+		return new WP_Error( 'aklokaal_container', __( 'Hier kan geen materiaal geplaatst worden.', 'aklokaal' ), array( 'status' => 400 ) );
+	}
+	$items = aklokaal_get_items( $id );
+	foreach ( $items as &$it ) {
+		if ( (int) $it['id'] === $item ) {
+			$it['view'] = in_array( $view, array( 'groot', 'compact' ), true ) ? $view : '';
+		}
+	}
+	unset( $it );
+	aklokaal_set_items( $id, $items );
 	return aklokaal_rest_items_get( $r );
 }
 
@@ -619,7 +660,13 @@ function aklokaal_rest_material_create( WP_REST_Request $r ) {
 
 	if ( ! empty( $files['files'] ) ) {
 		$list = aklokaal_normalize_files( $files['files'] );
+		// Een PDF met dezelfde naam als een PowerPoint of Word-bestand in dezelfde upload wordt de
+		// voorvertoning van dat bestand (geen apart item). Zo werkt tonen ook bij grote presentaties.
+		$pairs = aklokaal_preview_pairs( wp_list_pluck( $list, 'name' ) );
 		foreach ( $list as $i => $file ) {
+			if ( in_array( $i, $pairs, true ) ) {
+				continue;
+			}
 			$title = ! empty( $titles[ $i ] ) ? sanitize_text_field( $titles[ $i ] ) : aklokaal_title_from_filename( $file['name'] );
 			$att   = aklokaal_store_upload( $file, $title );
 			if ( is_wp_error( $att ) ) {
@@ -647,6 +694,17 @@ function aklokaal_rest_material_create( WP_REST_Request $r ) {
 				continue;
 			}
 			$made[] = $mid;
+			if ( isset( $pairs[ $i ] ) ) {
+				$pdf = aklokaal_store_upload( $list[ $pairs[ $i ] ], $title . ' (pdf)' );
+				if ( is_wp_error( $pdf ) ) {
+					$errors[] = array(
+						'file'    => sanitize_file_name( $list[ $pairs[ $i ] ]['name'] ),
+						'message' => $pdf->get_error_message(),
+					);
+				} else {
+					update_post_meta( $mid, 'ak_preview_id', (int) $pdf );
+				}
+			}
 		}
 	} elseif ( $r->get_param( 'url' ) || $r->get_param( 'type' ) ) {
 		$url  = esc_url_raw( (string) $r->get_param( 'url' ), array( 'http', 'https' ) );
@@ -710,6 +768,30 @@ function aklokaal_rest_material_create( WP_REST_Request $r ) {
 			'errors'  => $errors,
 		)
 	);
+}
+
+/**
+ * Welke PDF hoort bij welk Office-bestand? Geeft array( index office-bestand => index pdf ).
+ * "§3.1 Water.pptx" + "§3.1 Water.pdf" vormen een paar.
+ */
+function aklokaal_preview_pairs( $names ) {
+	$key   = function ( $n ) {
+		return strtolower( preg_replace( '/[^a-z0-9]+/i', '', remove_accents( pathinfo( (string) $n, PATHINFO_FILENAME ) ) ) );
+	};
+	$pdfs  = array();
+	$pairs = array();
+	foreach ( $names as $i => $n ) {
+		if ( 'pdf' === strtolower( pathinfo( (string) $n, PATHINFO_EXTENSION ) ) ) {
+			$pdfs[ $key( $n ) ] = $i;
+		}
+	}
+	foreach ( $names as $i => $n ) {
+		$ext = strtolower( pathinfo( (string) $n, PATHINFO_EXTENSION ) );
+		if ( in_array( $ext, array( 'pptx', 'ppt', 'odp', 'docx', 'doc', 'odt' ), true ) && isset( $pdfs[ $key( $n ) ] ) ) {
+			$pairs[ $i ] = $pdfs[ $key( $n ) ];
+		}
+	}
+	return $pairs;
 }
 
 /** $_FILES['files'] met meerdere bestanden omzetten naar een lijst. */

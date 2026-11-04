@@ -60,8 +60,18 @@ function aktheme_sandbox( $url ) {
  * (Office Online). Werkt alleen als het bestand openbaar op internet staat, dus niet op een lokale
  * testsite. Uit te zetten in Weergave → Customizer → Aardrijkskundelokaal.
  */
-function aktheme_office_viewer_url( $file_url ) {
-	if ( ! $file_url || ! get_theme_mod( 'ak_office_viewer', true ) ) {
+/** Microsofts viewer toont Word- en PowerPoint-bestanden tot 10 MB; daarboven geeft hij een foutmelding. */
+define( 'AKTHEME_OFFICE_MAX', 10 * 1024 * 1024 );
+
+/** Bestandsgrootte van het bestand bij een materiaalitem, in bytes (0 = onbekend). */
+function aktheme_file_bytes( $post ) {
+	$att  = (int) get_post_meta( get_post( $post )->ID, 'ak_attachment_id', true );
+	$path = $att ? get_attached_file( $att ) : '';
+	return $path && file_exists( $path ) ? (int) filesize( $path ) : 0;
+}
+
+function aktheme_office_viewer_url( $file_url, $bytes = 0 ) {
+	if ( ! $file_url || ! get_theme_mod( 'ak_office_viewer', true ) || $bytes > AKTHEME_OFFICE_MAX ) {
 		return '';
 	}
 	$host = strtolower( (string) wp_parse_url( $file_url, PHP_URL_HOST ) );
@@ -162,20 +172,29 @@ function aktheme_render_item( $post, $note = '' ) {
  * Item tonen; voor beheerders in een omhulsel met gegevens voor de beheerbalk
  * (verplaatsen, ook plaatsen, weghalen, bewerken). Die balk tekent de plugin (quick-add.js).
  */
-function aktheme_render_item_beheer( $it, $container_id, $can ) {
+function aktheme_render_item_beheer( $it, $container_id, $can, $shown = 'groot' ) {
+	$draw = function () use ( $it, $shown ) {
+		if ( 'compact' === $shown ) {
+			aktheme_item_compact( $it['post'], $it['note'] );
+		} else {
+			aktheme_render_item( $it['post'], $it['note'] );
+		}
+	};
 	if ( ! $can ) {
-		aktheme_render_item( $it['post'], $it['note'] );
+		$draw();
 		return;
 	}
 	printf(
-		'<div class="ak-beheer-item" data-ak-item="%1$d" data-ak-container="%2$d" data-ak-title="%3$s" data-ak-edit="%4$s" data-ak-status="%5$s">',
+		'<div class="ak-beheer-item" data-ak-item="%1$d" data-ak-container="%2$d" data-ak-title="%3$s" data-ak-edit="%4$s" data-ak-status="%5$s" data-ak-view="%6$s" data-ak-shown="%7$s">',
 		(int) $it['post']->ID,
 		(int) $container_id,
 		esc_attr( get_the_title( $it['post'] ) ),
 		esc_url( (string) get_edit_post_link( $it['post']->ID, 'raw' ) ),
-		esc_attr( $it['post']->post_status )
+		esc_attr( $it['post']->post_status ),
+		esc_attr( $it['view'] ?? '' ),
+		esc_attr( $shown )
 	);
-	aktheme_render_item( $it['post'], $it['note'] );
+	$draw();
 	echo '</div>';
 }
 
@@ -216,7 +235,9 @@ function aktheme_file_info( $post ) {
 function aktheme_item_presentatie( $post, $note ) {
 	list( $url, $ext, $size ) = aktheme_file_info( $post );
 	$preview                  = (int) get_post_meta( $post->ID, 'ak_preview_id', true );
-	$viewer                   = $preview ? wp_get_attachment_url( $preview ) : aktheme_office_viewer_url( $url );
+	$bytes                    = aktheme_file_bytes( $post );
+	$viewer                   = $preview ? wp_get_attachment_url( $preview ) : aktheme_office_viewer_url( $url, $bytes );
+	$te_groot                 = ! $preview && $bytes > AKTHEME_OFFICE_MAX && aktheme_office_viewer_url( $url );
 	if ( $viewer ) {
 		// De presentatie staat meteen in beeld (de viewer laadt pas als de bezoeker in de buurt scrolt).
 		?>
@@ -230,6 +251,7 @@ function aktheme_item_presentatie( $post, $note ) {
 			<div class="deck-frame">
 				<iframe title="<?php echo esc_attr( sprintf( /* translators: %s: titel */ __( 'Presentatie: %s', 'aklokaal' ), get_the_title( $post ) ) ); ?>" src="<?php echo esc_url( $viewer ); ?>" class="office-frame" allowfullscreen loading="lazy"></iframe>
 			</div>
+			<p class="deck-retry"><button type="button" class="link-button" data-reload-frame><?php esc_html_e( 'Foutmelding of blijft het leeg? Opnieuw laden', 'aklokaal' ); ?></button></p>
 			<div class="block__body block__body--foot">
 				<div class="block__actions">
 					<?php if ( $url ) : ?>
@@ -266,6 +288,12 @@ function aktheme_item_presentatie( $post, $note ) {
 					<a class="button button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php esc_html_e( 'Download PowerPoint', 'aklokaal' ); ?></a>
 				<?php endif; ?>
 			</div>
+			<?php if ( $te_groot ) : ?>
+				<p class="block__note"><?php esc_html_e( 'Deze presentatie is te groot om in de browser te tonen (de viewer van Microsoft werkt tot 10 MB). Download hem om hem te bekijken.', 'aklokaal' ); ?></p>
+				<?php if ( function_exists( 'aklokaal_can_manage' ) && aklokaal_can_manage() ) : ?>
+					<p class="block__note block__note--beheer"><?php esc_html_e( 'Alleen voor jou: maak de presentatie kleiner (PowerPoint → Bestand → Afbeeldingen comprimeren, video’s als YouTube-link) of upload er een PDF-versie bij: in “Bewerken” bij “PDF-voorvertoning”, of upload de PDF met dezelfde naam tegelijk met de PowerPoint.', 'aklokaal' ); ?></p>
+				<?php endif; ?>
+			<?php endif; ?>
 		</div>
 	</article>
 	<?php
@@ -304,7 +332,7 @@ function aktheme_item_document( $post, $note ) {
 
 /** Knop + venster om een Office-bestand in de browser te bekijken (alleen online). */
 function aktheme_office_toggle( $post, $url ) {
-	$viewer = aktheme_office_viewer_url( $url );
+	$viewer = aktheme_office_viewer_url( $url, aktheme_file_bytes( $post ) );
 	if ( ! $viewer ) {
 		return;
 	}
@@ -330,7 +358,7 @@ function aktheme_item_bestand( $post, $note, $label = '' ) {
 			<?php if ( $url ) : ?>
 				<div class="block__actions">
 					<?php aktheme_office_toggle( $post, $url ); ?>
-					<a class="button <?php echo aktheme_office_viewer_url( $url ) ? 'button--quiet' : ''; ?> button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php echo esc_html( sprintf( /* translators: %s: extensie */ __( 'Download %s', 'aklokaal' ), $ext ) ); ?></a>
+					<a class="button <?php echo aktheme_office_viewer_url( $url, aktheme_file_bytes( $post ) ) ? 'button--quiet' : ''; ?> button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php echo esc_html( sprintf( /* translators: %s: extensie */ __( 'Download %s', 'aklokaal' ), $ext ) ); ?></a>
 				</div>
 			<?php endif; ?>
 		</div>
@@ -690,4 +718,144 @@ function aktheme_map_switcher( $current_id ) {
 	</nav>
 	<?php
 	return ob_get_clean();
+}
+
+/* ---------------------------------------------------------------- compacte weergave en rijen */
+
+/** Soort van een item zoals de weergave die gebruikt (ak_type bij materiaal, anders het berichttype). */
+function aktheme_item_kind( $post ) {
+	$post = get_post( $post );
+	$kind = 'ak_materiaal' === $post->post_type ? get_post_meta( $post->ID, 'ak_type', true ) : $post->post_type;
+	return $kind ? sanitize_key( $kind ) : 'bestand';
+}
+
+/** Standaardweergave per soort; aan te passen via Weergave → Customizer → Weergave van materiaal. */
+function aktheme_view_defaults() {
+	return array(
+		'presentatie'   => 'groot',
+		'video'         => 'groot',
+		'afbeelding'    => 'groot',
+		'tekst'         => 'groot',
+		'opdracht'      => 'compact',
+		'document'      => 'compact',
+		'pdf'           => 'compact',
+		'bestand'       => 'compact',
+		'weblink'       => 'compact',
+		'ak_nieuws'     => 'groot',
+		'ak_kaart'      => 'groot',
+		'ak_toepassing' => 'groot',
+		'ak_collectie'  => 'groot',
+	);
+}
+
+/** Groot of compact: eerst de keuze op deze plek, dan de standaard voor deze soort. */
+function aktheme_item_view( $post, $view = '' ) {
+	if ( in_array( $view, array( 'groot', 'compact' ), true ) ) {
+		return $view;
+	}
+	$kind     = aktheme_item_kind( $post );
+	$defaults = aktheme_view_defaults();
+	$default  = isset( $defaults[ $kind ] ) ? $defaults[ $kind ] : 'groot';
+	$chosen   = get_theme_mod( 'ak_weergave_' . $kind, $default );
+	return in_array( $chosen, array( 'groot', 'compact' ), true ) ? $chosen : $default;
+}
+
+/** Meervoud voor het kopje boven een rij compacte items. */
+function aktheme_kind_plural( $kind ) {
+	$names = array(
+		'opdracht'    => __( 'Opdrachten', 'aklokaal' ),
+		'document'    => __( 'Documenten', 'aklokaal' ),
+		'pdf'         => __( 'PDF-bestanden', 'aklokaal' ),
+		'bestand'     => __( 'Bestanden', 'aklokaal' ),
+		'weblink'     => __( 'Websites', 'aklokaal' ),
+		'video'       => __( 'Video’s', 'aklokaal' ),
+		'presentatie' => __( 'Presentaties', 'aklokaal' ),
+		'afbeelding'  => __( 'Afbeeldingen', 'aklokaal' ),
+		'tekst'       => __( 'Uitleg', 'aklokaal' ),
+		'ak_kaart'    => __( 'Kaarten', 'aklokaal' ),
+		'ak_nieuws'   => __( 'Nieuws', 'aklokaal' ),
+		'ak_toepassing' => __( 'Interactief', 'aklokaal' ),
+	);
+	return isset( $names[ $kind ] ) ? $names[ $kind ] : __( 'Materiaal', 'aklokaal' );
+}
+
+/**
+ * Items van een paragraaf (of hoofdstuk) tonen. Grote items onder elkaar; opeenvolgende
+ * compacte items naast elkaar in één rij die horizontaal scrolt, met een kopje erboven.
+ */
+function aktheme_render_items( $items, $container_id, $can ) {
+	$run   = array();
+	$flush = function () use ( &$run, $container_id, $can ) {
+		if ( ! $run ) {
+			return;
+		}
+		$kinds = array_unique( array_map( function ( $it ) { return aktheme_item_kind( $it['post'] ); }, $run ) );
+		$label = 1 === count( $kinds ) ? aktheme_kind_plural( reset( $kinds ) ) : __( 'Opdrachten, bestanden en links', 'aklokaal' );
+		echo '<section class="blocks-row-wrap" data-reveal>';
+		printf( '<h3 class="blocks-row__title">%s <span>%d</span></h3>', esc_html( $label ), count( $run ) );
+		echo '<div class="blocks-row" role="list" tabindex="0" aria-label="' . esc_attr( $label ) . '">';
+		foreach ( $run as $it ) {
+			echo '<div class="blocks-row__cell" role="listitem">';
+			aktheme_render_item_beheer( $it, $container_id, $can, 'compact' );
+			echo '</div>';
+		}
+		echo '</div></section>';
+		$run = array();
+	};
+	foreach ( $items as $it ) {
+		if ( 'compact' === aktheme_item_view( $it['post'], $it['view'] ?? '' ) ) {
+			$run[] = $it;
+			continue;
+		}
+		$flush();
+		aktheme_render_item_beheer( $it, $container_id, $can, 'groot' );
+	}
+	$flush();
+}
+
+/** Compact kaartje: soort, titel, toelichting en knoppen; bekijken opent het bestand in een nieuw tabblad. */
+function aktheme_item_compact( $post, $note = '' ) {
+	$post  = get_post( $post );
+	$kind  = aktheme_item_kind( $post );
+	$types = function_exists( 'aklokaal_material_types' ) ? aklokaal_material_types() : array();
+	$label = isset( $types[ $kind ] ) ? $types[ $kind ] : aktheme_kind_plural( $kind );
+	list( $url, $ext, $size ) = aktheme_file_info( $post );
+	$link    = (string) get_post_meta( $post->ID, 'ak_url', true );
+	$preview = (int) get_post_meta( $post->ID, 'ak_preview_id', true );
+	$view    = '';
+	if ( $preview ) {
+		$view = wp_get_attachment_url( $preview );
+	} elseif ( $url && 'PDF' === $ext ) {
+		$view = $url;
+	} elseif ( $url ) {
+		$office = aktheme_office_viewer_url( $url, aktheme_file_bytes( $post ) );
+		$view   = $office ? str_replace( '/op/embed.aspx', '/op/view.aspx', $office ) : '';
+	} elseif ( $link ) {
+		$view = $link;
+	} elseif ( 'ak_materiaal' !== $post->post_type ) {
+		$view = get_permalink( $post );
+	}
+	?>
+	<article class="block block--compact">
+		<?php if ( has_post_thumbnail( $post ) ) : ?>
+			<div class="compact__media"><?php echo get_the_post_thumbnail( $post, 'ak-card', array( 'alt' => '', 'loading' => 'lazy' ) ); ?></div>
+		<?php else : ?>
+			<div class="compact__badge" aria-hidden="true"><?php echo esc_html( $ext ? $ext : mb_strtoupper( mb_substr( $label, 0, 3 ) ) ); ?></div>
+		<?php endif; ?>
+		<div class="compact__body">
+			<?php aktheme_kind_line( $label, array( trim( ( strcasecmp( $ext, $label ) ? $ext . ', ' : '' ) . $size, ', ' ) ) ); ?>
+			<h4><?php echo esc_html( get_the_title( $post ) ); ?></h4>
+			<?php if ( trim( $post->post_content ) ) : ?><p class="compact__desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $post->post_content ), 18 ) ); ?></p><?php endif; ?>
+			<?php aktheme_note( $note ); ?>
+			<div class="block__actions">
+				<?php if ( $view ) : ?>
+					<a class="button button--small" href="<?php echo esc_url( $view ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $link && ! $url ? __( 'Openen', 'aklokaal' ) : __( 'Bekijken', 'aklokaal' ) ); ?></a>
+				<?php endif; ?>
+				<?php if ( $url ) : ?>
+					<a class="button button--quiet button--small" href="<?php echo esc_url( $url ); ?>" download><?php echo aktheme_icon( 'download' ); // phpcs:ignore ?><?php echo esc_html( $ext ? $ext : __( 'Download', 'aklokaal' ) ); ?></a>
+				<?php endif; ?>
+			</div>
+		</div>
+	</article>
+	<?php
 }

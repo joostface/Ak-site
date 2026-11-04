@@ -180,11 +180,52 @@ add_action(
 			'ak_office_viewer',
 			array(
 				'label'       => __( 'PowerPoint en Word in de browser tonen (viewer van Microsoft Office)', 'aklokaal' ),
-				'description' => __( 'Laadt pas als een bezoeker op “Bekijk presentatie” klikt. Werkt alleen op de online site, niet op een lokale testsite.', 'aklokaal' ),
+				'description' => __( 'Presentaties staan direct in beeld; de viewer laadt als een bezoeker ernaartoe scrolt. Werkt tot 10 MB per bestand en alleen op de online site.', 'aklokaal' ),
 				'section'     => 'aklokaal',
 				'type'        => 'checkbox',
 			)
 		);
+		// Weergave van materiaal: per soort groot (onder elkaar) of compact (kaartjes naast elkaar).
+		$wp_customize->add_section(
+			'aklokaal_weergave',
+			array(
+				'title'       => __( 'Weergave van materiaal', 'aklokaal' ),
+				'description' => __( 'Groot: het materiaal staat breed in beeld (presentatie, video). Compact: een klein kaartje; meerdere compacte items na elkaar komen naast elkaar in een rij die opzij scrolt. Per item kun je dit op de hoofdstukpagina ook anders kiezen (Beheer → Weergave).', 'aklokaal' ),
+				'priority'    => 31,
+			)
+		);
+		$kinds = array_merge(
+			function_exists( 'aklokaal_material_types' ) ? aklokaal_material_types() : array(),
+			array(
+				'ak_nieuws'     => __( 'Nieuwsartikel', 'aklokaal' ),
+				'ak_kaart'      => __( 'Kaart', 'aklokaal' ),
+				'ak_toepassing' => __( 'Interactieve toepassing', 'aklokaal' ),
+			)
+		);
+		$defaults = aktheme_view_defaults();
+		foreach ( $kinds as $kind => $name ) {
+			$wp_customize->add_setting(
+				'ak_weergave_' . $kind,
+				array(
+					'default'           => isset( $defaults[ $kind ] ) ? $defaults[ $kind ] : 'groot',
+					'sanitize_callback' => function ( $v ) {
+						return 'compact' === $v ? 'compact' : 'groot';
+					},
+				)
+			);
+			$wp_customize->add_control(
+				'ak_weergave_' . $kind,
+				array(
+					'label'   => $name,
+					'section' => 'aklokaal_weergave',
+					'type'    => 'radio',
+					'choices' => array(
+						'groot'   => __( 'Groot', 'aklokaal' ),
+						'compact' => __( 'Compact', 'aklokaal' ),
+					),
+				)
+			);
+		}
 		foreach ( $settings as $id => $s ) {
 			$wp_customize->add_setting(
 				$id,

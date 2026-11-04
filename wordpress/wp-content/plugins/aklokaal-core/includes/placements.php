@@ -45,6 +45,8 @@ function aklokaal_sanitize_items( $items ) {
 		$clean[]     = array(
 			'id'   => $id,
 			'note' => isset( $item['note'] ) ? sanitize_textarea_field( $item['note'] ) : '',
+			// Weergave op deze plek: '' = automatisch (per soort), 'groot' of 'compact'.
+			'view' => isset( $item['view'] ) && in_array( $item['view'], array( 'groot', 'compact' ), true ) ? $item['view'] : '',
 		);
 	}
 	return $clean;
@@ -160,6 +162,7 @@ function aklokaal_get_placed( $container_id, $include_drafts = false ) {
 		$out[] = array(
 			'post' => $post,
 			'note' => $it['note'],
+			'view' => $it['view'] ?? '',
 		);
 	}
 	return $out;

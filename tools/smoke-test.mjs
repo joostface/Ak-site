@@ -118,7 +118,7 @@ if (PASS) {
   await page.waitForLoadState('load');
   await page.waitForTimeout(1500);
   await page.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
-  ok((await page.locator('#paragraaf-2-2 h3', { hasText: 'Werkblad kringloop v2' }).count()) === 1, 'nieuw materiaal staat in §2.2 in de huisstijl');
+  ok((await page.locator('#paragraaf-2-2 :is(h3, h4)', { hasText: 'Werkblad kringloop v2' }).count()) === 1, 'nieuw materiaal staat in §2.2 in de huisstijl');
 
   // Ongeldig bestand wordt geweigerd
   const bad = join(tmpdir(), 'script.php');
@@ -202,14 +202,16 @@ if (PASS) {
   ok(/archief/.test(await p23.locator('.aks-item-title').first().textContent()), 'item gearchiveerd in beheer');
   const anon = await browser.newPage();
   await anon.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
-  ok((await anon.locator('#paragraaf-2-3 h3', { hasText: archTitle }).count()) === 0, `gearchiveerd item niet zichtbaar voor bezoekers (${archTitle})`);
+  ok((await anon.locator('#paragraaf-2-3 :is(h3, h4)', { hasText: archTitle }).count()) === 0, `gearchiveerd item niet zichtbaar voor bezoekers (${archTitle})`);
   await anon.close();
 
   // Materiaal op de hoofdstukpagina zelf verplaatsen naar een andere paragraaf
   await page.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
   const P_BRON = 'section[data-paragraph*="Duurzame keuzes"]', P_DOEL = 'section[data-paragraph*="koolstofkringloop"]';
-  await page.waitForSelector(P_BRON + ' .akb select', { timeout: 15000 });
+  await page.waitForSelector(P_BRON + ' .akb', { timeout: 15000 });
   const bron = page.locator(P_BRON + ' .ak-beheer-item').first();
+  // Compacte kaartjes hebben de beheerbalk ingeklapt: eerst openen.
+  if (await bron.locator('details.akb--compact').count()) await bron.locator('details.akb--compact > summary').click();
   const verplaatsTitel = await bron.getAttribute('data-ak-title');
   const doel = await bron.locator('.akb select').first().locator('option', { hasText: 'De koolstofkringloop' }).first().getAttribute('value');
   await bron.locator('.akb select').first().selectOption(doel);
@@ -219,6 +221,7 @@ if (PASS) {
   const anonPage = await browser.newPage();
   await anonPage.goto(SITE + '/lesmateriaal/aardrijkskunde/3-vwo/energie/');
   ok((await anonPage.locator('.akb').count()) === 0, 'bezoekers zien geen beheerbalk');
+  ok((await anonPage.locator('.blocks-row .block--compact').count()) >= 1, 'opdrachten en documenten staan compact naast elkaar in een rij');
   await anonPage.close();
 
   // Link met eigen voorbeeldafbeelding

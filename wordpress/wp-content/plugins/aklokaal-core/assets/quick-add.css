@@ -100,3 +100,9 @@ textarea.akq-input { min-height: 0; }
 .akb-btn:focus-visible, .akb-select:focus-visible { outline: 3px solid var(--focus, #2271b1); outline-offset: 2px; }
 .akb-msg { color: var(--accent, #2e6a45); font-weight: 600; }
 .akq-grid[hidden], .akq-field[hidden] { display: none; }
+
+/* Beheer in een compact kaartje: ingeklapt */
+.akb--compact { display: block; padding: 0; }
+.akb--compact summary { cursor: pointer; padding: 6px 10px; font-weight: 600; color: var(--muted, #50615a); }
+.akb-compact-body { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 0 8px 8px; }
+.akb-compact-body .akb-select { max-width: none; }

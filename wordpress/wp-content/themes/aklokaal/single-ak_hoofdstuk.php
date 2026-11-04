@@ -86,7 +86,7 @@ while ( have_posts() ) :
 			<?php if ( trim( $chapter->post_content ) || $chapter_items ) : ?>
 				<div class="blocks" style="margin-top:0">
 					<?php if ( trim( $chapter->post_content ) ) : ?><div class="block block--text"><div class="prose"><?php the_content(); ?></div></div><?php endif; ?>
-					<?php foreach ( $chapter_items as $it ) { aktheme_render_item_beheer( $it, $chapter->ID, $can ); } ?>
+					<?php aktheme_render_items( $chapter_items, $chapter->ID, $can ); ?>
 				</div>
 			<?php endif; ?>
 
@@ -101,9 +101,7 @@ while ( have_posts() ) :
 					<?php endif; ?>
 					<div class="blocks">
 						<?php
-						foreach ( $p['items'] as $it ) {
-							aktheme_render_item_beheer( $it, $p['post']->ID, $can );
-						}
+						aktheme_render_items( $p['items'], $p['post']->ID, $can );
 						if ( ! $p['items'] && $can ) {
 							echo '<p class="muted">' . esc_html__( 'Nog leeg. Sleep een bestand op deze pagina of klik op + Toevoegen.', 'aklokaal' ) . '</p>';
 						} elseif ( ! $p['items'] && ! trim( $p['post']->post_content ) ) {

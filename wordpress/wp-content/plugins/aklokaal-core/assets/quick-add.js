@@ -450,13 +450,29 @@
         await api('items/' + van, { method: 'POST', json: { items: lijst.filter((x) => x.id !== id).map((x) => ({ id: x.id, note: x.note })) } });
         herlaad('Weggehaald.', melding);
       } });
-      const balk = h('div', { class: 'akb', role: 'group', 'aria-label': 'Beheer: ' + titel },
-        h('span', { class: 'akb-label', text: 'Beheer' }),
-        verplaats, ook, omhoog, omlaag, weg,
+      // Weergave op deze plek: automatisch (standaard voor deze soort), groot of compact.
+      const nu = wrap.dataset.akView || '';
+      const weergave = h('select', { class: 'akb-select', 'aria-label': 'Weergave van ' + titel },
+        h('option', { value: '', text: `Weergave: automatisch (${wrap.dataset.akShown === 'compact' ? 'compact' : 'groot'})`, selected: nu === '' }),
+        h('option', { value: 'groot', text: 'Weergave: groot', selected: nu === 'groot' }),
+        h('option', { value: 'compact', text: 'Weergave: compact (naast elkaar)', selected: nu === 'compact' }));
+      weergave.addEventListener('change', async () => {
+        weergave.disabled = true;
+        await api(`items/${van}/view`, { method: 'POST', json: { item: id, view: weergave.value } });
+        herlaad('Weergave aangepast.', melding);
+      });
+      const delen = [h('span', { class: 'akb-label', text: 'Beheer' }),
+        verplaats, ook, omhoog, omlaag, weergave, weg,
         wrap.dataset.akEdit ? h('a', { class: 'akb-btn', href: wrap.dataset.akEdit, text: 'Bewerken' }) : null,
         wrap.dataset.akStatus !== 'publish' ? h('span', { class: 'akb-label', text: '(concept)' }) : null,
-        melding);
-      wrap.prepend(balk);
+        melding];
+      if (wrap.dataset.akShown === 'compact') {
+        // In een smal kaartje: de beheerknoppen ingeklapt, zodat het kaartje leesbaar blijft.
+        delen.shift();
+        wrap.prepend(h('details', { class: 'akb akb--compact' }, h('summary', { text: 'Beheer' + (wrap.dataset.akStatus !== 'publish' ? ' (concept)' : '') }), h('div', { class: 'akb-compact-body', role: 'group', 'aria-label': 'Beheer: ' + titel }, ...delen)));
+      } else {
+        wrap.prepend(h('div', { class: 'akb', role: 'group', 'aria-label': 'Beheer: ' + titel }, ...delen));
+      }
     });
   }
   initItemTools().catch(() => {});
