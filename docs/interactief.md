@@ -47,3 +47,12 @@ Eerst vaststellen wat het is:
 | Een externe dienst/API (ArcGIS, Google My Maps) | Als *Interactief* met het insluitadres van die dienst; check of insluiten mag. |
 
 Elke kaart kan daarna in de bibliotheek staan, in meerdere paragrafen, en heeft een eigen deelbare link.
+
+## Meegeleverd in de plugin
+
+Sommige toepassingen zitten in de plugin zelf (`wp-content/plugins/aklokaal-core/assets/apps/`), zodat ze
+zonder apart subdomein werken. Na een update maakt de plugin ze bij het openen van het beheer één keer aan
+onder **Interactief**. Daarna kun je titel, tekst en plaats aanpassen of het item verwijderen.
+
+- **Platentektoniek in lagen** (`assets/apps/platentektoniek/`): doorsnede van de aarde en 3D-simulatie van
+  acht plaatgrenzen. three.js r128 staat erbij (MIT-licentie), dus er wordt niets van een CDN geladen.

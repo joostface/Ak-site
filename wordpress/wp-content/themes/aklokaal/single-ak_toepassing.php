@@ -14,7 +14,7 @@ while ( have_posts() ) :
 	<?php get_template_part( 'template-parts/page-title', null, array( 'title' => get_the_title(), 'lead' => get_the_excerpt() ) ); ?>
 	<div class="wrap" style="margin-top: clamp(40px, 5vw, 72px)">
 		<?php if ( $url ) : ?>
-			<div class="map-viewer" data-map-viewer>
+			<div class="map-viewer map-viewer--app" data-map-viewer>
 				<div class="map-viewer__bar">
 					<a class="button button--quiet button--small" href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Open in nieuw venster', 'aklokaal' ); ?></a>
 					<button class="button button--small" type="button" data-map-full><?php echo aktheme_icon( 'expand' ); // phpcs:ignore ?><?php esc_html_e( 'Schermvullend', 'aklokaal' ); ?></button>

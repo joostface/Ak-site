@@ -39,6 +39,7 @@ require_once AKLOKAAL_DIR . 'includes/maps.php';
 require_once AKLOKAAL_DIR . 'includes/atlas.php';
 require_once AKLOKAAL_DIR . 'includes/atlas-admin.php';
 require_once AKLOKAAL_DIR . 'includes/site.php';
+require_once AKLOKAAL_DIR . 'includes/apps.php';
 
 register_activation_hook( __FILE__, 'aklokaal_activate' );
 register_deactivation_hook( __FILE__, 'flush_rewrite_rules' );
