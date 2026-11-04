@@ -19,6 +19,10 @@ function aklokaal_builtin_apps() {
 			'content' => 'Scroll omlaag door de lagen van de aarde: aardkorst, lithosfeer, asthenosfeer en mantel. Kies daarna een plaatgrens (bijvoorbeeld de Andes, de Himalaya, de Mid-Atlantische Rug of de Hawaï-keten) en bekijk in 3D wat daar onder de grond gebeurt. Met bronnen uit recent onderzoek.',
 			'height'  => 820,
 			'themes'  => array( 'Fysische geografie' ),
+			// Ingebouwd in de pagina (in de stijl van de site), niet in een apart venster.
+			'markup'  => 'includes/app-platentektoniek.php',
+			'scripts' => array( 'three.min.js', 'OrbitControls.js', 'platentektoniek.js' ),
+			'styles'  => array( 'platentektoniek.css' ),
 		),
 	);
 }
@@ -112,3 +116,57 @@ add_filter(
 	10,
 	4
 );
+
+/**
+ * Ingebouwde weergave van een meegeleverde toepassing, of '' als die er niet is (dan toont het
+ * thema de toepassing in een afgeschermd venster).
+ */
+function aklokaal_app_integrated( $post_id ) {
+	$key  = get_post_meta( $post_id, 'ak_builtin_app', true );
+	$apps = aklokaal_builtin_apps();
+	if ( ! $key || empty( $apps[ $key ]['markup'] ) ) {
+		return '';
+	}
+	// Wie het adres zelf heeft aangepast, krijgt gewoon het venster met dat adres.
+	if ( false === strpos( (string) get_post_meta( $post_id, 'ak_app_url', true ), '/assets/apps/' . $key . '/' ) ) {
+		return '';
+	}
+	$app  = $apps[ $key ];
+	$base = AKLOKAAL_URL . 'assets/apps/' . $key . '/';
+	aklokaal_app_enqueue( $key );
+	$img = $base . 'img/';
+	ob_start();
+	include AKLOKAAL_DIR . $app['markup'];
+	return (string) ob_get_clean();
+}
+
+/** Stijl en scripts van een ingebouwde toepassing (stijl in de kop, scripts onderaan). */
+function aklokaal_app_enqueue( $key ) {
+	$app  = aklokaal_builtin_apps()[ $key ] ?? null;
+	if ( ! $app || empty( $app['markup'] ) ) {
+		return;
+	}
+	$base = AKLOKAAL_URL . 'assets/apps/' . $key . '/';
+	foreach ( $app['styles'] as $i => $file ) {
+		wp_enqueue_style( 'aklokaal-app-' . $key . '-' . $i, $base . $file, array(), AKLOKAAL_VERSION );
+	}
+	$prev = array();
+	foreach ( $app['scripts'] as $i => $file ) {
+		$handle = 'aklokaal-app-' . $key . '-' . $i;
+		wp_enqueue_script( $handle, $base . $file, $prev, 'three.min.js' === $file ? '0.128.0' : AKLOKAAL_VERSION, true );
+		$prev = array( $handle );
+	}
+}
+
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		if ( is_singular( 'ak_toepassing' ) ) {
+			$key = get_post_meta( get_queried_object_id(), 'ak_builtin_app', true );
+			if ( $key ) {
+				aklokaal_app_enqueue( $key );
+			}
+		}
+	}
+);
+

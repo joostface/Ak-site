@@ -9,6 +9,19 @@ while ( have_posts() ) :
 	the_post();
 	$url    = get_post_meta( get_the_ID(), 'ak_app_url', true );
 	$height = (int) get_post_meta( get_the_ID(), 'ak_height', true );
+	// Meegeleverde toepassing met een ingebouwde versie: direct in de pagina, in de stijl van de site.
+	$ingebouwd = function_exists( 'aklokaal_app_integrated' ) ? aklokaal_app_integrated( get_the_ID() ) : '';
+	if ( $ingebouwd ) :
+		?>
+<main id="main" class="app-page">
+		<?php echo $ingebouwd; // phpcs:ignore WordPress.Security.EscapeOutput -- eigen sjabloon uit de plugin, ge-escaped waar nodig ?>
+		<?php if ( trim( get_the_content() ) || aktheme_placed_in( get_the_ID(), '' ) ) : ?>
+			<div class="wrap app-page__meta"><div class="prose"><?php echo aktheme_placed_in( get_the_ID(), __( 'Gebruikt in de lessen', 'aklokaal' ) ); // phpcs:ignore ?></div></div>
+		<?php endif; ?>
+</main>
+		<?php
+		continue;
+	endif;
 	?>
 <main id="main">
 	<?php get_template_part( 'template-parts/page-title', null, array( 'title' => get_the_title(), 'lead' => get_the_excerpt() ) ); ?>

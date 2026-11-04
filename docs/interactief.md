@@ -54,5 +54,6 @@ Sommige toepassingen zitten in de plugin zelf (`wp-content/plugins/aklokaal-core
 zonder apart subdomein werken. Na een update maakt de plugin ze bij het openen van het beheer één keer aan
 onder **Interactief**. Daarna kun je titel, tekst en plaats aanpassen of het item verwijderen.
 
-- **Platentektoniek in lagen** (`assets/apps/platentektoniek/`): doorsnede van de aarde en 3D-simulatie van
+- **Platentektoniek in lagen** (`assets/apps/platentektoniek/`): ingebouwd in de pagina, in de stijl van de site
+  (opmaak `includes/app-platentektoniek.php`, stijl `platentektoniek.css`, rekenkern `platentektoniek.js`). Doorsnede van de aarde en 3D-simulatie van
   acht plaatgrenzen. three.js r128 staat erbij (MIT-licentie), dus er wordt niets van een CDN geladen.

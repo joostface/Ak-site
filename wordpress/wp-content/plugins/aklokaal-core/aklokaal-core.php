@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Aardrijkskundelokaal Core
  * Description:       Inhoudsmodel en beheer voor het digitale aardrijkskundelokaal: vakken, leerjaren, hoofdstukken, paragrafen, materiaal, nieuws, collecties, kaarten en interactieve toepassingen. Bevat de eenvoudige uploadworkflow en de nieuwsimport.
- * Version:           0.14.0
+ * Version:           0.15.0
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            Aardrijkskundelokaal
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'AKLOKAAL_VERSION', '0.14.0' );
+define( 'AKLOKAAL_VERSION', '0.15.0' );
 define( 'AKLOKAAL_FILE', __FILE__ );
 define( 'AKLOKAAL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AKLOKAAL_URL', plugin_dir_url( __FILE__ ) );
