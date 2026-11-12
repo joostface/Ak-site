@@ -52,6 +52,7 @@ function aklokaal_atlas_kinds() {
 		'geojson'   => __( 'GeoJSON (bestand of link)', 'aklokaal' ),
 		'arcgis'    => __( 'ArcGIS Feature Service', 'aklokaal' ),
 		'tegels'    => __( 'Tegelkaart', 'aklokaal' ),
+		'kaartbeeld' => __( 'Kaartbeeld (ArcGIS MapServer/ImageServer zonder tegels)', 'aklokaal' ),
 	);
 }
 
@@ -83,6 +84,8 @@ function aklokaal_atlas_layer_json( $post ) {
 		'note'       => (string) $m( 'ak_note' ),
 		'url'        => (string) $m( 'ak_url' ),
 		'labelField' => (string) $m( 'ak_label_field' ),
+		'colorField' => (string) $m( 'ak_color_field' ),
+		'legend'     => json_decode( (string) $m( 'ak_legend' ), true ) ?: array(),
 		'order'      => (int) $post->menu_order,
 	);
 }
@@ -178,7 +181,9 @@ function aklokaal_atlas_save_layer( $d, $id = 0 ) {
 		return new WP_Error( 'aklokaal_atlas_kind', __( 'Onbekende soort laag.', 'aklokaal' ), array( 'status' => 400 ) );
 	}
 	if ( 'ingebouwd' !== $kind && isset( $d['url'] ) ) {
-		$url = esc_url_raw( trim( (string) $d['url'] ), array( 'http', 'https' ) );
+		// {z}/{x}/{y} in tegeladressen bewaren (esc_url_raw haalt accolades weg).
+		$raw = str_replace( array( '{z}', '{x}', '{y}', '{s}' ), array( 'AKZZ', 'AKXX', 'AKYY', 'AKSS' ), trim( (string) $d['url'] ) );
+		$url = str_replace( array( 'AKZZ', 'AKXX', 'AKYY', 'AKSS' ), array( '{z}', '{x}', '{y}', '{s}' ), esc_url_raw( $raw, array( 'http', 'https' ) ) );
 		if ( ! $url ) {
 			return new WP_Error( 'aklokaal_atlas_url', __( 'Vul een volledig webadres in, beginnend met https://', 'aklokaal' ), array( 'status' => 400 ) );
 		}
@@ -217,11 +222,15 @@ function aklokaal_atlas_save_layer( $d, $id = 0 ) {
 		'source'      => 'ak_source',
 		'year'        => 'ak_year',
 		'label_field' => 'ak_label_field',
+		'color_field' => 'ak_color_field',
 	);
 	foreach ( $text as $in => $key ) {
 		if ( isset( $d[ $in ] ) ) {
 			update_post_meta( $id, $key, sanitize_text_field( (string) $d[ $in ] ) );
 		}
+	}
+	if ( isset( $d['legend'] ) && is_array( $d['legend'] ) ) {
+		update_post_meta( $id, 'ak_legend', wp_slash( wp_json_encode( aklokaal_atlas_clean_legend( $d['legend'] ) ) ) );
 	}
 	if ( isset( $d['note'] ) ) {
 		update_post_meta( $id, 'ak_note', sanitize_textarea_field( (string) $d['note'] ) );
@@ -556,94 +565,7 @@ function aklokaal_atlas_remote_json( $url ) {
 	return $data;
 }
 
-/**
- * Zoeken in de openbare ArcGIS Online-catalogus. Geeft per resultaat titel, bron (eigenaar en
- * credits), het jaar van de laatste update en een voorstel voor de soort laag.
- */
-function aklokaal_rest_atlas_search( WP_REST_Request $r ) {
-	$q = trim( sanitize_text_field( (string) $r->get_param( 'q' ) ) );
-	if ( mb_strlen( $q ) < 2 ) {
-		return rest_ensure_response( array() );
-	}
-	$query = '(' . $q . ') AND (type:"Feature Service" OR type:"Map Service" OR type:"Image Service" OR type:"GeoJson") AND access:public';
-	$url   = add_query_arg(
-		array(
-			'f'         => 'json',
-			'num'       => 24,
-			'sortField' => 'numviews',
-			'sortOrder' => 'desc',
-			'q'         => rawurlencode( $query ),
-		),
-		'https://www.arcgis.com/sharing/rest/search'
-	);
-	$data = aklokaal_atlas_remote_json( $url );
-	if ( is_wp_error( $data ) ) {
-		return $data;
-	}
-	$out = array();
-	foreach ( (array) ( $data['results'] ?? array() ) as $it ) {
-		$type = (string) ( $it['type'] ?? '' );
-		$id   = preg_replace( '/[^a-f0-9]/i', '', (string) ( $it['id'] ?? '' ) );
-		if ( ! $id ) {
-			continue;
-		}
-		$kind = 'Feature Service' === $type ? 'arcgis' : ( 'GeoJson' === $type ? 'geojson' : 'tegels' );
-		$url  = 'GeoJson' === $type ? 'https://www.arcgis.com/sharing/rest/content/items/' . $id . '/data' : (string) ( $it['url'] ?? '' );
-		if ( ! $url ) {
-			continue;
-		}
-		$modified = ! empty( $it['modified'] ) ? (int) floor( $it['modified'] / 1000 ) : 0;
-		$credits  = trim( wp_strip_all_tags( (string) ( $it['accessInformation'] ?? '' ) ) );
-		$out[]    = array(
-			'id'       => $id,
-			'title'    => (string) ( $it['title'] ?? '' ),
-			'snippet'  => wp_strip_all_tags( (string) ( $it['snippet'] ?? '' ) ),
-			'source'   => $credits ? mb_substr( $credits, 0, 160 ) : (string) ( $it['owner'] ?? '' ),
-			'owner'    => (string) ( $it['owner'] ?? '' ),
-			'year'     => $modified ? gmdate( 'Y', $modified ) : '',
-			'type'     => $type,
-			'kind'     => $kind,
-			'url'      => esc_url_raw( $url ),
-			'thumb'    => ! empty( $it['thumbnail'] ) ? 'https://www.arcgis.com/sharing/rest/content/items/' . $id . '/info/' . rawurlencode( basename( (string) $it['thumbnail'] ) ) : '',
-			'item'     => 'https://www.arcgis.com/home/item.html?id=' . $id,
-			'views'    => (int) ( $it['numViews'] ?? 0 ),
-		);
-	}
-	return rest_ensure_response( $out );
-}
-
-/** Welke lagen zitten er in een ArcGIS-dienst? (voor de keuze na het zoeken of plakken) */
-function aklokaal_rest_atlas_inspect( WP_REST_Request $r ) {
-	$url = esc_url_raw( trim( (string) $r->get_param( 'url' ) ), array( 'https' ) );
-	if ( ! $url || ! preg_match( '#/(FeatureServer|MapServer|ImageServer)(/\d+)?/?$#i', wp_parse_url( $url, PHP_URL_PATH ) ) ) {
-		return new WP_Error( 'aklokaal_atlas_url', __( 'Dit is geen adres van een ArcGIS-dienst (…/FeatureServer, …/MapServer of …/ImageServer).', 'aklokaal' ), array( 'status' => 400 ) );
-	}
-	$url  = untrailingslashit( $url );
-	$data = aklokaal_atlas_remote_json( add_query_arg( 'f', 'json', $url ) );
-	if ( is_wp_error( $data ) ) {
-		return $data;
-	}
-	$layers = array();
-	foreach ( array_merge( (array) ( $data['layers'] ?? array() ), (array) ( $data['tables'] ?? array() ) ) as $l ) {
-		if ( isset( $l['id'] ) ) {
-			$layers[] = array(
-				'id'       => (int) $l['id'],
-				'name'     => (string) ( $l['name'] ?? '' ),
-				'geometry' => (string) ( $l['geometryType'] ?? '' ),
-			);
-		}
-	}
-	return rest_ensure_response(
-		array(
-			'url'         => $url,
-			'name'        => (string) ( $data['name'] ?? $data['mapName'] ?? '' ),
-			'description' => wp_strip_all_tags( (string) ( $data['serviceDescription'] ?? $data['description'] ?? '' ) ),
-			'copyright'   => wp_strip_all_tags( (string) ( $data['copyrightText'] ?? '' ) ),
-			'tiled'       => ! empty( $data['singleFusedMapCache'] ) || ! empty( $data['tileInfo'] ),
-			'layers'      => $layers,
-		)
-	);
-}
+/* Zoeken en inspecteren van kaartdiensten: zie includes/atlas-bronnen.php. */
 
 /** GeoJSON-bestand in de mediabibliotheek zetten en het adres teruggeven. */
 function aklokaal_rest_atlas_upload( WP_REST_Request $r ) {

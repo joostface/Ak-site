@@ -29,7 +29,7 @@
     if (!res.ok) throw new Error(data.message || `Er ging iets mis (${res.status}).`);
     return data;
   }
-  const kindLabel = { ingebouwd: 'ingebouwd', geojson: 'GeoJSON', arcgis: 'ArcGIS', tegels: 'tegelkaart' };
+  const kindLabel = { ingebouwd: 'ingebouwd', geojson: 'GeoJSON', arcgis: 'ArcGIS-vormen', tegels: 'tegelkaart', kaartbeeld: 'kaartbeeld' };
 
   /* ---------- toestand ---------- */
   let groups = [], layers = [], icons = [];
@@ -55,59 +55,88 @@
     return h('section', { class: 'aka-card' }, h('h2', { text: 'Laag toevoegen' }), bar, body);
   }
 
-  let lastResults = [], lastQuery = '';
+  let lastResults = [], lastQuery = '', lastTerms = [], wereld = true, alleenGoed = true;
+  const FIT = {
+    goed: ['aka-fit aka-fit--goed', '✓ Werkt goed'],
+    traag: ['aka-fit aka-fit--traag', '◐ Laadt in delen'],
+    'te-groot': ['aka-fit aka-fit--groot', '✕ Te groot voor de atlas'],
+    onbekend: ['aka-fit', '? Niet getest'],
+  };
   function searchTab() {
-    const input = h('input', { type: 'search', class: 'regular-text', placeholder: 'Bijvoorbeeld: earthquakes, rivers, population, glaciers', value: lastQuery });
+    const input = h('input', { type: 'search', class: 'regular-text', placeholder: 'Bijvoorbeeld: waterschaarste, bevolkingsdichtheid, aardbevingen', value: lastQuery });
     const results = h('div', { class: 'aka-results' });
     const status = h('p', { class: 'description' });
+    const cbWereld = h('input', { type: 'checkbox', checked: wereld });
+    const cbGoed = h('input', { type: 'checkbox', checked: alleenGoed });
     const showResults = () => {
-      results.replaceChildren(...lastResults.map((r) => h('article', { class: 'aka-result' },
+      const lijst = lastResults.filter((r) => !alleenGoed || r.check.fit !== 'te-groot');
+      const weg = lastResults.length - lijst.length;
+      status.textContent = lastResults.length
+        ? `${lijst.length} kaartlagen${lastTerms.length ? ` (ook gezocht op: ${lastTerms.join(', ')})` : ''}. Bovenaan: kaarten die goed werken en van een officiële bron komen.${weg ? ` ${weg} te grote lagen verborgen.` : ''}`
+        : 'Niets gevonden. Probeer een ander woord, of zet “alleen wereldkaarten” uit.';
+      results.replaceChildren(...lijst.map((r) => h('article', { class: 'aka-result' },
         r.thumb ? h('img', { src: r.thumb, alt: '', loading: 'lazy' }) : h('div', { class: 'aka-result__nothumb' }, icon('map')),
         h('div', { class: 'aka-result__body' },
           h('strong', { text: r.title }),
-          h('p', { class: 'aka-meta' }, h('span', { text: `Bron: ${r.source || r.owner || 'onbekend'}` }), r.year ? h('span', { text: `jaartal: ${r.year}` }) : null, h('span', { text: r.type })),
+          h('p', { class: 'aka-meta' },
+            h('span', { class: FIT[r.check.fit][0], text: FIT[r.check.fit][1] }),
+            r.trusted ? h('span', { class: 'aka-fit aka-fit--bron', text: '★ Officiële bron' }) : r.credited ? h('span', { class: 'aka-fit', text: 'Data van een bekende organisatie' }) : null),
+          h('p', { class: 'aka-meta' }, h('span', { text: `Bron: ${r.source || r.owner || 'onbekend'}` }), r.year ? h('span', { text: `bijgewerkt: ${r.year}` }) : null),
+          r.check.reason ? h('p', { class: 'aka-snippet', text: r.check.reason }) : null,
           r.snippet ? h('p', { class: 'aka-snippet', text: r.snippet }) : null,
           h('p', { class: 'aka-actions' },
-            h('button', { type: 'button', class: 'button button-primary', onclick: () => fromSearch(r) }, 'Toevoegen…'),
+            h('button', { type: 'button', class: 'button' + (r.check.fit === 'te-groot' ? '' : ' button-primary'), onclick: () => fromSearch(r) }, 'Toevoegen…'),
             h('a', { href: r.item, target: '_blank', rel: 'noopener' }, 'Bekijk bij de bron')))
       )));
     };
     const go = async () => {
       lastQuery = input.value.trim();
       if (lastQuery.length < 2) return;
-      status.textContent = 'Zoeken…';
+      status.textContent = 'Zoeken en de kaarten testen… (een paar seconden)';
+      results.replaceChildren();
       try {
-        lastResults = await api('atlas/search?q=' + encodeURIComponent(lastQuery));
-        status.textContent = lastResults.length ? `${lastResults.length} resultaten uit ArcGIS Online (openbare kaartlagen), meest bekeken eerst. Controleer altijd de bron.` : 'Niets gevonden. Probeer een Engels zoekwoord (de catalogus is grotendeels Engelstalig).';
+        const d = await api('atlas/search?q=' + encodeURIComponent(lastQuery) + '&wereld=' + (wereld ? '1' : '0'));
+        lastResults = d.results || []; lastTerms = d.terms || [];
         showResults();
       } catch (e) { status.textContent = e.message; }
     };
+    cbWereld.addEventListener('change', () => { wereld = cbWereld.checked; if (lastQuery) go(); });
+    cbGoed.addEventListener('change', () => { alleenGoed = cbGoed.checked; showResults(); });
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
     if (lastResults.length) showResults();
     return h('div', {},
-      h('p', { class: 'description', text: 'Zoekt in de openbare catalogus van ArcGIS Online: duizenden kaartlagen van onder meer NOAA, USGS, NASA, de VN en Esri. Je ziet bij elk resultaat de bron en het jaar van de laatste update.' }),
+      h('p', { class: 'description', text: 'Zoekt in de openbare catalogus van ArcGIS Online. Je mag in het Nederlands zoeken: aardrijkskundetermen worden vertaald naar Engels. Elk resultaat wordt vooraf getest: werkt het in de atlas, en komt het van een officiële bron?' }),
       h('p', { class: 'aka-row' }, input, h('button', { type: 'button', class: 'button', onclick: go }, 'Zoeken')),
+      h('p', { class: 'aka-row aka-filters' },
+        h('label', { class: 'aka-check' }, cbWereld, ' Alleen wereldkaarten'),
+        h('label', { class: 'aka-check' }, cbGoed, ' Te grote lagen verbergen')),
       status, results);
   }
 
-  async function fromSearch(r) {
-    const base = { title: r.title, source: r.source || r.owner, year: r.year, note: r.snippet, kind: r.kind, url: r.url, subtitle: '', group: groups[0]?.slug || '', color: '#2f7f77', opacity: 0.8 };
-    if (r.kind === 'arcgis' || (r.kind === 'tegels' && /MapServer\/?$/i.test(r.url))) {
-      say('Lagen in deze dienst opvragen…', 'info');
-      try { const info = await api('atlas/inspect?url=' + encodeURIComponent(r.url)); openForm({ ...base, ...serviceChoice(info, base) }); return; } catch (e) { say(e.message, 'error'); }
-    }
-    openForm(base);
+  // Na zoeken of plakken: de dienst laten beoordelen en het advies in het formulier zetten.
+  async function analyseEnOpen(url, base) {
+    say('De kaartdienst bekijken…', 'info');
+    try {
+      const info = await api('atlas/inspect?url=' + encodeURIComponent(url));
+      const adv = info.advice || {};
+      openForm({
+        ...base,
+        kind: adv.kind || base.kind, url: adv.url || url,
+        title: base.title || info.name || '',
+        source: base.source || info.copyright || '',
+        note: base.note || (info.description || '').slice(0, 400),
+        advice: adv, legend: info.legend || [], colorFields: info.fields || [],
+        fields: (info.fields || []).map((f) => f.name),
+        serviceLayers: info.layers, serviceUrl: info.url,
+      });
+      flash.hidden = true;
+    } catch (e) { say(e.message, 'error'); }
   }
 
-  // Bij een ArcGIS-dienst: kies een laag (…/FeatureServer/0) of gebruik de tegels.
-  function serviceChoice(info, base) {
-    const out = { serviceLayers: info.layers, serviceUrl: info.url, tiled: info.tiled };
-    if (/\/\d+$/.test(info.url)) return out;
-    if (info.layers.length) { out.kind = 'arcgis'; out.url = info.url + '/' + info.layers[0].id; }
-    else if (info.tiled) { out.kind = 'tegels'; out.url = info.url; }
-    if (!base.source && info.copyright) out.source = info.copyright;
-    if (!base.note && info.description) out.note = info.description.slice(0, 400);
-    return out;
+  async function fromSearch(r) {
+    const base = { title: r.title, source: r.source || r.owner, year: r.year, note: r.snippet, kind: r.check.kind, url: r.check.url || r.url, subtitle: '', group: groups[0]?.slug || '', color: '#2f7f77', opacity: 0.8 };
+    if (r.check.kind === 'geojson') { openForm(base); return; }
+    analyseEnOpen(base.url, base);
   }
 
   function linkTab() {
@@ -117,21 +146,11 @@
       const url = input.value.trim();
       if (!/^https?:\/\//i.test(url)) { status.textContent = 'Plak een volledig adres, beginnend met https://'; return; }
       const base = { title: '', source: '', year: String(new Date().getFullYear()), note: '', url, subtitle: '', group: groups[0]?.slug || '', color: '#2f7f77', opacity: 0.8 };
-      if (/\/(FeatureServer|MapServer|ImageServer)(\/\d+)?\/?$/i.test(url)) {
-        status.textContent = 'Dienst controleren…';
-        try {
-          const info = await api('atlas/inspect?url=' + encodeURIComponent(url));
-          const layerIndex = url.match(/\/(\d+)\/?$/);
-          const named = layerIndex ? info.layers.find((l) => String(l.id) === layerIndex[1]) : null;
-          openForm({ ...base, kind: /ImageServer/i.test(url) ? 'tegels' : 'arcgis', title: named?.name || info.name || '', source: info.copyright, note: info.description?.slice(0, 400) || '', ...serviceChoice(info, { source: info.copyright, note: info.description }) });
-          status.textContent = '';
-        } catch (e) { status.textContent = e.message; }
-        return;
-      }
+      if (/\/(FeatureServer|MapServer|ImageServer)(\/\d+)?\/?(\?.*)?$/i.test(url)) { status.textContent = ''; analyseEnOpen(url, base); return; }
       openForm({ ...base, kind: /\{z\}/.test(url) ? 'tegels' : 'geojson' });
     };
     return h('div', {},
-      h('p', { class: 'description', html: 'Werkt met: een GeoJSON-adres (<code>…/data.geojson</code>), een ArcGIS-dienst (<code>…/FeatureServer/0</code> of <code>…/MapServer</code>) of een tegelkaart (<code>…/{z}/{x}/{y}.png</code>).' }),
+      h('p', { class: 'description', html: 'Werkt met: een ArcGIS-dienst (<code>…/FeatureServer/0</code>, <code>…/MapServer</code> of <code>…/ImageServer</code>), een tegelkaart (<code>…/{z}/{x}/{y}.png</code>) of een GeoJSON-adres. Een ArcGIS-dienst wordt eerst bekeken: je krijgt advies over hoe hij het best in de atlas komt.' }),
       h('p', { class: 'aka-row' }, input, h('button', { type: 'button', class: 'button', onclick: go }, 'Verder')), status);
   }
 
@@ -188,8 +207,19 @@
     let layerPick = null;
     if (d.serviceLayers?.length > 1) {
       layerPick = h('select', {}, d.serviceLayers.map((l) => h('option', { value: d.serviceUrl + '/' + l.id, selected: f.url.value.endsWith('/' + l.id), text: `${l.id}: ${l.name}${l.geometry ? ' (' + l.geometry.replace('esriGeometry', '').toLowerCase() + ')' : ''}` })));
-      layerPick.addEventListener('change', () => (f.url.value = layerPick.value));
+      // Andere laag gekozen: die opnieuw laten beoordelen (aantal vormen, kleuren, velden).
+      layerPick.addEventListener('change', () => analyseEnOpen(layerPick.value, { ...d, url: layerPick.value, title: f.title.value, source: f.source.value, note: f.note.value, year: f.year.value, subtitle: f.subtitle.value }));
     }
+    const vormen = ['arcgis', 'geojson'].includes(d.kind);
+    f.colorField = d.colorFields?.length
+      ? h('select', {}, h('option', { value: '', text: d.legend?.length ? '— kleuren van de dienst —' : '— één kleur —' }), d.colorFields.map((x) => h('option', { value: x.name, selected: x.name === d.colorField, text: x.alias && x.alias !== x.name ? `${x.alias} (${x.name})` : x.name })))
+      : h('input', { type: 'text', class: 'regular-text', value: d.colorField || '', placeholder: 'veldnaam, bijvoorbeeld bws_cat' });
+    const advies = d.advice ? h('p', { class: 'aka-advice aka-advice--' + (d.advice.fit || 'onbekend') },
+      h('strong', { text: (FIT[d.advice.fit] || FIT.onbekend)[1] + ' · ' + (kindLabel[d.advice.kind] || d.advice.kind) + '. ' }),
+      d.advice.reason || '',
+      d.advice.fit === 'te-groot' ? h('span', {}, ' ', h('button', { type: 'button', class: 'button-link', onclick: () => { tab = 'zoeken'; lastQuery = (f.title.value || '').replace(/[_-]+/g, ' '); draft = null; render(); } }, 'Zoek een andere versie')) : null) : null;
+    const legendaVoorbeeld = d.legend?.length ? h('div', { class: 'aka-legend' }, d.legend.slice(0, 12).map(([lab, sw]) => h('span', { class: 'aka-lg' },
+      /^data:image\//.test(sw) ? h('img', { src: sw, alt: '' }) : h('i', { style: `background:${sw}` }), lab))) : null;
 
     const save = async (e) => {
       e.preventDefault();
@@ -200,7 +230,9 @@
         title: f.title.value, subtitle: f.subtitle.value, source: f.source.value, year: f.year.value, note: f.note.value,
         color: f.color.value, opacity: Number(f.opacity.value) / 100, default_on: f.defaultOn.checked,
         label_field: f.labelField.value, group: f.group.value === '__nieuw' ? f.newGroup.value : f.group.value,
+        color_field: f.colorField.value,
       };
+      if (Array.isArray(d.legend) && (isNew || d.advice)) payload.legend = d.legend;
       if (!builtin) payload.url = f.url.value;
       if (isNew) payload.kind = d.kind;
       try {
@@ -213,6 +245,7 @@
 
     return h('section', { class: 'aka-card aka-form', id: 'aka-form' },
       h('h2', { text: isNew ? 'Nieuwe laag: gegevens controleren' : `Laag bewerken: ${d.title}` }),
+      advies,
       h('form', { onsubmit: save },
         h('div', { class: 'aka-grid' },
           h('div', {},
@@ -224,9 +257,11 @@
             field('Toelichting', f.note, 'Komt bij “Bronnen & toelichting” en bij het i-knopje in de atlas.')),
           h('div', {},
             builtin ? h('p', { class: 'description', text: 'Ingebouwde laag: de kaartgegevens zitten in de atlas zelf. Je kunt titel, categorie, bron, jaartal en weergave aanpassen.' })
-              : field(`Adres (${kindLabel[d.kind] || d.kind})`, f.url, d.kind === 'arcgis' ? 'Een laag uit een ArcGIS-dienst, eindigend op een nummer (…/FeatureServer/0).' : d.kind === 'tegels' ? 'Een tegelkaart met {z}, {x} en {y}, of een ArcGIS MapServer met tegels.' : 'Een GeoJSON-bestand of -adres.', true),
+              : field(`Adres (${kindLabel[d.kind] || d.kind})`, f.url, d.kind === 'arcgis' ? 'Een laag uit een ArcGIS-dienst, eindigend op een nummer (…/FeatureServer/0).' : d.kind === 'tegels' ? 'Een tegelkaart met {z}, {x} en {y}, of een ArcGIS MapServer met tegels.' : d.kind === 'kaartbeeld' ? 'Een ArcGIS MapServer of ImageServer; de dienst tekent de kaart zelf.' : 'Een GeoJSON-bestand of -adres.', true),
+            legendaVoorbeeld ? field('Legenda (van de dienst)', legendaVoorbeeld, 'Zo verschijnt de legenda in de atlas.') : null,
             layerPick ? field('Welke laag uit deze dienst?', layerPick, 'Deze dienst bevat meerdere lagen.') : null,
-            builtin || d.kind === 'tegels' ? null : field('Naamveld', f.labelField, 'Welk veld de naam bevat die bij aanwijzen verschijnt. Leeg = automatisch.'),
+            builtin || !vormen ? null : field('Naamveld', f.labelField, 'Welk veld de naam bevat die bij aanwijzen verschijnt. Leeg = automatisch.'),
+            builtin || !vormen ? null : field('Kleur op veld', f.colorField, 'Kleurt de vormen naar de waarde in dit veld: getallen in vijf klassen, tekst per categorie. Leeg = de kleuren van de dienst, of één kleur.'),
             field('Kleur', h('div', { class: 'aka-row' }, f.color, h('span', { class: 'description', text: builtin ? 'Kleur van het bolletje in het paneel.' : 'Kleur van punten, lijnen en vlakken.' }))),
             field('Dekking', h('div', { class: 'aka-row' }, f.opacity, opOut)),
             h('label', { class: 'aka-check' }, f.defaultOn, ' Meteen aan als iemand de atlas opent'))),

@@ -905,7 +905,8 @@
       title: l.title, subtitle: l.subtitle || '', color: l.color || '#2f7f77', opacity: Number(l.opacity) || .8,
       defaultOn: !!l.defaultOn, source: l.source || '', year: l.year || '', note: l.note || '',
       url: l.url || '', labelField: l.labelField || '',
-      legend: b?.legend || [[l.color || '#2f7f77', l.title]], gradient: b?.gradient, gradientLabels: b?.gradientLabels
+      legend: b?.legend || (Array.isArray(l.legend) && l.legend.length ? l.legend.map(([label, sw]) => [sw, label]) : [[l.color || '#2f7f77', l.title]]),
+      colorField: l.colorField || '', gradient: b?.gradient, gradientLabels: b?.gradientLabels
     };
     item.factory = b ? () => b.factory(item) : () => genericLayer(item);
     return item;
@@ -927,30 +928,117 @@
     });
     return out;
   }
+  // ---------- toegevoegde lagen ----------
+  // Kaartbeeld: een ArcGIS MapServer/ImageServer zonder tegels tekent per kaartbeeld één afbeelding.
+  const DynamicImageLayer = L.Layer.extend({
+    initialize(url, opts) { this._url = url.replace(/\/$/, ''); this._image = /ImageServer$/i.test(this._url); this._opacity = 1; this._attribution = opts.attribution; },
+    getAttribution() { return this._attribution; },
+    onAdd(m) { this._map = m; m.on('moveend', this._update, this); this._update(); },
+    onRemove(m) { m.off('moveend', this._update, this); if (this._overlay) m.removeLayer(this._overlay); this._overlay = null; },
+    setOpacity(v) { this._opacity = v; if (this._overlay) this._overlay.setOpacity(v); return this; },
+    _update() {
+      const m = this._map; if (!m) return;
+      const b = m.getBounds(), size = m.getSize();
+      const sw = L.CRS.EPSG3857.project(L.latLng(Math.max(-85, b.getSouth()), b.getWest()));
+      const ne = L.CRS.EPSG3857.project(L.latLng(Math.min(85, b.getNorth()), b.getEast()));
+      const q = new URLSearchParams({ bbox: [sw.x, sw.y, ne.x, ne.y].map((v) => v.toFixed(0)).join(','), bboxSR: '3857', imageSR: '3857', size: `${size.x},${size.y}`, format: this._image ? 'png' : 'png32', transparent: 'true', f: 'image' });
+      const src = `${this._url}/${this._image ? 'exportImage' : 'export'}?${q}`;
+      const bounds = L.latLngBounds(L.CRS.EPSG3857.unproject(sw), L.CRS.EPSG3857.unproject(ne));
+      const next = L.imageOverlay(src, bounds, { pane: 'rasterPane', opacity: this._opacity, interactive: false });
+      next.once('load', () => { if (this._overlay && this._overlay !== next) m.removeLayer(this._overlay); this._overlay = next; });
+      next.once('error', () => { m.removeLayer(next); showToast('Een kaartbeeld kon niet worden geladen.'); });
+      next.addTo(m);
+    }
+  });
+
+  // Kleuren uit de tekenregels (renderer) van een ArcGIS-laag, of zelf indelen op een gekozen veld.
+  const rgb = (c) => Array.isArray(c) ? `rgb(${c[0]},${c[1]},${c[2]})` : null;
+  const PALET_CAT = ['#4c72a8', '#e7a527', '#2f7f77', '#d1493f', '#6f5c91', '#8a7352', '#7d5068', '#62a966', '#c76d49', '#57b3ef'];
+  const PALET_NUM = ['#fff0a6', '#fcbf5f', '#f5803f', '#d6452f', '#8f1d2c'];
+  function styler(item, renderer, features) {
+    const field = item.colorField || renderer?.field1 || renderer?.field || '';
+    if (renderer && renderer.type === 'uniqueValue' && !item.colorField) {
+      const map = new Map((renderer.uniqueValueInfos || []).map((u) => [String(u.value), rgb(u.symbol?.color)]));
+      const dflt = rgb(renderer.defaultSymbol?.color) || item.color;
+      return (p) => map.get(String(p[renderer.field1])) || dflt;
+    }
+    if (renderer && renderer.type === 'classBreaks' && !item.colorField) {
+      const br = (renderer.classBreakInfos || []).map((c) => [c.classMaxValue, rgb(c.symbol?.color)]);
+      return (p) => { const v = Number(p[renderer.field]); const hit = br.find(([max]) => v <= max); return hit ? hit[1] : item.color; };
+    }
+    if (item.colorField) {
+      const vals = features.map((f) => f.properties?.[field]).filter((v) => v !== null && v !== undefined && v !== '');
+      const nums = vals.map(Number).filter(Number.isFinite);
+      if (nums.length && nums.length >= vals.length * 0.9) {
+        // getallen: vijf klassen met evenveel vormen (kwantielen)
+        const sorted = [...nums].sort((a, b) => a - b);
+        const cuts = [0.2, 0.4, 0.6, 0.8].map((q) => sorted[Math.floor(q * (sorted.length - 1))]);
+        item.legend = PALET_NUM.map((c, i) => [c, i === 0 ? `tot ${fmtNum(cuts[0])}` : i === 4 ? `${fmtNum(cuts[3])} en meer` : `${fmtNum(cuts[i - 1])} – ${fmtNum(cuts[i])}`]);
+        return (p) => { const v = Number(p[field]); if (!Number.isFinite(v)) return '#9a9a9a'; const i = cuts.findIndex((c) => v <= c); return PALET_NUM[i < 0 ? 4 : i]; };
+      }
+      // categorieën: de tien meest voorkomende waarden een eigen kleur
+      const freq = new Map(); vals.forEach((v) => freq.set(String(v), (freq.get(String(v)) || 0) + 1));
+      const top = [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([v]) => v);
+      item.legend = top.map((v, i) => [PALET_CAT[i], v]).concat(freq.size > 10 ? [['#9a9a9a', 'overig']] : []);
+      return (p) => { const i = top.indexOf(String(p[field])); return i < 0 ? '#9a9a9a' : PALET_CAT[i]; };
+    }
+    return () => item.color;
+  }
+  const fmtNum = (v) => Number(v).toLocaleString('nl-NL', { maximumFractionDigits: Math.abs(v) < 10 ? 2 : 0 });
+
+  // Vectorlaag uit ArcGIS ophalen, in delen als de dienst er per keer minder levert, en vereenvoudigd.
+  async function fetchArcgis(url, item) {
+    const base = url.replace(/\/(query)?\/?$/i, '');
+    let renderer = null, per = 1000, geom = '';
+    try { const info = await (await fetch(`${base}?f=json`)).json(); renderer = info.drawingInfo?.renderer || null; per = info.maxRecordCount || per; geom = info.geometryType || ''; } catch (e) { /* zonder info verder */ }
+    const points = /Point/.test(geom);
+    const max = points ? 25000 : 8000;
+    const features = [];
+    let offset = 0, more = true, truncated = false;
+    while (more && features.length < max) {
+      const q = new URLSearchParams({ where: '1=1', outFields: '*', outSR: '4326', f: 'geojson', resultOffset: String(offset), resultRecordCount: String(per) });
+      if (!points) { q.set('maxAllowableOffset', '0.02'); q.set('geometryPrecision', '4'); }
+      const data = await (await fetch(`${base}/query?${q}`)).json();
+      if (data.error || !data.type) { if (!features.length) throw new Error('geen GeoJSON'); break; }
+      features.push(...(data.features || []));
+      more = !!(data.exceededTransferLimit || data.properties?.exceededTransferLimit) && (data.features || []).length > 0;
+      offset += (data.features || []).length;
+      if (more && features.length >= max) truncated = true;
+    }
+    if (truncated) showToast(`“${item.title}” is erg groot: alleen de eerste ${features.length.toLocaleString('nl-NL')} vormen worden getoond.`);
+    return { data: { type: 'FeatureCollection', features }, renderer };
+  }
+
   function genericLayer(item) {
+    const attribution = esc(item.source);
     if (item.kind === 'tegels') {
       let url = item.url.replace(/\/$/, '');
       if (/\/(MapServer|ImageServer)$/i.test(url)) url += '/tile/{z}/{y}/{x}';
-      return L.tileLayer(url, { pane: 'rasterPane', maxZoom: 18, attribution: esc(item.source) });
+      return L.tileLayer(url, { pane: 'rasterPane', maxZoom: 18, maxNativeZoom: 12, attribution });
     }
+    if (item.kind === 'kaartbeeld') return new DynamicImageLayer(item.url, { attribution });
     const group = L.layerGroup();
-    let url = item.url;
-    if (item.kind === 'arcgis') {
-      url = url.replace(/\/$/, '');
-      if (!/\/query$/i.test(url)) url += '/query';
-      url += (url.includes('?') ? '&' : '?') + 'where=1%3D1&outFields=*&outSR=4326&f=geojson';
-    }
-    fetch(url).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then((data) => {
+    const load = item.kind === 'arcgis'
+      ? fetchArcgis(item.url, item)
+      : fetch(item.url).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then((data) => ({ data, renderer: null }));
+    load.then(({ data, renderer }) => {
       if (data.error || !data.type) throw new Error('geen GeoJSON');
-      const color = item.color;
+      const feats = data.type === 'FeatureCollection' ? data.features || [] : [data];
+      const colorOf = styler(item, renderer, feats);
+      if (renderer && !item.colorField && item.legend.length === 1 && item.legend[0][1] === item.title) {
+        const infos = renderer.uniqueValueInfos || renderer.classBreakInfos || [];
+        if (infos.length) item.legend = infos.slice(0, 16).map((u) => [rgb(u.symbol?.color) || item.color, String(u.label ?? u.value ?? '')]);
+      }
+      updateUI();
       const geo = geoJsonWorldLayer(data, {
         pane: 'surfacePane',
-        style: { pane: 'surfacePane', color, weight: 1.4, opacity: .9, fillColor: color, fillOpacity: .45 },
-        pointToLayer: (f, latlng) => L.circleMarker(latlng, { pane: 'pointPane', radius: 5, color: '#ffffff', weight: 1, fillColor: color, fillOpacity: .88 }),
+        style: (f) => { const c = colorOf(f.properties || {}); return { pane: 'surfacePane', color: item.colorField || renderer ? 'rgba(255,255,255,.55)' : c, weight: item.colorField || renderer ? .5 : 1.4, opacity: .9, fillColor: c, fillOpacity: .7 }; },
+        pointToLayer: (f, latlng) => L.circleMarker(latlng, { pane: 'pointPane', radius: 5, color: '#ffffff', weight: 1, fillColor: colorOf(f.properties || {}), fillOpacity: .9 }),
         onEachFeature: (f, layer) => {
           const p = f.properties || {};
           const label = labelOf(p, item.labelField) || item.title;
-          layer.bindTooltip(`<strong>${esc(label)}</strong><span>${esc(item.title)}${item.year ? ' · ' + esc(item.year) : ''}</span>`, { sticky: true, direction: 'top', opacity: .97, className: 'atlas-area-tooltip' });
+          const val = item.colorField && p[item.colorField] != null ? ` · ${esc(item.colorField)}: ${esc(p[item.colorField])}` : '';
+          layer.bindTooltip(`<strong>${esc(label)}</strong><span>${esc(item.title)}${item.year ? ' · ' + esc(item.year) : ''}${val}</span>`, { sticky: true, direction: 'top', opacity: .97, className: 'atlas-area-tooltip' });
           prioritizeFeatureHover(layer);
           layer.on('click', () => showDetail({ title: esc(label), subtitle: esc([item.source, item.year].filter(Boolean).join(' · ')), facts: factsOf(p) }));
         }
@@ -1001,7 +1089,8 @@
 
   function legendHTML(item) {
     if (item.gradient) return `<div class="atlas-legend-section"><strong>${esc(item.title)}</strong><div class="atlas-gradient" style="--gradient:${item.gradient}"></div><div class="atlas-gradient-labels"><span>${item.gradientLabels[0]}</span><span>${item.gradientLabels[1]}</span></div></div>`;
-    const items = (item.legend||[[item.color,item.title]]).map(([color,label])=>`<span class="atlas-legend-item">${color==='transparent'?'':`<i class="atlas-swatch" style="--swatch:${color}"></i>`}${esc(label)}</span>`).join('');
+    const swatch = (c) => c === 'transparent' ? '' : /^data:image\//.test(c) ? `<img class="atlas-swatch-img" src="${esc(c)}" alt="">` : `<i class="atlas-swatch" style="--swatch:${esc(c)}"></i>`;
+    const items = (item.legend||[[item.color,item.title]]).map(([color,label])=>`<span class="atlas-legend-item">${swatch(color)}${esc(label)}</span>`).join('');
     return `<div class="atlas-legend-section"><strong>${esc(item.title)}</strong><div class="atlas-legend-items">${items}</div></div>`;
   }
 

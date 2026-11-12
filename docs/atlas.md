@@ -6,10 +6,19 @@ bovenaan **Kaarten**. Hij is gebouwd op het oorspronkelijke bestand `wereldatlas
 ## Beheren: Lesmateriaal → Wereldatlas
 
 - **Laag toevoegen**
-  - *Zoeken in de kaartcatalogus*: zoekt in de openbare catalogus van ArcGIS Online (NOAA, USGS, NASA, VN, Esri …).
-    Elk resultaat toont de bron en het jaar van de laatste update. Engelse zoekwoorden werken het best.
+  - *Zoeken in de kaartcatalogus*: zoekt in de openbare catalogus van ArcGIS Online. Nederlandse aardrijkskundetermen
+    worden vertaald (waterschaarste → water stress, water scarcity; zie `aklokaal_atlas_woordenlijst()`).
+    Elk resultaat wordt vooraf getest en krijgt een label: *werkt goed*, *laadt in delen* of *te groot voor de atlas*.
+    Een ster betekent een officiële uitgever (Esri Living Atlas, WRI, NOAA …). Standaard alleen wereldkaarten.
   - *Link plakken*: een GeoJSON-adres, een ArcGIS-dienst (`…/FeatureServer/0`, `…/MapServer`) of een tegelkaart (`…/{z}/{x}/{y}.png`).
   - *Bestand uploaden*: een GeoJSON-bestand (max. 25 MB); het komt in de mediabibliotheek.
+- Een ArcGIS-dienst wordt eerst beoordeeld en krijgt een advies:
+  - **tegelkaart** (snelst, in de kleuren van de maker) als de dienst tegels heeft;
+  - **kaartbeeld** voor een MapServer/ImageServer zonder tegels (de dienst tekent zelf);
+  - **vormen** voor een FeatureServer: tot ±8.000 vormen (punten ±25.000), in delen opgehaald en vereenvoudigd.
+    Meer dan dat is te veel voor een browser: zoek dan een tegelversie van dezelfde kaart.
+  Heeft een vectorlaag geen eigen kleuren, kies dan *Kleur op veld* (getallen in vijf klassen, tekst per categorie).
+  De legenda van de dienst wordt overgenomen.
 - Daarna controleer je **titel, categorie, bron en jaartal** (verplicht: titel, categorie, bron) en klik je op *Toevoegen aan de atlas*.
 - **Categorieën**: aanmaken via *+ Nieuwe categorie* of in het formulier; hernoemen, icoon kiezen en volgorde wijzigen in de lijst.
 - **Volgorde** van lagen en categorieën met ↑ en ↓.

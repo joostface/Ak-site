@@ -141,3 +141,17 @@
 
 /* Snelheid en zoekmachines (Handleiding) */
 .aklokaal-site-box { margin-top: 32px; max-width: 75ch; background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 4px 20px 12px; }
+.aka .aka-fit { display: inline-block; border-radius: 3px; padding: 1px 7px; font-size: 11px; font-weight: 600; background: #f0f0f1; color: #3c434a; }
+.aka .aka-fit--goed { background: #d7f0dd; color: #0a5c26; }
+.aka .aka-fit--traag { background: #fdf1d3; color: #7a4e00; }
+.aka .aka-fit--groot { background: #fbe0de; color: #8a1f17; }
+.aka .aka-fit--bron { background: #e5f0fa; color: #0a4b78; }
+.aka .aka-filters { margin-top: 4px; gap: 18px; }
+.aka .aka-advice { margin: 0 0 14px; padding: 10px 14px; border-radius: 6px; background: #f0f0f1; }
+.aka .aka-advice--goed { background: #d7f0dd; }
+.aka .aka-advice--traag { background: #fdf1d3; }
+.aka .aka-advice--te-groot { background: #fbe0de; }
+.aka .aka-legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.aka .aka-lg { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px 2px 4px; border-radius: 3px; background: #f6f7f7; font-size: 12px; }
+.aka .aka-lg img { width: 18px; height: 14px; object-fit: contain; }
+.aka .aka-lg i { width: 14px; height: 14px; border-radius: 2px; display: inline-block; }

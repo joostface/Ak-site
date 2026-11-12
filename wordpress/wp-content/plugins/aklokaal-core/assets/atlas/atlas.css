@@ -248,3 +248,4 @@
 #geo-atlas { font-size: 14px; line-height: 1.4; }
 #geo-atlas .atlas-map-button, #geo-atlas .atlas-upload-button, #geo-atlas .atlas-footer-button, #geo-atlas .atlas-text-button { font-size: 13px; line-height: 1.2; letter-spacing: 0; }
 #geo-atlas h2, #geo-atlas h3 { line-height: 1.2; }
+#geo-atlas .atlas-swatch-img { width: 18px; height: 14px; object-fit: contain; flex: 0 0 auto; }
