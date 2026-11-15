@@ -24,6 +24,16 @@ function aklokaal_builtin_apps() {
 			'scripts' => array( 'three.min.js', 'OrbitControls.js', 'platentektoniek.js' ),
 			'styles'  => array( 'platentektoniek.css' ),
 		),
+		'welke-stad'      => array(
+			'title'   => 'Welke stad?',
+			'excerpt' => 'Elke dag een satellietbeeld van een stad ergens op aarde. Raad in vijf rondes welke stad het is.',
+			'content' => 'Je ziet een stad van bovenaf, op een satellietbeeld. Typ je gok en je ziet hoe ver je ernaast zit en of het werelddeel en het land kloppen. Na elke ronde mag je verder uitzoomen. Er zijn ook hints (halfrond, inwonertal, eerste letter), oefenspellen en de puzzels van de afgelopen twee weken.',
+			'height'  => 760,
+			'themes'  => array( 'Topografie' ),
+			'markup'  => 'includes/app-welke-stad.php',
+			'scripts' => array( 'welke-stad-data.js', 'welke-stad.js' ),
+			'styles'  => array( 'welke-stad.css' ),
+		),
 	);
 }
 
