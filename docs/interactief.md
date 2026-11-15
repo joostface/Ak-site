@@ -57,7 +57,9 @@ onder **Interactief**. Daarna kun je titel, tekst en plaats aanpassen of het ite
 - **Platentektoniek in lagen** (`assets/apps/platentektoniek/`): ingebouwd in de pagina, in de stijl van de site
   (opmaak `includes/app-platentektoniek.php`, stijl `platentektoniek.css`, rekenkern `platentektoniek.js`). Doorsnede van de aarde en 3D-simulatie van
   acht plaatgrenzen. three.js r128 staat erbij (MIT-licentie), dus er wordt niets van een CDN geladen.
-- **Welke stad?** (`assets/apps/welke-stad/`): dagelijkse satellietpuzzel, ingebouwd in de pagina
+- **Welke stad?** (`assets/apps/welke-stad/`): satellietspel zonder einde, ingebouwd in de pagina. Elk potje
+  is een andere stad uit een geschudde stapel (in de browser bewaard); pas als alle steden geweest zijn wordt
+  opnieuw geschud. De knop rechtsboven geeft op en kiest een nieuwe stad. Eerder was het een dagpuzzel
   (opmaak `includes/app-welke-stad.php`, stijl `welke-stad.css`, spel `welke-stad.js`, steden en landen in
   `welke-stad-data.js`). Spelregels en indeling zijn gelijk aan het origineel (`index.html`); alleen kleuren,
   letters en hoeken komen uit het thema, en de id's hebben het voorvoegsel `ws-`. De satellietbeelden komen

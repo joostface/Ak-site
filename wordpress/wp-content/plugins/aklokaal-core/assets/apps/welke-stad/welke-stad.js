@@ -22,35 +22,38 @@ const store={get(k,d){try{const v=localStorage.getItem("welkestad:"+k);return v?
   set(k,v){try{localStorage.setItem("welkestad:"+k,JSON.stringify(v))}catch(e){}}};
 let settings=store.get("settings",{unit:"km",confetti:true});
 
-/* ---------- datum / dagpuzzel ---------- */
+/* ---------- welke stad is de volgende? ---------- */
 const pad=n=>String(n).padStart(2,"0");
-const dkey=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
-const todayKey=()=>dkey(new Date());
-function dayNumber(key){const [y,m,d]=key.split("-").map(Number);return Math.round(Date.UTC(y,m-1,d)/864e5)}
-function targetForDay(key){ // vaste, geschudde volgorde: elke stad komt één keer langs per cyclus
-  const n=TARGETS.length, dn=dayNumber(key), cycle=Math.floor(dn/n), pos=dn%n;
-  let s=(cycle*2654435761+12345)>>>0; const rnd=()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296};
-  const a=TARGETS.slice(); for(let i=n-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
-  return a[pos];
+// Een geschudde stapel van alle steden: elk potje de volgende. Pas als je ze allemaal gehad hebt,
+// wordt opnieuw geschud (en dan nooit met dezelfde stad als het laatste potje voorop).
+function nextTarget(last){
+  let bag=store.get("bag",null);
+  if(!Array.isArray(bag)) bag=[];
+  bag=bag.filter(t=>TARGETS.includes(t));
+  if(!bag.length){ bag=TARGETS.slice();
+    for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]]}
+    if(bag.length>1&&bag[bag.length-1]===last){[bag[0],bag[bag.length-1]]=[bag[bag.length-1],bag[0]]} }
+  const t=bag.pop(); store.set("bag",bag); return t;
 }
 
 /* ---------- spelstatus ---------- */
-let G=null; // {key, practice, target, guesses[], time, done, won, hints}
-function newGame(key,practice){
-  let g=null;
-  if(!practice) g=store.get("day:"+key,null);
-  if(!g) g={key,practice:!!practice,target:practice?TARGETS[Math.floor(Math.random()*TARGETS.length)]:targetForDay(key),guesses:[],time:0,done:false,won:false,hints:0};
-  G=g; paused=false; closePanels(); hideSug(); $("q").value="";
+let G=null; // {target, guesses[], time, done, won, hints}
+// fresh: altijd een nieuwe stad; anders een potje dat nog bezig was (na herladen) afmaken.
+function newGame(fresh){
+  let g=fresh?null:store.get("current",null);
+  if(g&&(g.done||!TARGETS.includes(g.target)||!Array.isArray(g.guesses))) g=null;
+  if(!g) g={target:nextTarget(G?G.target:-1),guesses:[],time:0,done:false,won:false,hints:0};
+  G=g; save(); paused=false; setPaused(false); closePanels(); hideSug(); $("q").value="";
   $("hints").style.display="none"; $("bHints").classList.remove("on");
   updateUI(); resetView(false);
   if(G.done) showResult(G.guesses.length-1,false);
 }
-function save(){ if(G&&!G.practice) store.set("day:"+G.key,G) }
+function save(){ if(G) store.set("current",G) }
 const T=()=>CITIES[G.target];
 const round=()=>Math.min(G.guesses.length,ROUNDS-1);
 function updateUI(){
-  $("q").disabled=G.done; $("q").placeholder=G.done?"spel afgelopen":"typ de stad...";
-  $("doneBar").style.display=G.done?"block":"none";
+  $("q").disabled=G.done; $("q").placeholder=G.done?"klaar: kies Volgende stad":"typ de stad...";
+  $("doneBar").classList.toggle("on",G.done);
   renderTimer();
 }
 
@@ -59,9 +62,8 @@ let paused=false, lastTick=performance.now();
 function renderTimer(){const t=Math.floor(G.time);$("timer").textContent=pad(Math.floor(t/60))+":"+pad(t%60)}
 setInterval(()=>{const now=performance.now(),dt=(now-lastTick)/1000;lastTick=now;
   if(G&&!G.done&&!paused&&!document.hidden&&dt<5){const b=Math.floor(G.time);G.time+=dt;if(Math.floor(G.time)!==b){renderTimer();if(Math.floor(G.time)%5===0)save()}}
-  tickCountdown();
 },250);
-function setPaused(p){ if(G.done) return; paused=p; $("pauseOv").style.display=p?"flex":"none";
+function setPaused(p){ if(G.done&&p) return; paused=p; $("pauseOv").style.display=p?"flex":"none";
   $("pauseIc").setAttribute("d",p?"M10 8l6 4-6 4z":"M10 8.5v7M14 8.5v7"); }
 $("bPause").onclick=()=>setPaused(!paused); $("bResume").onclick=()=>setPaused(false);
 
@@ -190,16 +192,14 @@ function doGuess(i){
   if(G.done) return;
   if(G.guesses.includes(i)){toast("Deze stad heb je al geprobeerd");return}
   G.guesses.push(i); const won=i===G.target;
-  if(won||G.guesses.length>=ROUNDS){G.done=true;G.won=won;if(!G.practice)recordStats()}
+  if(won||G.guesses.length>=ROUNDS){G.done=true;G.won=won;recordStats()}
   save(); $("q").value=""; $("q").blur(); hideSug(); updateUI();
   showResult(G.guesses.length-1,true);
 }
 function recordStats(){
-  const s=store.get("stats",{played:0,won:0,streak:0,max:0,dist:[0,0,0,0,0],last:""});
-  s.played++; if(G.won){s.won++;s.dist[G.guesses.length-1]++;
-    const y=new Date();y.setDate(y.getDate()-1);
-    if(G.key===todayKey()){s.streak=(s.last===dkey(y)||s.last===G.key)?s.streak+(s.last===G.key?0:1):1;s.last=G.key;s.max=Math.max(s.max,s.streak)}
-  }else if(G.key===todayKey()){s.streak=0}
+  // Reeks = aantal potjes achter elkaar geraden.
+  const s=store.get("stats",{played:0,won:0,streak:0,max:0,dist:[0,0,0,0,0]});
+  s.played++; if(G.won){s.won++;s.dist[G.guesses.length-1]++;s.streak++;s.max=Math.max(s.max,s.streak)} else s.streak=0;
   store.set("stats",s);
 }
 const CHECK="M10 15.300l3.300 3.200 6.700-7", CROSS="M11 11l8 8M19 11l-8 8";
@@ -212,14 +212,14 @@ function showResult(gi,animate){
   pc.firstElementChild.textContent=g.cont; pl.firstElementChild.textContent=g.country;
   pc.querySelector("path").setAttribute("d",g.cont===t.cont?CHECK:CROSS); pl.querySelector("path").setAttribute("d",g.cc===t.cc?CHECK:CROSS);
   $("rBtn").style.visibility="hidden"; $("rFinal").style.display="none";
-  $("rBtn").textContent=fin?"Bekijk Statistieken":(last?"Volgende Ronde":"Sluiten");
+  $("rBtn").textContent=fin?"Volgende stad":(last?"Volgende Ronde":"Sluiten");
   const fill=$("rFill"), dist=$("rDist"), target=Math.min(1,km/10000);
   const reveal=()=>{pc.classList.add(g.cont===t.cont?"ok":"no");};
   const reveal2=()=>{pl.classList.add(g.cc===t.cc?"ok":"no");};
   const end=()=>{$("rBtn").style.visibility="visible";
     if(fin){$("rFinal").style.display="block";$("rLabel").textContent=G.won?"":"Helaas! De stad was";$("rLabel").style.display=G.won?"none":"block";
       $("rAns").textContent=t.name+(G.won?"":" ("+t.country+")");
-      $("rNext").style.display=G.practice?"none":"block"; tickCountdown();
+      $("rNext").style.display="block";
       if(G.won&&animate&&settings.confetti) confetti()}};
   $("pRes").style.display="flex";
   if(!animate){fill.style.width=(target*100)+"%";dist.textContent=distTxt(km);reveal();reveal2();end();return}
@@ -230,15 +230,12 @@ function showResult(gi,animate){
   fill.style.width="100%"; dist.textContent=distTxt(from); resAnim=requestAnimationFrame(step);
   resTimer.push(setTimeout(reveal,dur+250),setTimeout(reveal2,dur+650),setTimeout(end,dur+1050));
 }
-$("rBtn").onclick=()=>{ if(G.done&&resIdx===G.guesses.length-1){openStats()} else closeResult() };
+$("rBtn").onclick=()=>{ if(G.done&&resIdx===G.guesses.length-1){newGame(true)} else closeResult() };
+$("bResStats").onclick=openStats;
+$("bNext").onclick=()=>newGame(true);
 function closeResult(){ const wasLast=resIdx===G.guesses.length-1; $("pRes").style.display="none"; resTimer.forEach(clearTimeout);
   if(wasLast){ resetView(); } }
 $("bShowRes").onclick=()=>showResult(G.guesses.length-1,false);
-
-/* ---------- aftellen ---------- */
-function tickCountdown(){ const el=$("rCount"); if(!el||$("pRes").style.display==="none") return;
-  const n=new Date(), m=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1), s=Math.max(0,Math.floor((m-n)/1000));
-  el.textContent=pad(Math.floor(s/3600))+":"+pad(Math.floor(s/60)%60)+":"+pad(s%60); }
 
 /* ---------- panelen ---------- */
 function closePanels(){ROOT.querySelectorAll(".panel").forEach(p=>p.style.display="none")}
@@ -268,18 +265,19 @@ $("bInfo").onclick=()=>openGen("Hoe werkt het?",
   "<li>Na elke gok zie je hoe ver je ernaast zit en of <b>werelddeel</b> en <b>land</b> kloppen (groen = goed, rood = fout).</li>"+
   "<li>Elke ronde mag je verder uitzoomen. In de laatste rondes zie je een oranje stip op de plek van de stad.</li>"+
   "<li>Verschuif het beeld met de pijlen of door te slepen, zoom met + en −, en ga met het richtkruis terug naar het midden.</li>"+
-  "<li>Elke dag is er één nieuwe stad. Via de kalender speel je eerdere dagen of een oefenspel.</li></ul>");
+  "<li>Na elke stad volgt direct een nieuwe. Je speelt zo lang je wil, en je krijgt pas een stad opnieuw als je ze allemaal gehad hebt.</li>"+
+  "<li>Kom je er niet uit? Met de knop <b>Nieuwe stad</b> rechtsboven geef je op en krijg je een andere.</li></ul>");
 /* statistieken */
 function openStats(){
   const s=store.get("stats",{played:0,won:0,streak:0,max:0,dist:[0,0,0,0,0]}), mx=Math.max(1,...s.dist);
   let h='<div class="grid4"><div><b>'+s.played+"</b><span>Gespeeld</span></div><div><b>"+(s.played?Math.round(100*s.won/s.played):0)+"</b><span>% gewonnen</span></div><div><b>"+s.streak+"</b><span>Huidige reeks</span></div><div><b>"+s.max+"</b><span>Langste reeks</span></div></div><p><b>Geraden in ronde</b></p>";
-  s.dist.forEach((n,i)=>{h+='<div class="dr"><em>Ronde '+(i+1)+'</em><div class="'+(G.done&&G.won&&!G.practice&&G.guesses.length===i+1?"hl":"")+'" style="width:'+Math.max(8,70*n/mx)+'%">'+n+"</div></div>"});
-  if(G.done){h+='<p style="margin-top:22px"><button class="btn" id="ws-bShare">Kopieer resultaat</button></p><p><button class="btn sec" id="ws-bPrac">Speel een oefenspel</button></p>'}
+  s.dist.forEach((n,i)=>{h+='<div class="dr"><em>Ronde '+(i+1)+'</em><div class="'+(G.done&&G.won&&G.guesses.length===i+1?"hl":"")+'" style="width:'+Math.max(8,70*n/mx)+'%">'+n+"</div></div>"});
+  if(G.done){h+='<p style="margin-top:22px"><button class="btn" id="ws-bShare">Kopieer resultaat</button></p><p><button class="btn sec" id="ws-bPrac">Volgende stad</button></p>'}
   openGen("Statistieken",h);
   const b=$("bShare"); if(b) b.onclick=()=>{const t=T();
-    const txt="Welke stad? "+(G.practice?"(oefenspel)":G.key)+" – "+(G.won?G.guesses.length:"X")+"/"+ROUNDS+"\n"+G.guesses.map(i=>{const g=CITIES[i];return i===G.target?"🟩🟩 ✓":(g.cont===t.cont?"🟩":"🟥")+(g.cc===t.cc?"🟩":"🟥")+" "+fmt(haversine(g,t))+" km"}).join("\n");
+    const txt="Welke stad? "+T().name+" – "+(G.won?G.guesses.length:"X")+"/"+ROUNDS+"\n"+G.guesses.map(i=>{const g=CITIES[i];return i===G.target?"🟩🟩 ✓":(g.cont===t.cont?"🟩":"🟥")+(g.cc===t.cc?"🟩":"🟥")+" "+fmt(haversine(g,t))+" km"}).join("\n");
     try{navigator.clipboard.writeText(txt).then(()=>toast("Gekopieerd"),()=>toast("Kopiëren lukte niet"))}catch(e){toast("Kopiëren lukte niet")}};
-  const p=$("bPrac"); if(p) p.onclick=()=>newGame(todayKey(),true);
+  const p=$("bPrac"); if(p) p.onclick=()=>newGame(true);
 }
 $("bStats").onclick=openStats;
 /* instellingen */
@@ -293,15 +291,13 @@ function openSettings(){
   $("sConf").onclick=e=>{if(e.target.dataset.v){settings.confetti=e.target.dataset.v==="1";store.set("settings",settings);mark()}};
 }
 $("bSet").onclick=openSettings;
-/* kalender */
+/* nieuwe stad (opgeven of overslaan) */
 $("bCal").onclick=()=>{
-  const DN=["zondag","maandag","dinsdag","woensdag","donderdag","vrijdag","zaterdag"], MN=["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"];
-  let h='<button class="day" data-p="1"><span><b>Oefenspel</b><br><small>Willekeurige stad, telt niet mee voor je statistieken</small></span></button><p style="margin:18px 0 0"><b>Dagpuzzels</b></p>';
-  for(let i=0;i<14;i++){const d=new Date();d.setDate(d.getDate()-i);const k=dkey(d),g=store.get("day:"+k,null);
-    const st=!g?"Nog niet gespeeld":g.done?(g.won?"✓ Geraden in ronde "+g.guesses.length:"✗ Niet geraden"):"Bezig – "+g.guesses.length+" van "+ROUNDS+" pogingen";
-    h+='<button class="day'+(!G.practice&&G.key===k?" cur":"")+'" data-k="'+k+'"><span>'+(i===0?"Vandaag":DN[d.getDay()]+" "+d.getDate()+" "+MN[d.getMonth()])+"<br><small>"+st+"</small></span></button>"}
-  openGen("Kies een spel",h);
-  $("gBody").onclick=e=>{const b=e.target.closest(".day");if(!b)return;$("gBody").onclick=null;save();if(b.dataset.p)newGame(todayKey(),true);else newGame(b.dataset.k,false)};
+  if(G.done||!G.guesses.length){newGame(true);return}
+  openGen("Nieuwe stad?",'<p>Je hebt al '+G.guesses.length+' van de '+ROUNDS+' pogingen gedaan. Als je nu een nieuwe stad kiest, telt deze als niet geraden en zie je het antwoord.</p>'+
+    '<p style="margin-top:22px"><button class="btn" id="ws-bGiveUp">Opgeven en antwoord zien</button></p><p><button class="btn sec" data-x-gen>Verder met deze stad</button></p>');
+  $("bGiveUp").onclick=()=>{$("pGen").style.display="none";G.done=true;G.won=false;recordStats();save();updateUI();showResult(G.guesses.length-1,false)};
+  $("gBody").querySelector("[data-x-gen]").onclick=()=>{$("pGen").style.display="none"};
 };
 
 /* ---------- toast & confetti ---------- */
@@ -323,6 +319,6 @@ function confetti(){
 }
 
 /* ---------- start ---------- */
-newGame(todayKey(),false);
+newGame(false);
 if(!store.get("seen",false)){store.set("seen",true);$("bInfo").onclick()}
 })();

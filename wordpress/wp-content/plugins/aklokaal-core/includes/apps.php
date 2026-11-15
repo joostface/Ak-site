@@ -26,8 +26,8 @@ function aklokaal_builtin_apps() {
 		),
 		'welke-stad'      => array(
 			'title'   => 'Welke stad?',
-			'excerpt' => 'Elke dag een satellietbeeld van een stad ergens op aarde. Raad in vijf rondes welke stad het is.',
-			'content' => 'Je ziet een stad van bovenaf, op een satellietbeeld. Typ je gok en je ziet hoe ver je ernaast zit en of het werelddeel en het land kloppen. Na elke ronde mag je verder uitzoomen. Er zijn ook hints (halfrond, inwonertal, eerste letter), oefenspellen en de puzzels van de afgelopen twee weken.',
+			'excerpt' => 'Een satellietbeeld van een stad ergens op aarde. Raad in vijf rondes welke stad het is, en speel daarna meteen de volgende.',
+			'content' => 'Je ziet een stad van bovenaf, op een satellietbeeld. Typ je gok en je ziet hoe ver je ernaast zit en of het werelddeel en het land kloppen. Na elke ronde mag je verder uitzoomen. Er zijn hints (halfrond, inwonertal, eerste letter). Je speelt zo lang je wil: elk potje is een andere stad.',
 			'height'  => 760,
 			'themes'  => array( 'Topografie' ),
 			'markup'  => 'includes/app-welke-stad.php',
@@ -36,6 +36,37 @@ function aklokaal_builtin_apps() {
 		),
 	);
 }
+
+/**
+ * Welke stad? was eerst een dagpuzzel. Staat de oude tekst nog ongewijzigd in het item, dan
+ * wordt die één keer vervangen door de nieuwe (eigen aanpassingen blijven staan).
+ */
+add_action(
+	'admin_init',
+	function () {
+		if ( ! aklokaal_can_manage() || wp_doing_ajax() || get_option( 'aklokaal_fix_welkestad_0_19' ) ) {
+			return;
+		}
+		update_option( 'aklokaal_fix_welkestad_0_19', 1 );
+		$app  = aklokaal_builtin_apps()['welke-stad'];
+		$oud  = array(
+			'excerpt' => 'Elke dag een satellietbeeld van een stad ergens op aarde. Raad in vijf rondes welke stad het is.',
+			'content' => 'Je ziet een stad van bovenaf, op een satellietbeeld. Typ je gok en je ziet hoe ver je ernaast zit en of het werelddeel en het land kloppen. Na elke ronde mag je verder uitzoomen. Er zijn ook hints (halfrond, inwonertal, eerste letter), oefenspellen en de puzzels van de afgelopen twee weken.',
+		);
+		foreach ( get_posts( array( 'post_type' => 'ak_toepassing', 'post_status' => 'any', 'numberposts' => -1, 'meta_key' => 'ak_builtin_app', 'meta_value' => 'welke-stad' ) ) as $p ) { // phpcs:ignore WordPress.DB.SlowDBQuery
+			$upd = array();
+			if ( trim( $p->post_excerpt ) === $oud['excerpt'] ) {
+				$upd['post_excerpt'] = $app['excerpt'];
+			}
+			if ( trim( $p->post_content ) === $oud['content'] ) {
+				$upd['post_content'] = $app['content'];
+			}
+			if ( $upd ) {
+				wp_update_post( wp_slash( array( 'ID' => $p->ID ) + $upd ) );
+			}
+		}
+	}
+);
 
 /** Adres van een meegeleverde toepassing. */
 function aklokaal_builtin_app_url( $key ) {

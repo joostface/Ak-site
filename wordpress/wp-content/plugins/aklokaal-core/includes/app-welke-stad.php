@@ -12,15 +12,15 @@ $ws_lead  = get_the_excerpt( $post_id );
 ?>
 <div class="ws-page">
 <header class="ws-intro">
-	<p class="ws-kicker">Dagpuzzel · satellietbeeld</p>
+	<p class="ws-kicker">Satellietspel · eindeloos</p>
 	<h1><?php echo esc_html( $ws_title ); ?></h1>
 	<?php if ( $ws_lead ) : ?><p class="ws-lead"><?php echo esc_html( $ws_lead ); ?></p><?php endif; ?>
 	<ol class="ws-steps">
 		<li><b>Kijk</b> naar het satellietbeeld: wegen, rivieren, kust, bebouwing.</li>
 		<li><b>Raad</b> de stad. Je ziet hoe ver je ernaast zit en of werelddeel en land kloppen.</li>
-		<li><b>Zoom uit</b> na elke gok. Na vijf rondes weet je het antwoord.</li>
+		<li><b>Zoom uit</b> na elke gok. Na vijf rondes weet je het antwoord, en dan volgt meteen de volgende stad.</li>
 	</ol>
-	<p class="ws-note">Elke dag een nieuwe stad, voor iedereen dezelfde. Voortgang en statistieken blijven alleen in deze browser.</p>
+	<p class="ws-note">Speel zo lang je wil: elk potje een andere stad, en pas als je ze allemaal gehad hebt komt er een terug. Statistieken blijven alleen in deze browser.</p>
 </header>
 <div class="ws-frame">
 <div class="ws" id="ws-app">
@@ -31,7 +31,7 @@ $ws_lead  = get_the_excerpt( $post_id );
     <button class="ib" id="ws-bInfo" aria-label="Uitleg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6" stroke-linecap="round"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/></svg></button>
     <button class="ib" id="ws-bStats" aria-label="Statistieken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="11" width="4.2" height="9" rx="1.5"/><rect x="9.9" y="6" width="4.2" height="14" rx="1.5"/><rect x="16.8" y="3" width="4.2" height="17" rx="1.5"/></svg></button>
     <button class="ib" id="ws-bSet" aria-label="Instellingen"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M10.3 2h3.4l.6 2.7 1.5.6 2.3-1.5 2.4 2.4-1.500 2.300.6 1.500 2.700.600v3.400l-2.700.600-.600 1.500 1.500 2.300-2.400 2.400-2.300-1.500-1.500.600-.600 2.700h-3.400l-.600-2.700-1.500-.600-2.300 1.500-2.400-2.400 1.500-2.300-.600-1.500L2 13.700v-3.400l2.700-.600.600-1.500-1.500-2.300 2.400-2.400 2.300 1.500 1.500-.600zM12 8.300a3.700 3.700 0 1 0 0 7.400 3.700 3.700 0 0 0 0-7.400z" fill-rule="evenodd"/></svg></button>
-    <button class="ib" id="ws-bCal" aria-label="Eerdere dagen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.500h16M8 3v3.500M16 3v3.500M8 13h.01M12 13h.01M16 13h.01M8 16.500h.01M12 16.500h.01M16 16.500h.01" stroke-linecap="round" stroke-width="2"/></svg></button>
+    <button class="ib" id="ws-bCal" aria-label="Nieuwe stad" title="Nieuwe stad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h3.5c2 0 3.3.9 4.4 2.6l2.2 3.8c1.1 1.7 2.4 2.6 4.4 2.6H21"/><path d="M3 17h3.5c1.4 0 2.5-.5 3.400-1.400M14 8.400c.9-.9 2-1.400 3.500-1.400H21"/><path d="M18.500 4.500 21 7l-2.500 2.500M18.500 14.500 21 17l-2.500 2.500"/></svg></button>
   </div>
   <div id="ws-srow">
     <label id="ws-sbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.500" cy="10.500" r="7"/><path d="M16 16l5 5" stroke-linecap="round"/></svg>
@@ -50,7 +50,7 @@ $ws_lead  = get_the_excerpt( $post_id );
     <button class="cb" id="ws-cP" aria-label="Inzoomen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.300" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="cb" id="ws-cM" aria-label="Uitzoomen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.300" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
     <div id="ws-tileWarn">De satellietbeelden laden niet. Dit spel heeft een internetverbinding nodig en moet in een gewone browser geopend zijn.</div>
-    <div id="ws-doneBar"><button class="btn" id="ws-bShowRes">Bekijk resultaat</button></div>
+    <div id="ws-doneBar"><button class="btn" id="ws-bNext">Volgende stad</button><button class="btn sec" id="ws-bShowRes">Bekijk resultaat</button></div>
     <div id="ws-hints"><h3>Hints</h3><div id="ws-hintRows"></div></div>
     <div id="ws-pauseOv"><div>Gepauzeerd</div><button class="btn" style="width:200px" id="ws-bResume">Verder spelen</button></div>
     <div id="ws-sug">
@@ -69,7 +69,7 @@ $ws_lead  = get_the_excerpt( $post_id );
       <div class="pill" id="ws-rCont"><span></span><svg viewBox="0 0 30 30" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="15" r="11"/><path/></svg></div>
       <div class="pill" id="ws-rCtry"><span></span><svg viewBox="0 0 30 30" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="15" r="11"/><path/></svg></div>
     </div>
-    <div id="ws-rFinal"><div id="ws-rLabel"></div><div id="ws-rAns"></div><div id="ws-rNext">Volgend spel in <b id="ws-rCount">--:--:--</b></div></div>
+    <div id="ws-rFinal"><div id="ws-rLabel"></div><div id="ws-rAns"></div><div id="ws-rNext"><button type="button" id="ws-bResStats">Bekijk statistieken</button></div></div>
     <div class="pfoot"><button class="btn" id="ws-rBtn" style="visibility:hidden">Volgende Ronde</button></div>
   </div>
 
