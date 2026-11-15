@@ -1,0 +1,113 @@
+/*
+ * Stedenatlas in de stijl van de site. Laag over basis.css (het origineel, afgeschermd binnen .sa).
+ * De kaarten houden hun eigen palet (zand op een donkere zee, in de groentinten van de site); de menubalk,
+ * panelen, knoppen, letters en vensters komen uit het thema en kleuren mee met donker en licht.
+ * Volgens de huisstijl: geen kleine kapitalen, geen schaduwen op panelen, geen dunne kaders om knoppen.
+ */
+
+/* ---------- maat: de atlas vult het scherm onder de kop van de site ---------- */
+.sa {
+	--quiet: var(--muted); --line: color-mix(in srgb, var(--ink) 14%, transparent);
+	--paper: var(--bg); --white: var(--surface); --pale: var(--surface-2);
+	--coral: var(--accent); --serif: var(--font-display); --sans: var(--font-text);
+	--sea: #15271f; --sealine: #2f4a40; --on-sea: #a4c7ab; --on-sea-ink: #13201a;
+	position: relative; height: calc(100svh - var(--header-h, 72px) - var(--admin-offset, 0px)); min-height: 520px;
+	overflow: hidden; display: flex; flex-direction: column;
+	background: var(--bg); color: var(--ink); font: 16px/1.48 var(--font-text);
+}
+.sa:fullscreen { height: 100%; min-height: 0; }
+.sa-noscript { padding: 40px var(--margin); }
+.sa h1, .sa h2, .sa .brand, .sa .score-big { font-family: var(--font-display); font-weight: 400; letter-spacing: -.03em; }
+.sa :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.sa a { color: inherit; text-decoration-thickness: .07em; text-underline-offset: .18em; }
+
+/* ---------- menubalk ---------- */
+.sa .mast { background: var(--surface); color: var(--ink); border: 0; }
+.sa .mast-inner { padding-inline: var(--margin); }
+.sa .mast .brand { color: var(--ink); }
+.sa .mast .brand svg circle:last-child { stroke: var(--surface); }
+.sa .mast nav button, .sa .mast nav button[aria-current=page] { color: var(--muted); font-weight: 600; font-size: var(--step-small); }
+.sa .mast nav button[aria-current=page] { color: var(--ink); }
+.sa .mast nav button[aria-current=page]:after { background: var(--accent); height: 3px; border-radius: 2px; }
+.sa .mast .help, .sa .mast .full-icon { color: var(--ink); font-weight: 600; font-size: var(--step-small); }
+.sa .help-icon { border-width: 2px; }
+.sa .full-icon:hover, .sa .help:hover { background: var(--surface-2); text-decoration: none; }
+
+/* ---------- labels: zinsletters op leesbare grootte ---------- */
+.sa .atlas-trail, .sa .scope-line, .sa .play-mode, .sa .map-kicker {
+	text-transform: none; letter-spacing: 0; font: 600 14px/1.3 var(--font-text);
+}
+.sa .atlas-trail { color: #d8cfa8; }
+.sa .scope-line, .sa .play-mode { color: var(--muted); }
+.sa .play-header .atlas-trail { font-size: 13px; }
+
+/* ---------- de zee ---------- */
+.sa .map-screen, .sa .play-screen, .sa .atlas-bottom, .sa .play-header { background: var(--sea); }
+.sa .play-screen { background: #1b372e; }
+.sa .play-header, .sa .atlas-bottom { border: 0; }
+.sa .atlas-heading h1, .sa .play-header h1 { color: #f5f7f2; }
+.sa .atlas-heading p { color: #c3d3c6; font-size: clamp(14px, 1.15vw, 17px); }
+.sa .map-pin { border: 0; border-radius: var(--radius); background: #16302af5; color: #f5f7f2; box-shadow: none; font-weight: 600; } /* taste-skill-ignore: zet de schaduw van het origineel uit */
+.sa .map-pin:hover, .sa .map-pin:focus-visible { background: #f2e3b5; color: #15271f; }
+.sa .list-picker { border: 0; background: #ffffff14; color: #f5f7f2; border-radius: var(--radius); font-weight: 600; }
+.sa .list-picker:hover { background: #ffffff26; }
+.sa .all-scope { border: 0; background: var(--on-sea); color: var(--on-sea-ink); border-radius: var(--radius); font-weight: 600; }
+.sa .all-scope:hover { background: #f5f7f2; }
+.sa .map-controls button { border: 0; border-radius: var(--radius); background: #16302aeb; color: #f5f7f2; }
+.sa .map-controls button:hover { background: #2f4a40; }
+.sa .run-meter { color: #e6eadc; font-size: 14px; }
+.sa .run-segments i { background: #3a5449; }
+.sa .run-segments i.done { background: var(--on-sea); }
+.sa .run-segments i.current { background: #e0b27a; }
+/* voortgang door elkaar: een gevulde balk in plaats van een verloop */
+.sa .run-segments i.mixed-meter { position: relative; overflow: hidden; background: #3a5449; }
+.sa .run-segments i.mixed-meter::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--through); background: var(--on-sea); }
+
+/* ---------- panelen: kaarten voor de keuzes en het antwoord ---------- */
+.sa .rules-card, .sa .play-console { background: var(--surface); color: var(--ink); border: 0; border-radius: var(--radius); box-shadow: none; } /* taste-skill-ignore: zet de schaduw van het origineel uit */
+.sa .rules-card legend { font-size: 14px; font-weight: 650; }
+.sa .pref-note, .sa .peek-description { color: var(--muted); font-size: 14px; }
+.sa .option-chip { border: 0; border-radius: var(--radius); background: var(--surface-2); color: var(--ink); font-weight: 600; }
+.sa .option-chip:hover { background: var(--surface-3); border: 0; }
+.sa .option-chip[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); }
+.sa .primary { border: 0; border-radius: var(--radius); background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.sa .primary:hover { background: var(--ink); color: var(--bg); transform: none; }
+.sa .secondary { border: 0; border-radius: var(--radius); background: var(--surface-2); color: var(--ink); font-weight: 600; }
+.sa .secondary:hover { background: var(--surface-3); border: 0; }
+.sa .choice { border: 0; border-radius: var(--radius); background: var(--surface-2); color: var(--ink); font-weight: 600; }
+.sa .choice:hover:not(:disabled) { background: var(--surface-3); border: 0; }
+.sa .letter { border: 0; background: var(--surface); color: var(--muted); font-weight: 650; }
+.sa .choice.right { background: #3f9a5e; color: #fff; }
+.sa .choice.wrong { background: #c24a33; color: #fff; }
+.sa .choice.right .letter, .sa .choice.wrong .letter { background: #ffffff33; color: #fff; }
+.sa .score-box { border: 0; border-radius: var(--radius); background: color-mix(in srgb, #3f9a5e 22%, var(--surface)); }
+.sa .score-box.missed { background: color-mix(in srgb, #c24a33 20%, var(--surface)); }
+.sa .score-box span { color: var(--ink); }
+.sa .typing label { font-weight: 650; font-size: 14px; }
+.sa .typing input { border: 0; border-radius: var(--radius); background: var(--bg); color: var(--ink); font-size: 17px; }
+.sa .peek-row { border-top: 0; padding-top: 4px; }
+.sa .peek { border: 0; border-radius: var(--radius); background: var(--surface-2); color: var(--ink); font-weight: 650; }
+.sa .peek.active, .sa .peek:active { background: var(--ink); color: var(--bg); }
+.sa .note-link, .sa .skip-answer, .sa .rank-link { color: var(--ink); font-size: 14px; text-decoration-thickness: .07em; }
+
+/* ---------- resultaat en voortgang ---------- */
+.sa .box { border: 0; border-radius: var(--radius); background: var(--surface); }
+.sa .score-banner { border-radius: var(--radius); background: var(--sea); }
+.sa .score-big { color: #f2d69a; }
+.sa .review-list > li, .sa .stage-list > li { border-bottom: 0; }
+.sa .review-list > li, .sa .stage-list > li { padding-block: 14px; }
+.sa .state-icon { background: color-mix(in srgb, #3f9a5e 25%, var(--surface)); color: var(--ink); }
+.sa .state-icon.missed { background: color-mix(in srgb, #c24a33 25%, var(--surface)); }
+.sa .mini-track { background: var(--surface-3); }
+.sa .mini-track i { background: var(--accent); }
+.sa .stage-list button { color: var(--ink); font-weight: 600; }
+.sa .rankings li.target { color: inherit; text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: .15em; }
+
+/* ---------- vensters ---------- */
+.sa dialog { border: 0; border-radius: var(--radius); background: var(--surface); color: var(--ink); }
+.sa dialog::backdrop { background: var(--scrim, rgba(10, 14, 12, .62)); }
+.sa .close { border: 0; background: var(--surface-2); }
+.sa .close:hover { background: var(--surface-3); }
+.sa .pick-list button { border: 0; border-radius: var(--radius); background: var(--surface-2); }
+.sa .pick-list button:hover { background: var(--surface-3); }
+.sa .tiny { color: var(--muted); font-size: 13px; }

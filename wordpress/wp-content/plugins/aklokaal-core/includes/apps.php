@@ -34,6 +34,26 @@ function aklokaal_builtin_apps() {
 			'scripts' => array( 'welke-stad-data.js', 'welke-stad.js' ),
 			'styles'  => array( 'welke-stad.css' ),
 		),
+		'drillion'        => array(
+			'title'   => 'Drillion',
+			'excerpt' => 'Zeven aardrijkskundevragen, elk met tientallen goede antwoorden. Hoe zeldzamer jouw antwoord, hoe dieper je boort.',
+			'content' => 'Typ bij elke vraag één antwoord. Een voor de hand liggend antwoord levert 10 meter op, het zeldzaamste antwoord 100 meter. Onderweg vind je fossielen, kristallen en grotten. Na elke vraag kun je alle goede antwoorden bekijken.',
+			'height'  => 760,
+			'themes'  => array( 'Topografie' ),
+			'markup'  => 'includes/app-drillion.php',
+			'scripts' => array( 'drillion-vragen.js', 'drillion.js' ),
+			'styles'  => array( 'basis.css', 'drillion.css' ),
+		),
+		'stedenatlas'     => array(
+			'title'   => 'Stedenatlas',
+			'excerpt' => 'Leer de vijf grootste steden van elk land op de kaart herkennen. Met meerkeuze of door zelf de naam te typen.',
+			'content' => 'Kies op de kaart een werelddeel, regio of land en oefen land voor land of door elkaar. Zoek de oranje stip en kies of typ de naam. Met Spieken zie je alle namen; je voortgang blijft bewaard in je browser. 197 landen en gebieden.',
+			'height'  => 760,
+			'themes'  => array( 'Topografie' ),
+			'markup'  => 'includes/app-stedenatlas.php',
+			'scripts' => array( 'd3-geo.min.js', 'stedenatlas-data.js', 'stedenatlas.js' ),
+			'styles'  => array( 'basis.css', 'stedenatlas.css' ),
+		),
 	);
 }
 

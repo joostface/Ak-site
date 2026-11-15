@@ -1,0 +1,116 @@
+/*
+ * Drillion in de stijl van de site. Laag over basis.css (het origineel, afgeschermd binnen .dr).
+ * Wat blijft: de boorwereld in pixelkunst, de kleuren van de zes niveaus (Noob tot Epic) en alle maten
+ * van het spel. Wat verandert: ondergrond, panelen, letters, knoppen en hoeken komen uit het thema,
+ * zodat het spel meekleurt met donker en licht. Geen schaduwen, randjes of verlopen op de knoppen.
+ */
+
+/* ---------- kleuren en letters van de site ---------- */
+.dr {
+	/* Let op: binnen het spel is --surface een maat (hoogte van het maaiveld). Gebruik hier --deep voor de panelkleur. */
+	--ground: var(--bg); --deep: var(--surface); --panel: var(--surface-2); --panel-2: var(--surface-3);
+	--soft: var(--muted);
+	--m: var(--margin);
+	/* niveaukleuren: dezelfde volgorde, iets dieper zodat ze ook op een lichte ondergrond staan */
+	--t-mis: #e0533f; --t-noob: #a9b0aa; --t-basic: #62c27c; --t-slim: #57a9e0; --t-zeldzaam: #b48be6; --t-legendarisch: #f0954a; --t-epic: #f2c83b;
+	font-family: var(--font-text); color: var(--ink); background: var(--bg);
+}
+.dr :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.dr h1, .dr h2, .dr h3, .dr h4,
+.dr .depth strong, .dr .q-time, .dr .q-prompt, .dr .res-head b, .dr .res-head span,
+.dr .end-total, .dr .reveal-tier, .dr .reveal-pts, .dr .pill, .dr .chips button, .dr .rounds button {
+	font-family: var(--font-display); font-weight: 400;
+}
+.dr b { font-weight: 650; }
+.dr .depth-tick span, .dr .buried-find span, .dr .tier-line span { font-family: var(--font-text); font-weight: 650; }
+
+/* ---------- knoppen zoals op de rest van de site ---------- */
+.dr .btn {
+	border: 0; border-radius: var(--radius); background: var(--accent); color: var(--accent-ink);
+	font-family: var(--font-text); font-weight: 600; letter-spacing: 0;
+	transition: transform var(--dur-fast, .16s) ease, background-color var(--dur-fast, .16s) ease;
+}
+.dr .btn:hover { background: var(--ink); color: var(--bg); }
+.dr .btn:active { transform: translateY(1px) scale(.98); border: 0; }
+.dr .btn.ghost { background: var(--surface-2); color: var(--ink); }
+.dr .btn.ghost:hover { background: var(--surface-3); color: var(--ink); }
+.dr .link { font-weight: 600; text-decoration-thickness: .07em; text-underline-offset: .2em; color: var(--ink); }
+.dr .link:hover { text-decoration-color: var(--accent); color: var(--ink); }
+.dr .icon-btn { border-radius: var(--radius); background: var(--deep); color: var(--ink); }
+.dr .icon-btn:hover { background: var(--surface-2); }
+@media (hover: none) { .dr .btn:hover { background: var(--accent); color: var(--accent-ink); } .dr .btn.ghost:hover { background: var(--surface-2); color: var(--ink); } }
+
+/* ---------- beginscherm: een gewone pagina van de site ---------- */
+.dr #dr-home {
+	min-height: 0; height: auto; overflow: visible; background: var(--bg);
+	grid-template-rows: none; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+}
+.dr .home-pic {
+	position: sticky; top: calc(var(--header-h, 72px) + var(--admin-offset, 0px));
+	height: calc(100svh - var(--header-h, 72px) - var(--admin-offset, 0px)); min-height: 420px;
+	background: #efb997;
+}
+.dr .home-pic img { object-position: 30% 50%; }
+.dr .home-pic .icon-btn { top: 16px; right: 16px; }
+.dr .home-body {
+	height: auto; overflow: visible;
+	padding: clamp(40px, 6vw, 96px) var(--margin) clamp(64px, 8vw, 128px) clamp(32px, 5vw, 80px);
+	gap: clamp(56px, 7vw, 96px); max-width: 44rem;
+}
+.dr .home-lead { gap: 24px; }
+.dr .home-lead h1 { font-size: clamp(72px, 9vw, 150px); line-height: .9; letter-spacing: -.035em; color: var(--ink); }
+.dr .home-lead p { font-size: var(--step-lead); line-height: 1.35; max-width: 26em; }
+.dr .home-actions { margin-top: 8px; }
+.dr .btn.big { min-height: 60px; font-size: var(--step-body); padding: 0 32px; }
+.dr .home-record { font-size: var(--step-body); color: var(--muted); }
+.dr .home-record b { color: var(--ink); font-weight: 650; }
+.dr .strata h2, .dr .finds h2 { font-size: var(--step-card); letter-spacing: -.02em; margin-bottom: 10px; }
+.dr .strata > p, .dr .finds > p { font-size: var(--step-small); line-height: 1.55; margin-bottom: 18px; }
+/* de niveaus als aardlagen: ondiep smal, Epic breed */
+.dr .strata li { font-family: var(--font-text); font-weight: 650; font-size: 18px; height: 50px; }
+.dr .strata li span { font-weight: 400; }
+.dr .strata ol li:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+.dr .strata ol li:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+.dr .find-row { gap: 8px; }
+.dr .find { border-radius: var(--radius); background: var(--surface); padding: 20px 10px 16px; }
+.dr .find b { font-weight: 650; }
+.dr .home-foot { gap: 28px; }
+@media (max-width: 899px) {
+	.dr #dr-home { grid-template-columns: none; grid-template-rows: auto 1fr; }
+	.dr .home-pic { position: relative; top: 0; height: 40svh; min-height: 220px; }
+	.dr .home-body { padding: 28px var(--margin) 56px; max-width: none; }
+	.dr .home-lead h1 { font-size: clamp(64px, 19vw, 120px); }
+}
+
+/* ---------- het spel: schermvullend over de site heen ---------- */
+.dr #dr-game { z-index: 100000; }
+.dr .depth { border-radius: var(--radius); }
+.dr .depth strong { color: var(--ink); letter-spacing: -.01em; }
+.dr .steps i { border-radius: 2px; background: var(--surface-3); }
+.dr .sheet { border-radius: var(--radius); }
+.dr .res-head { border-radius: var(--radius) var(--radius) 0 0; color: #15130f; }
+.dr .res-head b, .dr .res-head span { letter-spacing: -.02em; }
+.dr .q-prompt { letter-spacing: -.015em; line-height: 1.15; }
+.dr .timebar { border-radius: 4px; overflow: hidden; background: var(--surface-3); }
+.dr .q-form input { border-radius: var(--radius); background: var(--bg); color: var(--ink); font-weight: 600; }
+.dr .q-form input::placeholder { color: var(--muted); }
+.dr .q-suggest, .dr .unlock { border-radius: var(--radius); background: var(--surface-2); }
+.dr .q-suggest b { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: .2em; }
+.dr .res-epic b { color: inherit; text-decoration: underline; text-decoration-color: var(--t-epic); text-decoration-thickness: .15em; text-underline-offset: .2em; }
+.dr .end-total { color: var(--ink); letter-spacing: -.03em; }
+.dr .chips button, .dr .rounds button { border-radius: var(--radius); }
+.dr .pill { border-bottom: 0; border-radius: var(--radius); }
+.dr .tier-line span { border-radius: 3px; }
+
+/* ---------- vensters ---------- */
+.dr dialog { border-radius: var(--radius); background: var(--surface); color: var(--ink); }
+.dr dialog::backdrop { background: var(--scrim, rgba(10, 14, 12, .62)); }
+.dr .dlg h2 { font-size: var(--step-card); letter-spacing: -.02em; }
+.dr .dlg h3 { letter-spacing: -.01em; }
+.dr .dlg .icon-btn { background: var(--surface-2); }
+.dr .rounds button { background: var(--surface-2); }
+.dr .rounds button[aria-pressed=true] { background: var(--ink); color: var(--bg); }
+.dr .search { border-radius: var(--radius); background: var(--bg); }
+.dr .tier-block h4 { border-radius: var(--radius); font-family: var(--font-text); font-weight: 650; }
+.dr .tier-block li { border-radius: 4px; background: var(--surface-2); }
+.dr .src { color: var(--ink); }

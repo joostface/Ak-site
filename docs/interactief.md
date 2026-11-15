@@ -65,3 +65,17 @@ onder **Interactief**. Daarna kun je titel, tekst en plaats aanpassen of het ite
   letters en hoeken komen uit het thema, en de id's hebben het voorvoegsel `ws-`. De satellietbeelden komen
   van Esri World Imagery (`server.arcgisonline.com`). Voortgang en statistieken staan in de browser van de
   speler (localStorage), er gaat niets naar de server.
+
+- **Drillion** (`assets/apps/drillion/`): zeven vragen met tientallen goede antwoorden; hoe zeldzamer het antwoord,
+  hoe dieper de boor. Het beginscherm is een gewone pagina van de site; het spel opent schermvullend als laag
+  erover. `basis.css` is de stijl van het origineel (afgeschermd binnen `.dr`), `drillion.css` de laag met de
+  kleuren, letters en hoeken van de site. Let op: binnen het spel is `--surface` een maat (hoogte van het
+  maaiveld), dus panelen gebruiken `--deep`. Vragen: `drillion-vragen.js`, afbeeldingen: `img/`.
+- **Stedenatlas** (`assets/apps/stedenatlas/`): de vijf grootste plaatsen van 197 landen op de kaart herkennen.
+  De atlas vult het scherm onder de kop van de site; de knop rechtsboven zet alleen de atlas schermvullend.
+  `basis.css` is het origineel (binnen `.sa`), `stedenatlas.css` de laag in de stijl van de site. Kaartdata:
+  `stedenatlas-data.js` (Natural Earth, GeoNames, City Population; bronnen staan in het spel zelf), d3:
+  `d3-geo.min.js` (ISC, zie `LICENSES.txt`).
+
+Opnieuw opbouwen uit een nieuwe versie van het originele HTML-bestand: de bouwscripts splitsen het bestand in
+data, afbeeldingen, code en stijl en geven alle id's een voorvoegsel. Ze staan in `tools/apps/` (bijvoorbeeld `python3 tools/apps/drillion.py Drillion.html wordpress/wp-content/plugins/aklokaal-core/assets/apps/drillion`; verwijder daarna `markup.html`, de sjabloon in `includes/` werk je zelf bij).
