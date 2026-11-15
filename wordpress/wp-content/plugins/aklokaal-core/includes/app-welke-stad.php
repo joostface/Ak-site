@@ -75,13 +75,13 @@ $ws_lead  = get_the_excerpt( $post_id );
 
   <!-- pogingen -->
   <div class="panel card" id="ws-pAtt">
-    <div class="ph"><div style="flex:1"><h2 style="font-size:23px">Uw Pogingen</h2><div class="sub" style="font-size:19px">Bekijk Vorige Pogingen</div></div><button class="x" data-x><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round"><circle cx="20" cy="20" r="14"/><path d="M15 15l10 10M25 15L15 25"/></svg></button></div>
+    <div class="ph"><div style="flex:1"><h2 style="font-size:23px">Uw Pogingen</h2><div class="sub" style="font-size:19px">Bekijk Vorige Pogingen</div></div><button class="x" data-x aria-label="Sluiten"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round"><circle cx="20" cy="20" r="14"/><path d="M15 15l10 10M25 15L15 25"/></svg></button></div>
     <div class="pbody" id="ws-attBody"></div>
   </div>
 
   <!-- generiek -->
   <div class="panel card" id="ws-pGen">
-    <div class="ph"><h2 id="ws-gTitle" style="font-size:25px;padding-top:6px"></h2><button class="x" data-x><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round"><circle cx="20" cy="20" r="14"/><path d="M15 15l10 10M25 15L15 25"/></svg></button></div>
+    <div class="ph"><h2 id="ws-gTitle" style="font-size:25px;padding-top:6px"></h2><button class="x" data-x aria-label="Sluiten"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round"><circle cx="20" cy="20" r="14"/><path d="M15 15l10 10M25 15L15 25"/></svg></button></div>
     <div class="pbody" id="ws-gBody"></div>
   </div>
 

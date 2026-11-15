@@ -81,7 +81,7 @@
 .ws .layer { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
 .ws .layer img { position: absolute; width: 256px; height: 256px; max-width: none; display: block; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 #ws-mk { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 3px solid #fff; background: #f08a24; box-shadow: 0 0 0 1.5px #c9641a, 0 1px 5px rgba(0,0,0,.5); pointer-events: none; display: none; z-index: 3; }
-#ws-attr { position: absolute; left: 0; bottom: 0; font-size: 9px; color: #fff; background: rgba(0,0,0,.35); padding: 1px 5px; z-index: 3; pointer-events: none; font-family: system-ui, sans-serif; }
+#ws-attr { position: absolute; left: 0; bottom: 0; font-size: 10px; color: #fff; background: rgba(0,0,0,.5); padding: 1px 5px; z-index: 3; pointer-events: none; font-family: system-ui, sans-serif; }
 .ws .cb { position: absolute; z-index: 4; width: 44px; height: 44px; border-radius: 50%; background: var(--ws-card); color: var(--ink); display: grid; place-items: center; box-shadow: 0 1px 5px rgba(0,0,0,.35); }
 .ws .cb:active { background: var(--surface-3); }
 .ws .cb svg { width: 24px; height: 24px; }

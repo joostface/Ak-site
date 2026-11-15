@@ -446,6 +446,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .breadcrumb a { color: var(--ink); }
 @media (max-width: 860px) {
   .page-title__inner { margin-left: 0; }
+  /* op een smal scherm is er geen as: alles begint links (zoekpagina, niet-gevonden) */
+  .on-axis { margin-left: 0; }
+}
+/* zoekformulier krimpt mee op het smalste scherm */
+.search-filters { grid-template-columns: minmax(0, 1fr); }
+.search-filters__row label { flex: 1 1 140px; min-width: 0; }
+.search-filters select { width: 100%; min-width: 0; }
+@media (max-width: 480px) {
+  /* lange woorden in koppen (Energiebronnen, Verstedelijking) breken af in plaats van buiten beeld te lopen */
+  h1, h2 { overflow-wrap: break-word; hyphens: auto; }
 }
 
 /* ---------- lesmateriaal: overzicht ---------- */
@@ -498,7 +508,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .paragraph { padding-top: 8px; }
 .paragraph + .paragraph { margin-top: clamp(96px, 10vw, 160px); }
 .paragraph__head { display: flex; align-items: baseline; gap: 16px; justify-content: space-between; }
-.paragraph__head h2 { font-size: var(--step-head); }
+.paragraph__head h2 { font-size: var(--step-head); min-width: 0; max-width: 100%; }
 .paragraph__head h2 .num { color: var(--muted); margin-right: 0.25em; font-variant-numeric: tabular-nums; }
 .anchor-copy {
   flex: none; border: 0; background: var(--surface); border-radius: var(--radius);
@@ -596,7 +606,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .zoomable__hint {
   position: absolute; right: 12px; bottom: 12px;
   display: inline-flex; gap: 6px; align-items: center;
-  background: var(--scrim); color: #f5f7f2;
+  background: rgba(10, 14, 12, 0.72); color: #f5f7f2;
   padding: 8px 12px; border-radius: var(--radius); font-size: var(--step-small);
 }
 .zoomable__hint svg { width: 16px; height: 16px; }
@@ -794,6 +804,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
 @keyframes drift { from { transform: scale(1.02); } to { transform: scale(1.1) translate(-1.5%, -1%); } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
+
+/* Laadt het script niet (storing, oude browser), dan blijft niets onzichtbaar. */
+.no-anim .lines [data-line], .no-anim .after-lines, .no-anim [data-reveal] > * { opacity: 1 !important; transform: none !important; animation: none !important; }
+
+/* ---------- afdrukken ---------- */
+@media print {
+  :root, :root[data-theme] { --bg: #fff; --surface: #fff; --surface-2: #f1f1f1; --surface-3: #e6e6e6; --ink: #000; --muted: #333; --accent: #1d5a36; --accent-ink: #fff; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  .site-header, .site-footer, .skip-link, .toc, .share-link, .admin-add, .akb, .lightbox, .search-dialog, .map-switch, iframe, video, .zoomable__hint, [data-search-open], [data-map-full] { display: none !important; }
+  .lines [data-line], .after-lines, [data-reveal] > * { opacity: 1 !important; transform: none !important; animation: none !important; }
+  .chapter { display: block; }
+  .page-title__inner, .on-axis { margin-left: 0; }
+  .page-title h1 { font-size: 28pt; }
+  .block, .band, .year-block { break-inside: avoid; }
+  a { text-decoration: underline; }
+  .prose a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; word-break: break-all; }
 }
 
 /* chips als link */

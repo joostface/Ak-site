@@ -64,10 +64,17 @@ add_action(
 		$uri = get_template_directory_uri() . '/assets/fonts';
 		printf( '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n", esc_url( $uri . '/young-serif-latin.woff2' ) );
 		printf( '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n", esc_url( $uri . '/source-serif-4-latin.woff2' ) );
-		echo "<script>(function(){var d=document.documentElement;d.classList.add('js');var t=null;try{t=localStorage.getItem('ak-theme');}catch(e){}var def=d.getAttribute('data-theme-default')||'dark';if(t==='light'||t==='dark')d.dataset.theme=t;else if(def!=='system')d.dataset.theme=def;})();</script>\n";
+		echo "<script>(function(){var d=document.documentElement;d.classList.add('js');var t=null;try{t=localStorage.getItem('ak-theme');}catch(e){}var def=d.getAttribute('data-theme-default')||'dark';if(t==='light'||t==='dark')d.dataset.theme=t;else if(def!=='system')d.dataset.theme=def;setTimeout(function(){if(!d.hasAttribute('data-ak-ready'))d.classList.add('no-anim');},3500);})();</script>\n";
 	},
 	1
 );
+
+/** Overbodige regels uit de kop: XML-RPC staat uit, dus ook geen verwijzing ernaar; geen korte link of WordPress-versie. */
+remove_action( 'wp_head', 'rsd_link' );
+remove_action( 'wp_head', 'wp_shortlink_wp_head' );
+remove_action( 'wp_head', 'wp_generator' );
+remove_action( 'template_redirect', 'wp_shortlink_header', 11 );
+add_filter( 'the_generator', '__return_empty_string' );
 
 /** Attributen op <html>: standaardmodus en zoek-API. */
 function aktheme_html_attrs() {

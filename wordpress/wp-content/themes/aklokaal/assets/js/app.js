@@ -365,6 +365,8 @@
 
   /* ---------- verschijnen bij scrollen ---------- */
   function initReveal() {
+    // Meldt dat het script draait; zonder dit signaal toont de pagina na een paar seconden alles zonder animatie.
+    document.documentElement.setAttribute('data-ak-ready', '');
     const els = $$('[data-reveal]');
     if (reduced || !('IntersectionObserver' in window)) { els.forEach((e) => e.classList.add('is-in')); return; }
     els.forEach((el) => [...el.children].forEach((c, i) => c.style.setProperty('--d', i)));
